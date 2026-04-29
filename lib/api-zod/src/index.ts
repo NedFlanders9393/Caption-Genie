@@ -1,6 +1,14 @@
 export * from "./generated/api";
 export type { CaptionItem } from "./generated/types/captionItem";
 export type { ErrorResponse } from "./generated/types/errorResponse";
+export type { GenerateCaptionsBodyCaptionLength } from "./generated/types/generateCaptionsBodyCaptionLength";
+export type { GenerateCaptionsBodyCtaType } from "./generated/types/generateCaptionsBodyCtaType";
 export type { GenerateCaptionsBodyNiche } from "./generated/types/generateCaptionsBodyNiche";
+export type { GenerateCaptionsBodyPlatform } from "./generated/types/generateCaptionsBodyPlatform";
+export type { GenerateCaptionsBodyPostType } from "./generated/types/generateCaptionsBodyPostType";
 export type { GenerateCaptionsBodyTone } from "./generated/types/generateCaptionsBodyTone";
+export type { GenerateHashtagsBody } from "./generated/types/generateHashtagsBody";
+export type { GenerateHashtagsResponse } from "./generated/types/generateHashtagsResponse";
+export type { GenerateHashtagsResponseGrouped } from "./generated/types/generateHashtagsResponseGrouped";
 export type { HealthStatus } from "./generated/types/healthStatus";
+export type { RegenerateOneCaptionBody } from "./generated/types/regenerateOneCaptionBody";

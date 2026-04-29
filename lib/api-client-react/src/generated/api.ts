@@ -17,10 +17,14 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  CaptionItem,
   ErrorResponse,
   GenerateCaptionsBody,
   GenerateCaptionsResponse,
+  GenerateHashtagsBody,
+  GenerateHashtagsResponse,
   HealthStatus,
+  RegenerateOneCaptionBody,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -192,4 +196,177 @@ export const useGenerateCaptions = <
   TContext
 > => {
   return useMutation(getGenerateCaptionsMutationOptions(options));
+};
+
+/**
+ * @summary Regenerate a single caption
+ */
+export const getRegenerateOneCaptionUrl = () => {
+  return `/api/captions/regenerate-one`;
+};
+
+export const regenerateOneCaption = async (
+  regenerateOneCaptionBody: RegenerateOneCaptionBody,
+  options?: RequestInit,
+): Promise<CaptionItem> => {
+  return customFetch<CaptionItem>(getRegenerateOneCaptionUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(regenerateOneCaptionBody),
+  });
+};
+
+export const getRegenerateOneCaptionMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof regenerateOneCaption>>,
+    TError,
+    { data: BodyType<RegenerateOneCaptionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof regenerateOneCaption>>,
+  TError,
+  { data: BodyType<RegenerateOneCaptionBody> },
+  TContext
+> => {
+  const mutationKey = ["regenerateOneCaption"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof regenerateOneCaption>>,
+    { data: BodyType<RegenerateOneCaptionBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return regenerateOneCaption(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RegenerateOneCaptionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof regenerateOneCaption>>
+>;
+export type RegenerateOneCaptionMutationBody =
+  BodyType<RegenerateOneCaptionBody>;
+export type RegenerateOneCaptionMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Regenerate a single caption
+ */
+export const useRegenerateOneCaption = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof regenerateOneCaption>>,
+    TError,
+    { data: BodyType<RegenerateOneCaptionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof regenerateOneCaption>>,
+  TError,
+  { data: BodyType<RegenerateOneCaptionBody> },
+  TContext
+> => {
+  return useMutation(getRegenerateOneCaptionMutationOptions(options));
+};
+
+/**
+ * @summary Generate trending hashtags for a niche and topic
+ */
+export const getGenerateHashtagsUrl = () => {
+  return `/api/captions/hashtags`;
+};
+
+export const generateHashtags = async (
+  generateHashtagsBody: GenerateHashtagsBody,
+  options?: RequestInit,
+): Promise<GenerateHashtagsResponse> => {
+  return customFetch<GenerateHashtagsResponse>(getGenerateHashtagsUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(generateHashtagsBody),
+  });
+};
+
+export const getGenerateHashtagsMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateHashtags>>,
+    TError,
+    { data: BodyType<GenerateHashtagsBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateHashtags>>,
+  TError,
+  { data: BodyType<GenerateHashtagsBody> },
+  TContext
+> => {
+  const mutationKey = ["generateHashtags"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateHashtags>>,
+    { data: BodyType<GenerateHashtagsBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return generateHashtags(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateHashtagsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateHashtags>>
+>;
+export type GenerateHashtagsMutationBody = BodyType<GenerateHashtagsBody>;
+export type GenerateHashtagsMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Generate trending hashtags for a niche and topic
+ */
+export const useGenerateHashtags = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateHashtags>>,
+    TError,
+    { data: BodyType<GenerateHashtagsBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateHashtags>>,
+  TError,
+  { data: BodyType<GenerateHashtagsBody> },
+  TContext
+> => {
+  return useMutation(getGenerateHashtagsMutationOptions(options));
 };

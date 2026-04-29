@@ -28,6 +28,32 @@ export const GenerateCaptionsBody = zod.object({
   ]),
   postDescription: zod.string(),
   tone: zod.enum(["Professional", "Casual", "Funny", "Inspirational"]),
+  platform: zod
+    .enum(["Instagram", "Facebook", "LinkedIn", "TikTok", "Twitter/X"])
+    .optional(),
+  postType: zod
+    .enum([
+      "Product Showcase",
+      "Sale/Promo",
+      "Behind the Scenes",
+      "Tips & Education",
+      "Announcement",
+      "Customer Story",
+    ])
+    .optional(),
+  captionLength: zod.enum(["Short", "Medium", "Long"]).optional(),
+  includeEmojis: zod.boolean().optional(),
+  ctaType: zod
+    .enum([
+      "None",
+      "Shop Now",
+      "Link in Bio",
+      "DM Us",
+      "Comment Below",
+      "Tag a Friend",
+      "Save This Post",
+    ])
+    .optional(),
 });
 
 export const GenerateCaptionsResponse = zod.object({
@@ -37,4 +63,45 @@ export const GenerateCaptionsResponse = zod.object({
       hashtags: zod.string(),
     }),
   ),
+});
+
+/**
+ * @summary Regenerate a single caption
+ */
+export const RegenerateOneCaptionBody = zod.object({
+  niche: zod.string(),
+  postDescription: zod.string(),
+  tone: zod.string(),
+  platform: zod.string().optional(),
+  postType: zod.string().optional(),
+  captionLength: zod.string().optional(),
+  includeEmojis: zod.boolean().optional(),
+  ctaType: zod.string().optional(),
+  existingCaptions: zod
+    .array(zod.string())
+    .optional()
+    .describe("Captions already shown so the new one is different"),
+});
+
+export const RegenerateOneCaptionResponse = zod.object({
+  caption: zod.string(),
+  hashtags: zod.string(),
+});
+
+/**
+ * @summary Generate trending hashtags for a niche and topic
+ */
+export const GenerateHashtagsBody = zod.object({
+  niche: zod.string(),
+  topic: zod.string(),
+  platform: zod.string().optional(),
+});
+
+export const GenerateHashtagsResponse = zod.object({
+  hashtags: zod.array(zod.string()),
+  grouped: zod.object({
+    niche: zod.array(zod.string()),
+    trending: zod.array(zod.string()),
+    broad: zod.array(zod.string()),
+  }),
 });

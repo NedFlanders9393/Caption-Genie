@@ -30,10 +30,60 @@ export const GenerateCaptionsBodyTone = {
   Inspirational: "Inspirational",
 } as const;
 
+export type GenerateCaptionsBodyPlatform =
+  (typeof GenerateCaptionsBodyPlatform)[keyof typeof GenerateCaptionsBodyPlatform];
+
+export const GenerateCaptionsBodyPlatform = {
+  Instagram: "Instagram",
+  Facebook: "Facebook",
+  LinkedIn: "LinkedIn",
+  TikTok: "TikTok",
+  "Twitter/X": "Twitter/X",
+} as const;
+
+export type GenerateCaptionsBodyPostType =
+  (typeof GenerateCaptionsBodyPostType)[keyof typeof GenerateCaptionsBodyPostType];
+
+export const GenerateCaptionsBodyPostType = {
+  Product_Showcase: "Product Showcase",
+  "Sale/Promo": "Sale/Promo",
+  Behind_the_Scenes: "Behind the Scenes",
+  "Tips_&_Education": "Tips & Education",
+  Announcement: "Announcement",
+  Customer_Story: "Customer Story",
+} as const;
+
+export type GenerateCaptionsBodyCaptionLength =
+  (typeof GenerateCaptionsBodyCaptionLength)[keyof typeof GenerateCaptionsBodyCaptionLength];
+
+export const GenerateCaptionsBodyCaptionLength = {
+  Short: "Short",
+  Medium: "Medium",
+  Long: "Long",
+} as const;
+
+export type GenerateCaptionsBodyCtaType =
+  (typeof GenerateCaptionsBodyCtaType)[keyof typeof GenerateCaptionsBodyCtaType];
+
+export const GenerateCaptionsBodyCtaType = {
+  None: "None",
+  Shop_Now: "Shop Now",
+  Link_in_Bio: "Link in Bio",
+  DM_Us: "DM Us",
+  Comment_Below: "Comment Below",
+  Tag_a_Friend: "Tag a Friend",
+  Save_This_Post: "Save This Post",
+} as const;
+
 export interface GenerateCaptionsBody {
   niche: GenerateCaptionsBodyNiche;
   postDescription: string;
   tone: GenerateCaptionsBodyTone;
+  platform?: GenerateCaptionsBodyPlatform;
+  postType?: GenerateCaptionsBodyPostType;
+  captionLength?: GenerateCaptionsBodyCaptionLength;
+  includeEmojis?: boolean;
+  ctaType?: GenerateCaptionsBodyCtaType;
 }
 
 export interface CaptionItem {
@@ -43,6 +93,36 @@ export interface CaptionItem {
 
 export interface GenerateCaptionsResponse {
   captions: CaptionItem[];
+}
+
+export interface RegenerateOneCaptionBody {
+  niche: string;
+  postDescription: string;
+  tone: string;
+  platform?: string;
+  postType?: string;
+  captionLength?: string;
+  includeEmojis?: boolean;
+  ctaType?: string;
+  /** Captions already shown so the new one is different */
+  existingCaptions?: string[];
+}
+
+export interface GenerateHashtagsBody {
+  niche: string;
+  topic: string;
+  platform?: string;
+}
+
+export type GenerateHashtagsResponseGrouped = {
+  niche: string[];
+  trending: string[];
+  broad: string[];
+};
+
+export interface GenerateHashtagsResponse {
+  hashtags: string[];
+  grouped: GenerateHashtagsResponseGrouped;
 }
 
 export interface ErrorResponse {

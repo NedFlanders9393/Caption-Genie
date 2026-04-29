@@ -56,6 +56,66 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /captions/regenerate-one:
+    post:
+      operationId: regenerateOneCaption
+      tags: [captions]
+      summary: Regenerate a single caption
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegenerateOneCaptionBody"
+      responses:
+        "200":
+          description: Regenerated caption
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaptionItem"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /captions/hashtags:
+    post:
+      operationId: generateHashtags
+      tags: [captions]
+      summary: Generate trending hashtags for a niche and topic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateHashtagsBody"
+      responses:
+        "200":
+          description: Generated hashtags
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateHashtagsResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -85,6 +145,41 @@ components:
             - Casual
             - Funny
             - Inspirational
+        platform:
+          type: string
+          enum:
+            - Instagram
+            - Facebook
+            - LinkedIn
+            - TikTok
+            - Twitter/X
+        postType:
+          type: string
+          enum:
+            - Product Showcase
+            - Sale/Promo
+            - Behind the Scenes
+            - Tips & Education
+            - Announcement
+            - Customer Story
+        captionLength:
+          type: string
+          enum:
+            - Short
+            - Medium
+            - Long
+        includeEmojis:
+          type: boolean
+        ctaType:
+          type: string
+          enum:
+            - None
+            - Shop Now
+            - Link in Bio
+            - DM Us
+            - Comment Below
+            - Tag a Friend
+            - Save This Post
       required:
         - niche
         - postDescription
@@ -108,6 +203,75 @@ components:
             $ref: "#/components/schemas/CaptionItem"
       required:
         - captions
+    RegenerateOneCaptionBody:
+      type: object
+      properties:
+        niche:
+          type: string
+        postDescription:
+          type: string
+        tone:
+          type: string
+        platform:
+          type: string
+        postType:
+          type: string
+        captionLength:
+          type: string
+        includeEmojis:
+          type: boolean
+        ctaType:
+          type: string
+        existingCaptions:
+          type: array
+          items:
+            type: string
+          description: Captions already shown so the new one is different
+      required:
+        - niche
+        - postDescription
+        - tone
+    GenerateHashtagsBody:
+      type: object
+      properties:
+        niche:
+          type: string
+        topic:
+          type: string
+        platform:
+          type: string
+      required:
+        - niche
+        - topic
+    GenerateHashtagsResponse:
+      type: object
+      properties:
+        hashtags:
+          type: array
+          items:
+            type: string
+        grouped:
+          type: object
+          properties:
+            niche:
+              type: array
+              items:
+                type: string
+            trending:
+              type: array
+              items:
+                type: string
+            broad:
+              type: array
+              items:
+                type: string
+          required:
+            - niche
+            - trending
+            - broad
+      required:
+        - hashtags
+        - grouped
     ErrorResponse:
       type: object
       properties:

@@ -2,6 +2,7 @@ import { useAuth, useSignIn } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -49,10 +50,16 @@ export default function SignInPage() {
 
   const handleSubmit = async () => {
     setGeneralError(null);
+    if (!signIn) {
+      Alert.alert("Error", "Auth service not ready. Please restart the app.");
+      return;
+    }
     try {
-      const { error } = await signIn.password({ emailAddress, password });
-      if (error) {
-        setGeneralError(error.message ?? "Sign-in failed. Please try again.");
+      const result = await signIn.password({ emailAddress, password });
+      if (result?.error) {
+        const msg = result.error.message ?? "Sign-in failed. Please try again.";
+        setGeneralError(msg);
+        Alert.alert("Sign in failed", msg);
         return;
       }
 
@@ -62,11 +69,15 @@ export default function SignInPage() {
             router.replace("/(tabs)");
           },
         });
-      } else if (signIn.status === "needs_client_trust") {
-        await signIn.mfa.sendEmailCode();
+      } else {
+        const msg = `Unexpected status: ${signIn.status}. Please try again.`;
+        setGeneralError(msg);
+        Alert.alert("Sign in issue", msg);
       }
     } catch (err: any) {
-      setGeneralError(err?.message ?? "Something went wrong. Please try again.");
+      const msg = err?.message ?? "Something went wrong. Please try again.";
+      setGeneralError(msg);
+      Alert.alert("Sign in error", msg);
     }
   };
 

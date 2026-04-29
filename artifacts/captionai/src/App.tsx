@@ -94,7 +94,20 @@ const POST_TYPES = [
   "User-Generated Content",
 ];
 
-const TONES = ["Professional", "Casual", "Funny", "Inspirational"];
+const TONES = [
+  "Professional",
+  "Casual",
+  "Funny",
+  "Inspirational",
+  "Storytelling",
+  "Bold",
+  "Empowering",
+  "Heartfelt",
+  "Witty",
+  "Luxurious",
+  "Playful",
+  "Authentic",
+];
 const LENGTHS = ["Short", "Medium", "Long"];
 const CTAS = [
   "None",
@@ -570,21 +583,16 @@ function CaptionAIApp() {
                 {/* Tone Selector */}
                 <section className="flex flex-col gap-3">
                   <label className="text-sm font-semibold text-foreground">Tone of Voice</label>
-                  <div className="flex flex-wrap gap-2">
-                    {TONES.map((t) => (
-                      <button
-                        key={t}
-                        onClick={() => setTone(t)}
-                        className={`px-3 py-1.5 rounded-full text-sm transition-all ${
-                          tone === t
-                            ? "bg-primary text-primary-foreground shadow-sm"
-                            : "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-transparent"
-                        }`}
-                      >
-                        {t}
-                      </button>
-                    ))}
-                  </div>
+                  <Select value={tone} onValueChange={setTone}>
+                    <SelectTrigger className="w-full rounded-xl border-border bg-card h-12 text-sm focus:ring-primary">
+                      <SelectValue placeholder="Select a tone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TONES.map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </section>
 
                 {/* Caption Controls */}

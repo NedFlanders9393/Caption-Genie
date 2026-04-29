@@ -162,6 +162,14 @@ components:
             - Casual
             - Funny
             - Inspirational
+            - Storytelling
+            - Bold
+            - Empowering
+            - Heartfelt
+            - Witty
+            - Luxurious
+            - Playful
+            - Authentic
         platform:
           type: string
           enum:

@@ -45,6 +45,14 @@ export const GenerateCaptionsBodyTone = {
   Casual: "Casual",
   Funny: "Funny",
   Inspirational: "Inspirational",
+  Storytelling: "Storytelling",
+  Bold: "Bold",
+  Empowering: "Empowering",
+  Heartfelt: "Heartfelt",
+  Witty: "Witty",
+  Luxurious: "Luxurious",
+  Playful: "Playful",
+  Authentic: "Authentic",
 } as const;
 
 export type GenerateCaptionsBodyPlatform =

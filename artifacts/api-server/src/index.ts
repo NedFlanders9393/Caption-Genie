@@ -1,5 +1,3 @@
-import { runMigrations } from 'stripe-replit-sync';
-import { getStripeSync } from "./stripeClient.js";
 import app from "./app.js";
 import { logger } from "./lib/logger.js";
 
@@ -18,24 +16,31 @@ if (Number.isNaN(port) || port <= 0) {
 }
 
 async function initStripe() {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    throw new Error('DATABASE_URL environment variable is required for Stripe integration.');
+  try {
+    const { runMigrations } = await import('stripe-replit-sync');
+    const { getStripeSync } = await import('./stripeClient.js');
+
+    const databaseUrl = process.env.DATABASE_URL;
+    if (!databaseUrl) {
+      logger.warn('DATABASE_URL not set — skipping Stripe initialization');
+      return;
+    }
+
+    logger.info('Initializing Stripe schema...');
+    await runMigrations({ databaseUrl, schema: 'stripe' });
+    logger.info('Stripe schema ready');
+
+    const stripeSync = await getStripeSync();
+    const webhookBaseUrl = `https://${(process.env.REPLIT_DOMAINS ?? '').split(',')[0]}`;
+    await stripeSync.findOrCreateManagedWebhook(`${webhookBaseUrl}/api/stripe/webhook`);
+    logger.info('Stripe webhook configured');
+
+    stripeSync.syncBackfill()
+      .then(() => logger.info('Stripe data synced'))
+      .catch((err) => logger.error({ err }, 'Error syncing Stripe data'));
+  } catch (err) {
+    logger.warn({ err }, 'Stripe initialization skipped — credentials not available');
   }
-
-  logger.info('Initializing Stripe schema...');
-  await runMigrations({ databaseUrl, schema: 'stripe' });
-  logger.info('Stripe schema ready');
-
-  const stripeSync = await getStripeSync();
-
-  const webhookBaseUrl = `https://${(process.env.REPLIT_DOMAINS ?? '').split(',')[0]}`;
-  await stripeSync.findOrCreateManagedWebhook(`${webhookBaseUrl}/api/stripe/webhook`);
-  logger.info('Stripe webhook configured');
-
-  stripeSync.syncBackfill()
-    .then(() => logger.info('Stripe data synced'))
-    .catch((err) => logger.error({ err }, 'Error syncing Stripe data'));
 }
 
 await initStripe();

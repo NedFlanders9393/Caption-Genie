@@ -1,0 +1,227 @@
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Platform,
+  Alert,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Feather } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+import * as Haptics from "expo-haptics";
+import { useColors } from "@/hooks/useColors";
+import { useApp } from "@/context/AppContext";
+import type { HistoryEntry } from "@/lib/storage";
+
+function HistoryItem({
+  item,
+  onDelete,
+  colors,
+}: {
+  item: HistoryEntry;
+  onDelete: (id: string) => void;
+  colors: any;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+
+  const date = new Date(item.createdAt);
+  const timeStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+  const handleCopy = async (caption: string, hashtags: string, idx: number) => {
+    const text = hashtags ? `${caption}\n\n${hashtags}` : caption;
+    await Clipboard.setStringAsync(text);
+    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 2000);
+  };
+
+  const handleDelete = () => {
+    if (Platform.OS === "web") {
+      onDelete(item.id);
+      return;
+    }
+    Alert.alert("Delete", "Remove this entry from history?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: () => onDelete(item.id) },
+    ]);
+  };
+
+  return (
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.card,
+          borderColor: colors.border,
+          borderRadius: colors.radius,
+        },
+      ]}
+    >
+      <TouchableOpacity onPress={() => setExpanded((v) => !v)} activeOpacity={0.7}>
+        <View style={styles.cardHeader}>
+          <View style={styles.cardMeta}>
+            <Text style={[styles.cardNiche, { color: colors.foreground }]}>
+              {item.params.niche}
+            </Text>
+            <Text style={[styles.cardSub, { color: colors.mutedForeground }]}>
+              {item.params.platform} · {item.params.tone} · {timeStr}
+            </Text>
+          </View>
+          <View style={styles.cardActions}>
+            <TouchableOpacity onPress={handleDelete} style={styles.iconBtn} activeOpacity={0.7}>
+              <Feather name="trash-2" size={16} color={colors.mutedForeground} />
+            </TouchableOpacity>
+            <Feather
+              name={expanded ? "chevron-up" : "chevron-down"}
+              size={18}
+              color={colors.mutedForeground}
+            />
+          </View>
+        </View>
+        {!expanded && (
+          <Text style={[styles.preview, { color: colors.mutedForeground }]} numberOfLines={2}>
+            {item.captions[0]?.caption ?? ""}
+          </Text>
+        )}
+      </TouchableOpacity>
+
+      {expanded && (
+        <View style={styles.captionList}>
+          {item.captions.map((c, i) => (
+            <View
+              key={i}
+              style={[styles.captionItem, { borderTopColor: colors.border, borderTopWidth: i > 0 ? StyleSheet.hairlineWidth : 0 }]}
+            >
+              <Text style={[styles.captionText, { color: colors.foreground }]}>{c.caption}</Text>
+              {c.hashtags ? (
+                <Text style={[styles.hashtagText, { color: colors.primary }]}>{c.hashtags}</Text>
+              ) : null}
+              <TouchableOpacity
+                onPress={() => handleCopy(c.caption, c.hashtags, i)}
+                style={styles.copyRow}
+                activeOpacity={0.7}
+              >
+                <Feather
+                  name={copiedIdx === i ? "check" : "copy"}
+                  size={14}
+                  color={copiedIdx === i ? colors.primary : colors.mutedForeground}
+                />
+                <Text style={[styles.copyText, { color: copiedIdx === i ? colors.primary : colors.mutedForeground }]}>
+                  {copiedIdx === i ? "Copied" : "Copy"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
+export default function HistoryScreen() {
+  const colors = useColors();
+  const insets = useSafeAreaInsets();
+  const { history, removeFromHistory, wipeHistory } = useApp();
+
+  const handleClearAll = () => {
+    if (Platform.OS === "web") {
+      wipeHistory();
+      return;
+    }
+    Alert.alert("Clear History", "Delete all saved captions?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Clear All", style: "destructive", onPress: wipeHistory },
+    ]);
+  };
+
+  const bottomPad = Platform.OS === "web" ? 34 + 84 : insets.bottom + 90;
+  const topPad = Platform.OS === "web" ? 67 : insets.top + 16;
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <FlatList
+        data={history}
+        keyExtractor={(item) => item.id}
+        scrollEnabled={!!history.length}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingTop: topPad, paddingBottom: bottomPad },
+        ]}
+        ListHeaderComponent={
+          <View style={styles.listHeader}>
+            <Text style={[styles.title, { color: colors.foreground }]}>History</Text>
+            {history.length > 0 && (
+              <TouchableOpacity onPress={handleClearAll} activeOpacity={0.7}>
+                <Text style={[styles.clearText, { color: colors.destructive }]}>Clear all</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        }
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <Feather name="clock" size={40} color={colors.border} />
+            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No history yet</Text>
+            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
+              Generated captions will appear here
+            </Text>
+          </View>
+        }
+        renderItem={({ item }) => (
+          <HistoryItem item={item} onDelete={removeFromHistory} colors={colors} />
+        )}
+        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  listContent: { paddingHorizontal: 16, gap: 0 },
+  listHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 26,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: -0.5,
+  },
+  clearText: {
+    fontSize: 14,
+    fontFamily: "Inter_500Medium",
+  },
+  card: {
+    borderWidth: 1.5,
+    padding: 14,
+    gap: 10,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  cardMeta: { flex: 1, gap: 2 },
+  cardNiche: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  cardSub: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  cardActions: { flexDirection: "row", alignItems: "center", gap: 4 },
+  iconBtn: { padding: 4 },
+  preview: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 19 },
+  captionList: { gap: 0 },
+  captionItem: { paddingTop: 12, gap: 6 },
+  captionText: { fontSize: 14, lineHeight: 21, fontFamily: "Inter_400Regular" },
+  hashtagText: { fontSize: 12, fontFamily: "Inter_500Medium", lineHeight: 18 },
+  copyRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  copyText: { fontSize: 13, fontFamily: "Inter_500Medium" },
+  empty: { alignItems: "center", justifyContent: "center", paddingTop: 80, gap: 12 },
+  emptyTitle: { fontSize: 18, fontFamily: "Inter_600SemiBold" },
+  emptyText: { fontSize: 14, fontFamily: "Inter_400Regular", textAlign: "center" },
+});

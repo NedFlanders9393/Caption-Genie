@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "NK4YPovVEUGLfxzFAcM3I"
+uri = "file://artifacts/captionai-mobile/assets/images/icon.png"
+type = "image"
+title = "captionai app icon"

@@ -51,6 +51,23 @@ const NICHES = [
   "Restaurant",
   "Boutique/Shop",
   "General Business",
+  "Beauty/Salon",
+  "Photography",
+  "Coaching/Consulting",
+  "Healthcare/Wellness",
+  "E-commerce",
+  "Event Planning",
+  "Pet Care",
+  "Education/Tutoring",
+  "Home Services",
+  "Law Firm",
+  "Coffee Shop",
+  "Yoga Studio",
+  "Automotive",
+  "Marketing Agency",
+  "Non-Profit",
+  "Travel/Tourism",
+  "Dental/Medical",
 ];
 
 const POST_TYPES = [

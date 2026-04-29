@@ -72,11 +72,26 @@ const NICHES = [
 
 const POST_TYPES = [
   "Product Showcase",
+  "New Arrival",
   "Sale/Promo",
+  "Flash Sale",
+  "Limited Time Offer",
+  "Giveaway/Contest",
   "Behind the Scenes",
+  "Day in the Life",
+  "Team Spotlight",
   "Tips & Education",
+  "How-To/Tutorial",
+  "Q&A",
   "Announcement",
+  "Milestone/Celebration",
+  "Seasonal/Holiday",
   "Customer Story",
+  "Testimonial/Review",
+  "Before & After",
+  "Motivational Quote",
+  "Community Post",
+  "User-Generated Content",
 ];
 
 const TONES = ["Professional", "Casual", "Funny", "Inspirational"];
@@ -508,21 +523,16 @@ function CaptionAIApp() {
                 {/* Industry Selector */}
                 <section className="flex flex-col gap-3">
                   <label className="text-sm font-semibold text-foreground">Your Industry</label>
-                  <div className="flex flex-wrap gap-2">
-                    {NICHES.map((n) => (
-                      <button
-                        key={n}
-                        onClick={() => setNiche(n)}
-                        className={`px-3 py-1.5 rounded-full text-sm transition-all ${
-                          niche === n
-                            ? "bg-primary/10 text-primary font-medium border border-primary/30"
-                            : "bg-card border text-muted-foreground hover:bg-secondary/50"
-                        }`}
-                      >
-                        {n}
-                      </button>
-                    ))}
-                  </div>
+                  <Select value={niche} onValueChange={setNiche}>
+                    <SelectTrigger className="w-full rounded-xl border-border bg-card h-12 text-sm focus:ring-primary">
+                      <SelectValue placeholder="Select your industry" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {NICHES.map((n) => (
+                        <SelectItem key={n} value={n}>{n}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </section>
 
                 {/* Post Type Selector */}
@@ -531,21 +541,17 @@ function CaptionAIApp() {
                     <label className="text-sm font-semibold text-foreground">Post Type</label>
                     <span className="text-xs text-muted-foreground">Optional</span>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {POST_TYPES.map((t) => (
-                      <button
-                        key={t}
-                        onClick={() => setPostType(postType === t ? "" : t)}
-                        className={`px-3 py-1.5 rounded-full text-sm transition-all ${
-                          postType === t
-                            ? "bg-primary/10 text-primary font-medium border border-primary/30"
-                            : "bg-card border text-muted-foreground hover:bg-secondary/50"
-                        }`}
-                      >
-                        {t}
-                      </button>
-                    ))}
-                  </div>
+                  <Select value={postType || "__none__"} onValueChange={(v) => setPostType(v === "__none__" ? "" : v)}>
+                    <SelectTrigger className="w-full rounded-xl border-border bg-card h-12 text-sm focus:ring-primary">
+                      <SelectValue placeholder="Choose a post type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">No specific type</SelectItem>
+                      {POST_TYPES.map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </section>
 
                 {/* Description Textarea */}

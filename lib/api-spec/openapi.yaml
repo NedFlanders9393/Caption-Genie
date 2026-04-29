@@ -174,11 +174,26 @@ components:
           type: string
           enum:
             - Product Showcase
+            - New Arrival
             - Sale/Promo
+            - Flash Sale
+            - Limited Time Offer
+            - Giveaway/Contest
             - Behind the Scenes
+            - Day in the Life
+            - Team Spotlight
             - Tips & Education
+            - How-To/Tutorial
+            - Q&A
             - Announcement
+            - Milestone/Celebration
+            - Seasonal/Holiday
             - Customer Story
+            - Testimonial/Review
+            - Before & After
+            - Motivational Quote
+            - Community Post
+            - User-Generated Content
         captionLength:
           type: string
           enum:

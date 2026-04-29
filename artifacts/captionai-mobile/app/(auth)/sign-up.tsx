@@ -1,6 +1,6 @@
 import { useAuth, useSignUp } from "@clerk/expo";
-import { type Href, Link, useRouter } from "expo-router";
-import React, { useState } from "react";
+import { Link, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -21,7 +21,9 @@ const MUTED = "#6B7280";
 const INPUT_BG = "#FFFFFF";
 const INPUT_BORDER = "#E5E7EB";
 const INPUT_BORDER_FOCUS = "#7C3AED";
-const ERROR = "#DC2626";
+const ERROR_COLOR = "#DC2626";
+const ERROR_BG = "#FEF2F2";
+const ERROR_BORDER = "#FECACA";
 
 export default function SignUpPage() {
   const { signUp, errors, fetchStatus } = useSignUp();
@@ -31,33 +33,55 @@ export default function SignUpPage() {
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
+  const [generalError, setGeneralError] = useState<string | null>(null);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [codeFocused, setCodeFocused] = useState(false);
 
   const isLoading = fetchStatus === "fetching";
 
+  // Auto-navigate when auth state updates
+  useEffect(() => {
+    if (isSignedIn) {
+      router.replace("/(tabs)");
+    }
+  }, [isSignedIn]);
+
   const handleSubmit = async () => {
-    const { error } = await signUp.password({ emailAddress, password });
-    if (error) return;
-    if (!error) await signUp.verifications.sendEmailCode();
+    setGeneralError(null);
+    try {
+      const { error } = await signUp.password({ emailAddress, password });
+      if (error) {
+        setGeneralError(error.message ?? "Something went wrong. Please try again.");
+        return;
+      }
+      await signUp.verifications.sendEmailCode();
+    } catch (err: any) {
+      setGeneralError(err?.message ?? "Something went wrong. Please try again.");
+    }
   };
 
   const handleVerify = async () => {
-    await signUp.verifications.verifyEmailCode({ code });
-    if (signUp.status === "complete") {
-      await signUp.finalize({
-        navigate: ({ decorateUrl }) => {
-          const url = decorateUrl("/");
-          if (url.startsWith("http")) return;
-          router.replace(url as Href);
-        },
-      });
+    setGeneralError(null);
+    try {
+      await signUp.verifications.verifyEmailCode({ code });
+      if (signUp.status === "complete") {
+        await signUp.finalize({
+          navigate: () => {
+            router.replace("/(tabs)");
+          },
+        });
+      } else {
+        setGeneralError("Verification incomplete. Please try again.");
+      }
+    } catch (err: any) {
+      setGeneralError(err?.message ?? "Verification failed. Please try again.");
     }
   };
 
   if (signUp.status === "complete" || isSignedIn) return null;
 
+  // Verification step
   if (
     signUp.status === "missing_requirements" &&
     signUp.unverifiedFields.includes("email_address") &&
@@ -84,6 +108,12 @@ export default function SignUpPage() {
             </View>
 
             <View style={styles.form}>
+              {generalError && (
+                <View style={styles.errorBox}>
+                  <Text style={styles.errorBoxText}>{generalError}</Text>
+                </View>
+              )}
+
               <View style={styles.field}>
                 <Text style={styles.label}>Verification code</Text>
                 <TextInput
@@ -97,7 +127,7 @@ export default function SignUpPage() {
                   onBlur={() => setCodeFocused(false)}
                 />
                 {errors.fields.code && (
-                  <Text style={styles.error}>{errors.fields.code.message}</Text>
+                  <Text style={styles.fieldError}>{errors.fields.code.message}</Text>
                 )}
               </View>
 
@@ -117,7 +147,13 @@ export default function SignUpPage() {
 
               <Pressable
                 style={styles.textButton}
-                onPress={() => signUp.verifications.sendEmailCode()}
+                onPress={async () => {
+                  try {
+                    await signUp.verifications.sendEmailCode();
+                  } catch (err: any) {
+                    setGeneralError(err?.message ?? "Failed to resend. Please try again.");
+                  }
+                }}
               >
                 <Text style={styles.textButtonText}>Resend code</Text>
               </Pressable>
@@ -128,6 +164,7 @@ export default function SignUpPage() {
     );
   }
 
+  // Sign-up form
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
@@ -146,6 +183,12 @@ export default function SignUpPage() {
           </View>
 
           <View style={styles.form}>
+            {generalError && (
+              <View style={styles.errorBox}>
+                <Text style={styles.errorBoxText}>{generalError}</Text>
+              </View>
+            )}
+
             <View style={styles.field}>
               <Text style={styles.label}>Email</Text>
               <TextInput
@@ -162,7 +205,7 @@ export default function SignUpPage() {
                 onBlur={() => setEmailFocused(false)}
               />
               {errors.fields.emailAddress && (
-                <Text style={styles.error}>{errors.fields.emailAddress.message}</Text>
+                <Text style={styles.fieldError}>{errors.fields.emailAddress.message}</Text>
               )}
             </View>
 
@@ -181,7 +224,7 @@ export default function SignUpPage() {
                 onBlur={() => setPasswordFocused(false)}
               />
               {errors.fields.password && (
-                <Text style={styles.error}>{errors.fields.password.message}</Text>
+                <Text style={styles.fieldError}>{errors.fields.password.message}</Text>
               )}
             </View>
 
@@ -270,6 +313,19 @@ const styles = StyleSheet.create({
   form: {
     gap: 16,
   },
+  errorBox: {
+    backgroundColor: ERROR_BG,
+    borderWidth: 1,
+    borderColor: ERROR_BORDER,
+    borderRadius: 10,
+    padding: 12,
+  },
+  errorBoxText: {
+    fontSize: 14,
+    color: ERROR_COLOR,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 20,
+  },
   field: {
     gap: 6,
   },
@@ -298,9 +354,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  error: {
+  fieldError: {
     fontSize: 13,
-    color: ERROR,
+    color: ERROR_COLOR,
     fontFamily: "Inter_400Regular",
     marginTop: 2,
   },

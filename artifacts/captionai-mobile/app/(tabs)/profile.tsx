@@ -1,0 +1,265 @@
+import { useAuth, useUser } from "@clerk/expo";
+import { Feather } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React from "react";
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useApp } from "@/context/AppContext";
+
+const PRIMARY = "#7C3AED";
+
+const BG = "#FAFAFA";
+const FOREGROUND = "#19141F";
+const MUTED = "#6B7280";
+const CARD_BG = "#FFFFFF";
+const CARD_BORDER = "#F3F4F6";
+const DANGER = "#DC2626";
+
+export default function ProfileScreen() {
+  const { user } = useUser();
+  const { signOut } = useAuth();
+  const router = useRouter();
+  const { usageCount: generationCount, freeLimit: FREE_LIMIT } = useApp();
+
+  const initials = user?.firstName && user?.lastName
+    ? `${user.firstName[0]}${user.lastName[0]}`
+    : user?.firstName
+    ? user.firstName[0]
+    : user?.emailAddresses[0]?.emailAddress?.[0]?.toUpperCase() ?? "?";
+
+  const displayName = user?.firstName
+    ? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ""}`
+    : user?.emailAddresses[0]?.emailAddress ?? "User";
+
+  const email = user?.emailAddresses[0]?.emailAddress ?? "";
+
+  const handleSignOut = () => {
+    Alert.alert("Sign out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign out",
+        style: "destructive",
+        onPress: async () => {
+          await signOut();
+          router.replace("/(auth)/sign-in");
+        },
+      },
+    ]);
+  };
+
+  const usagePercent = Math.min((generationCount / FREE_LIMIT) * 100, 100);
+  const remaining = Math.max(FREE_LIMIT - generationCount, 0);
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
+        <Text style={styles.pageTitle}>Profile</Text>
+
+        {/* Avatar + Name */}
+        <View style={styles.avatarCard}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{initials}</Text>
+          </View>
+          <Text style={styles.displayName}>{displayName}</Text>
+          <Text style={styles.email}>{email}</Text>
+        </View>
+
+        {/* Usage */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Monthly usage</Text>
+          <View style={styles.usageRow}>
+            <Text style={styles.usageLabel}>Free generations used</Text>
+            <Text style={styles.usageCount}>
+              {generationCount} / {FREE_LIMIT}
+            </Text>
+          </View>
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressFill, { width: `${usagePercent}%` as any }]} />
+          </View>
+          {remaining > 0 ? (
+            <Text style={styles.usageSub}>
+              {remaining} generation{remaining !== 1 ? "s" : ""} remaining this month
+            </Text>
+          ) : (
+            <Text style={[styles.usageSub, { color: DANGER }]}>
+              Monthly limit reached
+            </Text>
+          )}
+        </View>
+
+        {/* Account */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Account</Text>
+          <View style={styles.infoRow}>
+            <Feather name="mail" size={16} color={MUTED} />
+            <Text style={styles.infoText}>{email}</Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.infoRow}>
+            <Feather name="shield" size={16} color={MUTED} />
+            <Text style={styles.infoText}>Free plan</Text>
+          </View>
+        </View>
+
+        {/* Sign out */}
+        <Pressable
+          style={({ pressed }) => [styles.signOutButton, pressed && styles.signOutPressed]}
+          onPress={handleSignOut}
+        >
+          <Feather name="log-out" size={16} color={DANGER} />
+          <Text style={styles.signOutText}>Sign out</Text>
+        </Pressable>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: BG },
+  scroll: { flex: 1 },
+  container: {
+    padding: 20,
+    paddingBottom: 100,
+    gap: 16,
+  },
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: FOREGROUND,
+    fontFamily: "Inter_700Bold",
+    marginBottom: 8,
+  },
+  avatarCard: {
+    backgroundColor: CARD_BG,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: CARD_BORDER,
+    padding: 24,
+    alignItems: "center",
+    gap: 8,
+  },
+  avatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: PRIMARY,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+    shadowColor: PRIMARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  avatarText: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    fontFamily: "Inter_700Bold",
+  },
+  displayName: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: FOREGROUND,
+    fontFamily: "Inter_700Bold",
+    textAlign: "center",
+  },
+  email: {
+    fontSize: 14,
+    color: MUTED,
+    fontFamily: "Inter_400Regular",
+    textAlign: "center",
+  },
+  card: {
+    backgroundColor: CARD_BG,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: CARD_BORDER,
+    padding: 20,
+    gap: 12,
+  },
+  cardTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: MUTED,
+    fontFamily: "Inter_600SemiBold",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  usageRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  usageLabel: {
+    fontSize: 14,
+    color: FOREGROUND,
+    fontFamily: "Inter_400Regular",
+  },
+  usageCount: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: PRIMARY,
+    fontFamily: "Inter_600SemiBold",
+  },
+  progressTrack: {
+    height: 8,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: PRIMARY,
+    borderRadius: 4,
+  },
+  usageSub: {
+    fontSize: 13,
+    color: MUTED,
+    fontFamily: "Inter_400Regular",
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  infoText: {
+    fontSize: 15,
+    color: FOREGROUND,
+    fontFamily: "Inter_400Regular",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: CARD_BORDER,
+  },
+  signOutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: CARD_BG,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#FEE2E2",
+    padding: 16,
+    marginTop: 4,
+  },
+  signOutPressed: {
+    backgroundColor: "#FEF2F2",
+  },
+  signOutText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: DANGER,
+    fontFamily: "Inter_600SemiBold",
+  },
+});

@@ -45,6 +45,25 @@ AI-powered social media caption generator for small business owners, targeting A
   - `POST /api/captions/hashtags` — generates 30 grouped hashtags
 - Stripe: initialized but optional (gracefully skipped if credentials unavailable)
 
+## Authentication (Clerk — Active)
+
+Replit-managed Clerk instance. Auto-provisioned keys: `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`.
+
+Mobile app flow:
+- Unauthenticated users → `/(auth)/sign-in` (guarded in `(tabs)/_layout.tsx`)
+- Sign-in and sign-up screens: custom native UI using `useSignIn()` / `useSignUp()` hooks from `@clerk/expo`
+- Email verification code step built into sign-up flow
+- `ClerkProvider` wraps everything in `app/_layout.tsx`
+- `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` passed via dev script and build.js
+
+Key files:
+- `app/_layout.tsx` — ClerkProvider root
+- `app/(auth)/_layout.tsx` — redirects signed-in users to tabs
+- `app/(auth)/sign-in.tsx` — sign-in screen
+- `app/(auth)/sign-up.tsx` — sign-up + email verification screen
+- `app/(tabs)/_layout.tsx` — redirects signed-out users to sign-in
+- `app/(tabs)/profile.tsx` — profile tab with usage stats + sign out
+
 ## RevenueCat Setup (TODO when ready)
 
 RevenueCat integration was dismissed during setup. To enable subscriptions:

@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: captions
+    description: Caption generation operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /captions/generate:
+    post:
+      operationId: generateCaptions
+      tags: [captions]
+      summary: Generate social media captions using AI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateCaptionsBody"
+      responses:
+        "200":
+          description: Generated captions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateCaptionsResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +65,53 @@ components:
           type: string
       required:
         - status
-
+    GenerateCaptionsBody:
+      type: object
+      properties:
+        niche:
+          type: string
+          enum:
+            - Real Estate
+            - Fitness Coach
+            - Restaurant
+            - Boutique/Shop
+            - General Business
+        postDescription:
+          type: string
+        tone:
+          type: string
+          enum:
+            - Professional
+            - Casual
+            - Funny
+            - Inspirational
+      required:
+        - niche
+        - postDescription
+        - tone
+    CaptionItem:
+      type: object
+      properties:
+        caption:
+          type: string
+        hashtags:
+          type: string
+      required:
+        - caption
+        - hashtags
+    GenerateCaptionsResponse:
+      type: object
+      properties:
+        captions:
+          type: array
+          items:
+            $ref: "#/components/schemas/CaptionItem"
+      required:
+        - captions
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error

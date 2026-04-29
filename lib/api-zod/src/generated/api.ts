@@ -14,3 +14,27 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary Generate social media captions using AI
+ */
+export const GenerateCaptionsBody = zod.object({
+  niche: zod.enum([
+    "Real Estate",
+    "Fitness Coach",
+    "Restaurant",
+    "Boutique/Shop",
+    "General Business",
+  ]),
+  postDescription: zod.string(),
+  tone: zod.enum(["Professional", "Casual", "Funny", "Inspirational"]),
+});
+
+export const GenerateCaptionsResponse = zod.object({
+  captions: zod.array(
+    zod.object({
+      caption: zod.string(),
+      hashtags: zod.string(),
+    }),
+  ),
+});

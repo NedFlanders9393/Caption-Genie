@@ -5,18 +5,26 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  ErrorResponse,
+  GenerateCaptionsBody,
+  GenerateCaptionsResponse,
+  HealthStatus,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -99,3 +107,89 @@ export function useHealthCheck<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Generate social media captions using AI
+ */
+export const getGenerateCaptionsUrl = () => {
+  return `/api/captions/generate`;
+};
+
+export const generateCaptions = async (
+  generateCaptionsBody: GenerateCaptionsBody,
+  options?: RequestInit,
+): Promise<GenerateCaptionsResponse> => {
+  return customFetch<GenerateCaptionsResponse>(getGenerateCaptionsUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(generateCaptionsBody),
+  });
+};
+
+export const getGenerateCaptionsMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateCaptions>>,
+    TError,
+    { data: BodyType<GenerateCaptionsBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateCaptions>>,
+  TError,
+  { data: BodyType<GenerateCaptionsBody> },
+  TContext
+> => {
+  const mutationKey = ["generateCaptions"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateCaptions>>,
+    { data: BodyType<GenerateCaptionsBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return generateCaptions(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateCaptionsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateCaptions>>
+>;
+export type GenerateCaptionsMutationBody = BodyType<GenerateCaptionsBody>;
+export type GenerateCaptionsMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Generate social media captions using AI
+ */
+export const useGenerateCaptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateCaptions>>,
+    TError,
+    { data: BodyType<GenerateCaptionsBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateCaptions>>,
+  TError,
+  { data: BodyType<GenerateCaptionsBody> },
+  TContext
+> => {
+  return useMutation(getGenerateCaptionsMutationOptions(options));
+};

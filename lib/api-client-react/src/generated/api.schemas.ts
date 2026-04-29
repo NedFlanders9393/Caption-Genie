@@ -8,3 +8,43 @@
 export interface HealthStatus {
   status: string;
 }
+
+export type GenerateCaptionsBodyNiche =
+  (typeof GenerateCaptionsBodyNiche)[keyof typeof GenerateCaptionsBodyNiche];
+
+export const GenerateCaptionsBodyNiche = {
+  Real_Estate: "Real Estate",
+  Fitness_Coach: "Fitness Coach",
+  Restaurant: "Restaurant",
+  "Boutique/Shop": "Boutique/Shop",
+  General_Business: "General Business",
+} as const;
+
+export type GenerateCaptionsBodyTone =
+  (typeof GenerateCaptionsBodyTone)[keyof typeof GenerateCaptionsBodyTone];
+
+export const GenerateCaptionsBodyTone = {
+  Professional: "Professional",
+  Casual: "Casual",
+  Funny: "Funny",
+  Inspirational: "Inspirational",
+} as const;
+
+export interface GenerateCaptionsBody {
+  niche: GenerateCaptionsBodyNiche;
+  postDescription: string;
+  tone: GenerateCaptionsBodyTone;
+}
+
+export interface CaptionItem {
+  caption: string;
+  hashtags: string;
+}
+
+export interface GenerateCaptionsResponse {
+  captions: CaptionItem[];
+}
+
+export interface ErrorResponse {
+  error: string;
+}

@@ -6,4 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./captionItem";
+export * from "./errorResponse";
+export * from "./generateCaptionsBody";
+export * from "./generateCaptionsBodyNiche";
+export * from "./generateCaptionsBodyTone";
+export * from "./generateCaptionsResponse";
 export * from "./healthStatus";

@@ -162,6 +162,9 @@ function CaptionAIApp() {
   const [activeTab, setActiveTab] = useState<"generator" | "history" | "hashtags">("generator");
   const [usage, setUsage] = useState<UsageData>({ count: 0, month: "" });
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [isPro, setIsPro] = useState(false);
+  const [checkoutEmail, setCheckoutEmail] = useState("");
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   // Generator State
   const [platform, setPlatform] = useState<string>("Instagram");
@@ -230,6 +233,56 @@ function CaptionAIApp() {
     if (storedFavorites) {
       try { setFavorites(JSON.parse(storedFavorites)); } catch (e) {}
     }
+
+    // Restore Pro status
+    const storedPro = localStorage.getItem("captionai_pro");
+    if (storedPro) {
+      try {
+        const proData = JSON.parse(storedPro) as { isPro: boolean; customerId?: string };
+        if (proData.isPro) {
+          setIsPro(true);
+          // Silently re-verify in background
+          if (proData.customerId) {
+            fetch("/api/stripe/check-status", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ customerId: proData.customerId }),
+            })
+              .then((r) => r.json())
+              .then((data) => {
+                if (!data.isPro) {
+                  setIsPro(false);
+                  localStorage.removeItem("captionai_pro");
+                }
+              })
+              .catch(() => {});
+          }
+        }
+      } catch (e) {}
+    }
+
+    // Handle Stripe checkout redirect
+    const params = new URLSearchParams(window.location.search);
+    const checkoutStatus = params.get("checkout");
+    const sessionId = params.get("session_id");
+
+    if (checkoutStatus === "success" && sessionId) {
+      // Clean the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      fetch(`/api/stripe/verify-session?session_id=${sessionId}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.isPro) {
+            setIsPro(true);
+            localStorage.setItem("captionai_pro", JSON.stringify({ isPro: true, email: data.email, customerId: data.customerId }));
+            toast({ title: "Welcome to Pro!", description: "You now have unlimited caption generations." });
+          }
+        })
+        .catch(() => {});
+    } else if (checkoutStatus === "cancel") {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      toast({ title: "Checkout cancelled", description: "You can upgrade anytime.", variant: "destructive" });
+    }
   }, []);
 
   const saveHistory = (newHistory: HistoryItem[]) => {
@@ -256,6 +309,27 @@ function CaptionAIApp() {
       if (prev.length >= 3) return prev;
       return [...prev, t];
     });
+  };
+
+  const handleCheckout = async () => {
+    if (!checkoutEmail || !checkoutEmail.includes("@")) {
+      toast({ title: "Valid email required", description: "Please enter your email address.", variant: "destructive" });
+      return;
+    }
+    setCheckoutLoading(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: checkoutEmail }),
+      });
+      const data = await res.json() as { url?: string; error?: string };
+      if (!res.ok || !data.url) throw new Error(data.error ?? "Failed to create checkout session");
+      window.location.href = data.url;
+    } catch (err: any) {
+      toast({ title: "Checkout error", description: err.message ?? "Something went wrong. Please try again.", variant: "destructive" });
+      setCheckoutLoading(false);
+    }
   };
 
   const handleCopy = async (text: string, id: string) => {
@@ -325,7 +399,7 @@ function CaptionAIApp() {
       return;
     }
 
-    if (usage.count >= MAX_FREE_GENERATIONS) {
+    if (!isPro && usage.count >= MAX_FREE_GENERATIONS) {
       setShowUpgradeModal(true);
       return;
     }
@@ -382,7 +456,7 @@ function CaptionAIApp() {
   };
 
   const handleRegenerateOne = async (index: number) => {
-    if (usage.count >= MAX_FREE_GENERATIONS) {
+    if (!isPro && usage.count >= MAX_FREE_GENERATIONS) {
       setShowUpgradeModal(true);
       return;
     }
@@ -437,7 +511,7 @@ function CaptionAIApp() {
       return;
     }
 
-    if (usage.count >= MAX_FREE_GENERATIONS) {
+    if (!isPro && usage.count >= MAX_FREE_GENERATIONS) {
       setShowUpgradeModal(true);
       return;
     }
@@ -497,17 +571,24 @@ function CaptionAIApp() {
             <h1 className="font-bold text-lg tracking-tight text-foreground">CaptionAI</h1>
           </div>
           
-          <div 
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium cursor-pointer transition-colors ${
-              usage.count >= MAX_FREE_GENERATIONS 
-                ? "bg-destructive/10 border-destructive/20 text-destructive" 
-                : "bg-secondary/50 border-border text-secondary-foreground hover:bg-secondary"
-            }`}
-            onClick={() => setShowUpgradeModal(true)}
-          >
-            <span>{usage.count}/{MAX_FREE_GENERATIONS}</span>
-            <span className="opacity-70">free</span>
-          </div>
+          {isPro ? (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-bold">
+              <Crown className="w-3.5 h-3.5" />
+              <span>Pro</span>
+            </div>
+          ) : (
+            <div 
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium cursor-pointer transition-colors ${
+                usage.count >= MAX_FREE_GENERATIONS 
+                  ? "bg-destructive/10 border-destructive/20 text-destructive" 
+                  : "bg-secondary/50 border-border text-secondary-foreground hover:bg-secondary"
+              }`}
+              onClick={() => setShowUpgradeModal(true)}
+            >
+              <span>{usage.count}/{MAX_FREE_GENERATIONS}</span>
+              <span className="opacity-70">free</span>
+            </div>
+          )}
         </header>
 
         {/* Main Content Area */}
@@ -1050,7 +1131,7 @@ function CaptionAIApp() {
             </div>
           </div>
           
-          <div className="p-6 bg-card flex flex-col gap-6">
+          <div className="p-6 bg-card flex flex-col gap-5">
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
@@ -1071,10 +1152,26 @@ function CaptionAIApp() {
                 <span className="text-sm font-medium text-card-foreground">All premium tones & industries</span>
               </div>
             </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Your email</label>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={checkoutEmail}
+                onChange={(e) => setCheckoutEmail(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleCheckout()}
+                className="w-full h-11 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+              />
+            </div>
             
             <div className="flex flex-col gap-3">
-              <Button className="w-full h-12 rounded-xl text-base font-bold shadow-md shadow-primary/20">
-                Upgrade for $9.99/month
+              <Button 
+                className="w-full h-12 rounded-xl text-base font-bold shadow-md shadow-primary/20"
+                onClick={handleCheckout}
+                disabled={checkoutLoading}
+              >
+                {checkoutLoading ? "Redirecting to checkout..." : "Upgrade for $9.99/month"}
               </Button>
               <Button variant="ghost" className="w-full text-muted-foreground font-medium" onClick={() => setShowUpgradeModal(false)}>
                 Maybe Later

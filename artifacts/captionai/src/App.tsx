@@ -168,7 +168,7 @@ function CaptionAIApp() {
   const [niche, setNiche] = useState<string>("General Business");
   const [postType, setPostType] = useState<string>("");
   const [postDescription, setPostDescription] = useState("");
-  const [tone, setTone] = useState<string>("Professional");
+  const [tones, setTones] = useState<string[]>(["Professional"]);
   const [captionLength, setCaptionLength] = useState<string>("Medium");
   const [includeEmojis, setIncludeEmojis] = useState(true);
   const [ctaType, setCtaType] = useState<string>("None");
@@ -246,6 +246,16 @@ function CaptionAIApp() {
     const newUsage = { ...usage, count: usage.count + 1 };
     setUsage(newUsage);
     localStorage.setItem("captionai_usage", JSON.stringify(newUsage));
+  };
+
+  const toggleTone = (t: string) => {
+    setTones((prev) => {
+      if (prev.includes(t)) {
+        return prev.length > 1 ? prev.filter((x) => x !== t) : prev;
+      }
+      if (prev.length >= 3) return prev;
+      return [...prev, t];
+    });
   };
 
   const handleCopy = async (text: string, id: string) => {
@@ -330,7 +340,7 @@ function CaptionAIApp() {
         body: JSON.stringify({
           niche,
           postDescription,
-          tone,
+          tone: tones.join(", "),
           platform,
           postType: postType || undefined,
           captionLength,
@@ -352,7 +362,7 @@ function CaptionAIApp() {
           timestamp: new Date().toISOString(),
           niche,
           platform,
-          tone,
+          tone: tones.join(", "),
           postDescription,
           captions: data.captions
         };
@@ -386,7 +396,7 @@ function CaptionAIApp() {
         body: JSON.stringify({
           niche,
           postDescription,
-          tone,
+          tone: tones.join(", "),
           platform,
           postType: postType || undefined,
           captionLength,
@@ -582,17 +592,32 @@ function CaptionAIApp() {
 
                 {/* Tone Selector */}
                 <section className="flex flex-col gap-3">
-                  <label className="text-sm font-semibold text-foreground">Tone of Voice</label>
-                  <Select value={tone} onValueChange={setTone}>
-                    <SelectTrigger className="w-full rounded-xl border-border bg-card h-12 text-sm focus:ring-primary">
-                      <SelectValue placeholder="Select a tone" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TONES.map((t) => (
-                        <SelectItem key={t} value={t}>{t}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-semibold text-foreground">Tone of Voice</label>
+                    <span className="text-xs text-muted-foreground">{tones.length}/3 selected</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {TONES.map((t) => {
+                      const selected = tones.includes(t);
+                      const maxed = !selected && tones.length >= 3;
+                      return (
+                        <button
+                          key={t}
+                          onClick={() => toggleTone(t)}
+                          disabled={maxed}
+                          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
+                            selected
+                              ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                              : maxed
+                              ? "bg-card text-muted-foreground/40 border-border cursor-not-allowed"
+                              : "bg-card text-muted-foreground border-border hover:bg-secondary/60 hover:text-foreground"
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </section>
 
                 {/* Caption Controls */}

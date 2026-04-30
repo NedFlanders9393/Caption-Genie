@@ -2,7 +2,6 @@ import { useAuth, useSignIn } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -26,18 +25,14 @@ const ERROR_COLOR = "#DC2626";
 const ERROR_BG = "#FEF2F2";
 const ERROR_BORDER = "#FECACA";
 
+type Step = "credentials" | "second_factor";
+
 export default function SignInPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
   const { isSignedIn } = useAuth();
   const router = useRouter();
 
-  // If auth state updates (e.g. after finalize), auto-navigate to app
-  useEffect(() => {
-    if (isSignedIn) {
-      router.replace("/(tabs)");
-    }
-  }, [isSignedIn]);
-
+  const [step, setStep] = useState<Step>("credentials");
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -48,70 +43,108 @@ export default function SignInPage() {
 
   const isLoading = fetchStatus === "fetching";
 
-  const handleSubmit = async () => {
-    setGeneralError(null);
-    if (!signIn) {
-      Alert.alert("Error", "Auth service not ready. Please restart the app.");
-      return;
+  useEffect(() => {
+    if (isSignedIn) {
+      router.replace("/(tabs)");
     }
+  }, [isSignedIn]);
+
+  const handleSignIn = async () => {
+    setGeneralError(null);
     try {
-      const result = await signIn.password({ emailAddress, password });
-      if (result?.error) {
-        const msg = result.error.message ?? "Sign-in failed. Please try again.";
-        setGeneralError(msg);
-        Alert.alert("Sign in failed", msg);
+      const { error } = await signIn.password({ emailAddress, password });
+      if (error) {
+        setGeneralError(error.message ?? "Sign-in failed. Please try again.");
         return;
       }
 
       if (signIn.status === "complete") {
-        await signIn.finalize({
-          navigate: () => {
-            router.replace("/(tabs)");
-          },
-        });
+        await signIn.finalize({ navigate: () => router.replace("/(tabs)") });
+      } else if (signIn.status === "needs_second_factor") {
+        // Send verification code to email
+        const factors = signIn.supportedSecondFactors ?? [];
+        const emailFactor = factors.find((f: any) => f.strategy === "email_code");
+        const phoneFactor = factors.find((f: any) => f.strategy === "phone_code");
+
+        if (emailFactor) {
+          await signIn.prepareSecondFactor({ strategy: "email_code" });
+        } else if (phoneFactor) {
+          await signIn.prepareSecondFactor({ strategy: "phone_code" });
+        } else if (factors.length > 0) {
+          await signIn.prepareSecondFactor({ strategy: factors[0].strategy });
+        }
+        setStep("second_factor");
       } else {
-        const msg = `Unexpected status: ${signIn.status}. Please try again.`;
-        setGeneralError(msg);
-        Alert.alert("Sign in issue", msg);
+        setGeneralError(`Sign-in could not complete (status: ${signIn.status}). Please try again.`);
       }
     } catch (err: any) {
-      const msg = err?.message ?? "Something went wrong. Please try again.";
-      setGeneralError(msg);
-      Alert.alert("Sign in error", msg);
+      setGeneralError(err?.message ?? "Something went wrong. Please try again.");
     }
   };
 
-  const handleVerify = async () => {
+  const handleVerifyCode = async () => {
     setGeneralError(null);
     try {
-      await signIn.mfa.verifyEmailCode({ code });
+      const factors = signIn.supportedSecondFactors ?? [];
+      const strategy =
+        factors.find((f: any) => f.strategy === "email_code")?.strategy ??
+        factors.find((f: any) => f.strategy === "phone_code")?.strategy ??
+        factors[0]?.strategy ??
+        "email_code";
+
+      const { error } = await signIn.attemptSecondFactor({ strategy, code });
+      if (error) {
+        setGeneralError(error.message ?? "Invalid code. Please try again.");
+        return;
+      }
+
       if (signIn.status === "complete") {
-        await signIn.finalize({
-          navigate: () => {
-            router.replace("/(tabs)");
-          },
-        });
+        await signIn.finalize({ navigate: () => router.replace("/(tabs)") });
+      } else {
+        setGeneralError("Verification incomplete. Please try again.");
       }
     } catch (err: any) {
       setGeneralError(err?.message ?? "Verification failed. Please try again.");
     }
   };
 
-  if (signIn.status === "needs_client_trust") {
+  const handleResendCode = async () => {
+    setGeneralError(null);
+    try {
+      const factors = signIn.supportedSecondFactors ?? [];
+      const emailFactor = factors.find((f: any) => f.strategy === "email_code");
+      const phoneFactor = factors.find((f: any) => f.strategy === "phone_code");
+      if (emailFactor) {
+        await signIn.prepareSecondFactor({ strategy: "email_code" });
+      } else if (phoneFactor) {
+        await signIn.prepareSecondFactor({ strategy: "phone_code" });
+      }
+    } catch (err: any) {
+      setGeneralError(err?.message ?? "Could not resend. Please try again.");
+    }
+  };
+
+  if (isSignedIn) return null;
+
+  // ── Step 2: Second factor (email/SMS code) ──────────────────────────────
+  if (step === "second_factor") {
     return (
       <SafeAreaView style={styles.safe}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.flex}
         >
-          <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+          <ScrollView
+            contentContainerStyle={styles.container}
+            keyboardShouldPersistTaps="handled"
+          >
             <View style={styles.header}>
               <View style={styles.logo}>
                 <Text style={styles.logoText}>✦</Text>
               </View>
               <Text style={styles.title}>Check your email</Text>
               <Text style={styles.subtitle}>
-                We sent a verification code to{"\n"}
+                We sent a 6-digit code to{"\n"}
                 <Text style={{ color: PRIMARY, fontFamily: "Inter_600SemiBold" }}>
                   {emailAddress}
                 </Text>
@@ -130,16 +163,14 @@ export default function SignInPage() {
                 <TextInput
                   style={[styles.input, codeFocused && styles.inputFocused]}
                   value={code}
-                  placeholder="Enter code"
+                  placeholder="000000"
                   placeholderTextColor={MUTED}
                   onChangeText={setCode}
                   keyboardType="number-pad"
+                  autoFocus
                   onFocus={() => setCodeFocused(true)}
                   onBlur={() => setCodeFocused(false)}
                 />
-                {errors.fields.code && (
-                  <Text style={styles.fieldError}>{errors.fields.code.message}</Text>
-                )}
               </View>
 
               <Pressable
@@ -148,20 +179,27 @@ export default function SignInPage() {
                   (isLoading || !code) && styles.buttonDisabled,
                   pressed && styles.buttonPressed,
                 ]}
-                onPress={handleVerify}
+                onPress={handleVerifyCode}
                 disabled={isLoading || !code}
               >
                 <Text style={styles.buttonText}>
-                  {isLoading ? "Verifying…" : "Verify"}
+                  {isLoading ? "Verifying…" : "Verify & sign in"}
                 </Text>
               </Pressable>
 
-              <Pressable style={styles.textButton} onPress={() => signIn.mfa.sendEmailCode()}>
+              <Pressable style={styles.textButton} onPress={handleResendCode}>
                 <Text style={styles.textButtonText}>Resend code</Text>
               </Pressable>
 
-              <Pressable style={styles.textButton} onPress={() => { signIn.reset(); setGeneralError(null); }}>
-                <Text style={styles.textButtonText}>Start over</Text>
+              <Pressable
+                style={styles.textButton}
+                onPress={() => {
+                  setStep("credentials");
+                  setCode("");
+                  setGeneralError(null);
+                }}
+              >
+                <Text style={[styles.textButtonText, { color: MUTED }]}>← Back</Text>
               </Pressable>
             </View>
           </ScrollView>
@@ -170,13 +208,17 @@ export default function SignInPage() {
     );
   }
 
+  // ── Step 1: Email + password ─────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.flex}
       >
-        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.header}>
             <View style={styles.logo}>
               <Text style={styles.logoText}>✦</Text>
@@ -207,8 +249,8 @@ export default function SignInPage() {
                 onFocus={() => setEmailFocused(true)}
                 onBlur={() => setEmailFocused(false)}
               />
-              {errors.fields.identifier && (
-                <Text style={styles.fieldError}>{errors.fields.identifier.message}</Text>
+              {errors.fields.emailAddress && (
+                <Text style={styles.fieldError}>{errors.fields.emailAddress.message}</Text>
               )}
             </View>
 
@@ -217,7 +259,7 @@ export default function SignInPage() {
               <TextInput
                 style={[styles.input, passwordFocused && styles.inputFocused]}
                 value={password}
-                placeholder="Enter your password"
+                placeholder="Your password"
                 placeholderTextColor={MUTED}
                 secureTextEntry
                 onChangeText={setPassword}
@@ -237,7 +279,7 @@ export default function SignInPage() {
                 (!emailAddress || !password || isLoading) && styles.buttonDisabled,
                 pressed && styles.buttonPressed,
               ]}
-              onPress={handleSubmit}
+              onPress={handleSignIn}
               disabled={!emailAddress || !password || isLoading}
             >
               <Text style={styles.buttonText}>

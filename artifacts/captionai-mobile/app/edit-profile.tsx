@@ -60,13 +60,38 @@ export default function EditProfileScreen() {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
+      base64: true,
     });
 
     if (!result.canceled && result.assets[0]) {
       setIsUploadingImage(true);
       try {
-        const uri = result.assets[0].uri;
-        const response = await fetch(uri);
+        const asset = result.assets[0];
+
+        // Moderation check before uploading
+        if (asset.base64) {
+          const mimeType = asset.mimeType ?? "image/jpeg";
+          const moderationRes = await fetch(
+            `${process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : ""}/api/moderate-image`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ imageBase64: asset.base64, mimeType }),
+            }
+          );
+          if (moderationRes.ok) {
+            const { safe, reason } = await moderationRes.json();
+            if (!safe) {
+              Alert.alert(
+                "Photo not allowed",
+                reason ?? "This photo contains inappropriate content and cannot be used as a profile picture."
+              );
+              return;
+            }
+          }
+        }
+
+        const response = await fetch(asset.uri);
         const blob = await response.blob();
         await user?.setProfileImage({ file: blob });
       } catch (err: any) {

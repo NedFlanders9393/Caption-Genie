@@ -7,12 +7,12 @@ export function initializeRevenueCat() {
 }
 
 const stubValue = {
-  customerInfo: null,
-  offerings: null,
+  customerInfo: null as any,
+  offerings: null as any,
   isSubscribed: false,
   isLoading: false,
-  purchase: async (_pkg: any) => { throw new Error("Subscriptions not yet available"); },
-  restore: async () => { throw new Error("Subscriptions not yet available"); },
+  purchase: async (_pkg: any): Promise<any> => { throw new Error("Subscriptions not yet available"); },
+  restore: async (): Promise<any> => { throw new Error("Subscriptions not yet available"); },
   isPurchasing: false,
   isRestoring: false,
 };

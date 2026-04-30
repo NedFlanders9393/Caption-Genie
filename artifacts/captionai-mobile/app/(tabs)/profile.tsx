@@ -2,7 +2,7 @@ import { useAuth, useUser } from "@clerk/expo";
 import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
   Alert,
   Pressable,
@@ -13,6 +13,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
+import Paywall from "@/components/Paywall";
+import { useSubscription } from "@/lib/revenuecat";
 
 const PRIMARY = "#7C3AED";
 const BG = "#FAFAFA";
@@ -33,6 +35,8 @@ export default function ProfileScreen() {
   const { signOut } = useAuth();
   const router = useRouter();
   const { usageCount: generationCount, freeLimit: FREE_LIMIT } = useApp();
+  const { isSubscribed } = useSubscription();
+  const [paywallVisible, setPaywallVisible] = useState(false);
 
   const meta = (user?.unsafeMetadata ?? {}) as UserMeta;
 
@@ -147,10 +151,37 @@ export default function ProfileScreen() {
           </View>
           <View style={styles.divider} />
           <View style={styles.infoRow}>
-            <Feather name="shield" size={16} color={MUTED} />
-            <Text style={styles.infoText}>Free plan</Text>
+            <Feather name="shield" size={16} color={isSubscribed ? "#16A34A" : MUTED} />
+            <Text style={[styles.infoText, isSubscribed && styles.proText]}>
+              {isSubscribed ? "Pro plan" : "Free plan"}
+            </Text>
+            {!isSubscribed && (
+              <Pressable
+                style={({ pressed }) => [styles.upgradePill, pressed && styles.upgradePillPressed]}
+                onPress={() => setPaywallVisible(true)}
+              >
+                <Text style={styles.upgradePillText}>Upgrade</Text>
+              </Pressable>
+            )}
           </View>
         </View>
+
+        {/* Upgrade to Pro banner — only for free users */}
+        {!isSubscribed && (
+          <Pressable
+            style={({ pressed }) => [styles.upgradeCard, pressed && styles.upgradeCardPressed]}
+            onPress={() => setPaywallVisible(true)}
+          >
+            <View style={styles.upgradeIcon}>
+              <Feather name="zap" size={20} color={PRIMARY} />
+            </View>
+            <View style={styles.upgradeText}>
+              <Text style={styles.upgradeTitle}>Upgrade to Pro</Text>
+              <Text style={styles.upgradeSub}>Unlimited captions · $9.99/mo or $99.99/yr</Text>
+            </View>
+            <Feather name="chevron-right" size={18} color={PRIMARY} />
+          </Pressable>
+        )}
 
         {/* Sign out */}
         <Pressable
@@ -161,6 +192,8 @@ export default function ProfileScreen() {
           <Text style={styles.signOutText}>Sign out</Text>
         </Pressable>
       </ScrollView>
+
+      <Paywall visible={paywallVisible} onClose={() => setPaywallVisible(false)} />
     </SafeAreaView>
   );
 }
@@ -351,5 +384,61 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: DANGER,
     fontFamily: "Inter_600SemiBold",
+  },
+  proText: {
+    color: "#16A34A",
+    fontFamily: "Inter_600SemiBold",
+  },
+  upgradePill: {
+    marginLeft: "auto",
+    backgroundColor: "#EDE9FE",
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  upgradePillPressed: {
+    backgroundColor: "#DDD6FE",
+  },
+  upgradePillText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: PRIMARY,
+    fontFamily: "Inter_600SemiBold",
+  },
+  upgradeCard: {
+    backgroundColor: "#EDE9FE",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#DDD6FE",
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  upgradeCardPressed: {
+    backgroundColor: "#DDD6FE",
+  },
+  upgradeIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  upgradeText: {
+    flex: 1,
+    gap: 2,
+  },
+  upgradeTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: PRIMARY,
+    fontFamily: "Inter_600SemiBold",
+  },
+  upgradeSub: {
+    fontSize: 12,
+    color: "#5B21B6",
+    fontFamily: "Inter_400Regular",
   },
 });

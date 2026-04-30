@@ -55,7 +55,10 @@ export default function SignUpPage() {
         setGeneralError(error.message ?? "Something went wrong. Please try again.");
         return;
       }
-      await signUp.verifications.sendEmailCode();
+      const { error: sendError } = await signUp.verifications.sendEmailCode();
+      if (sendError) {
+        setGeneralError(sendError.message ?? "Failed to send verification code.");
+      }
     } catch (err: any) {
       setGeneralError(err?.message ?? "Something went wrong. Please try again.");
     }
@@ -64,7 +67,11 @@ export default function SignUpPage() {
   const handleVerify = async () => {
     setGeneralError(null);
     try {
-      await signUp.verifications.verifyEmailCode({ code });
+      const { error } = await signUp.verifications.verifyEmailCode({ code });
+      if (error) {
+        setGeneralError(error.message ?? "Invalid code. Please try again.");
+        return;
+      }
       if (signUp.status === "complete") {
         await signUp.finalize({
           navigate: () => {
@@ -123,12 +130,10 @@ export default function SignUpPage() {
                   placeholderTextColor={MUTED}
                   onChangeText={setCode}
                   keyboardType="number-pad"
+                  autoFocus
                   onFocus={() => setCodeFocused(true)}
                   onBlur={() => setCodeFocused(false)}
                 />
-                {errors.fields.code && (
-                  <Text style={styles.fieldError}>{errors.fields.code.message}</Text>
-                )}
               </View>
 
               <Pressable

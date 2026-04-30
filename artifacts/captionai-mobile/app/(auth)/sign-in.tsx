@@ -61,17 +61,11 @@ export default function SignInPage() {
       if (signIn.status === "complete") {
         await signIn.finalize({ navigate: () => router.replace("/(tabs)") });
       } else if (signIn.status === "needs_second_factor") {
-        // Send verification code to email
-        const factors = signIn.supportedSecondFactors ?? [];
-        const emailFactor = factors.find((f: any) => f.strategy === "email_code");
-        const phoneFactor = factors.find((f: any) => f.strategy === "phone_code");
-
-        if (emailFactor) {
-          await signIn.prepareSecondFactor({ strategy: "email_code" });
-        } else if (phoneFactor) {
-          await signIn.prepareSecondFactor({ strategy: "phone_code" });
-        } else if (factors.length > 0) {
-          await signIn.prepareSecondFactor({ strategy: factors[0].strategy });
+        // Send email code as second factor
+        const { error: mfaError } = await signIn.mfa.sendEmailCode();
+        if (mfaError) {
+          setGeneralError(mfaError.message ?? "Could not send verification code.");
+          return;
         }
         setStep("second_factor");
       } else {
@@ -85,19 +79,11 @@ export default function SignInPage() {
   const handleVerifyCode = async () => {
     setGeneralError(null);
     try {
-      const factors = signIn.supportedSecondFactors ?? [];
-      const strategy =
-        factors.find((f: any) => f.strategy === "email_code")?.strategy ??
-        factors.find((f: any) => f.strategy === "phone_code")?.strategy ??
-        factors[0]?.strategy ??
-        "email_code";
-
-      const { error } = await signIn.attemptSecondFactor({ strategy, code });
+      const { error } = await signIn.mfa.verifyEmailCode({ code });
       if (error) {
         setGeneralError(error.message ?? "Invalid code. Please try again.");
         return;
       }
-
       if (signIn.status === "complete") {
         await signIn.finalize({ navigate: () => router.replace("/(tabs)") });
       } else {
@@ -111,13 +97,9 @@ export default function SignInPage() {
   const handleResendCode = async () => {
     setGeneralError(null);
     try {
-      const factors = signIn.supportedSecondFactors ?? [];
-      const emailFactor = factors.find((f: any) => f.strategy === "email_code");
-      const phoneFactor = factors.find((f: any) => f.strategy === "phone_code");
-      if (emailFactor) {
-        await signIn.prepareSecondFactor({ strategy: "email_code" });
-      } else if (phoneFactor) {
-        await signIn.prepareSecondFactor({ strategy: "phone_code" });
+      const { error } = await signIn.mfa.sendEmailCode();
+      if (error) {
+        setGeneralError(error.message ?? "Could not resend. Please try again.");
       }
     } catch (err: any) {
       setGeneralError(err?.message ?? "Could not resend. Please try again.");

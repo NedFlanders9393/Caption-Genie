@@ -325,10 +325,6 @@ captionsRouter.post("/captions/generate", async (req, res) => {
             count: 3,
           }),
         },
-        {
-          role: "assistant",
-          content: "{",
-        },
       ],
     });
 
@@ -338,7 +334,7 @@ captionsRouter.post("/captions/generate", async (req, res) => {
       return;
     }
 
-    let rawText = ("{" + block.text).trim();
+    let rawText = block.text.trim();
     const jsonMatch = rawText.match(/```json\n?([\s\S]*?)\n?```/) || rawText.match(/```\n?([\s\S]*?)\n?```/);
     if (jsonMatch) rawText = jsonMatch[1].trim();
 
@@ -385,10 +381,6 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
             avoidCaptions: existingCaptions ?? [],
           }),
         },
-        {
-          role: "assistant",
-          content: "{",
-        },
       ],
     });
 
@@ -398,7 +390,7 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
       return;
     }
 
-    let rawText = ("{" + block.text).trim();
+    let rawText = block.text.trim();
     const jsonMatch = rawText.match(/```json\n?([\s\S]*?)\n?```/) || rawText.match(/```\n?([\s\S]*?)\n?```/);
     if (jsonMatch) rawText = jsonMatch[1].trim();
 
@@ -434,10 +426,6 @@ captionsRouter.post("/captions/hashtags", async (req, res) => {
           role: "user",
           content: buildHashtagPrompt({ niche, topic, platform: platform ?? undefined }),
         },
-        {
-          role: "assistant",
-          content: "{",
-        },
       ],
     });
 
@@ -447,7 +435,7 @@ captionsRouter.post("/captions/hashtags", async (req, res) => {
       return;
     }
 
-    let rawText = ("{" + block.text).trim();
+    let rawText = block.text.trim();
     const jsonMatch = rawText.match(/```json\n?([\s\S]*?)\n?```/) || rawText.match(/```\n?([\s\S]*?)\n?```/);
     if (jsonMatch) rawText = jsonMatch[1].trim();
 

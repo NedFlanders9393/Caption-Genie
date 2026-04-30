@@ -14,7 +14,6 @@ export * from "./generateCaptionsBodyCtaType";
 export * from "./generateCaptionsBodyNiche";
 export * from "./generateCaptionsBodyPlatform";
 export * from "./generateCaptionsBodyPostType";
-export * from "./generateCaptionsBodyTone";
 export * from "./generateCaptionsResponse";
 export * from "./generateHashtagsBody";
 export * from "./generateHashtagsResponse";

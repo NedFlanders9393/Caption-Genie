@@ -10,12 +10,12 @@ import type { GenerateCaptionsBodyCtaType } from "./generateCaptionsBodyCtaType"
 import type { GenerateCaptionsBodyNiche } from "./generateCaptionsBodyNiche";
 import type { GenerateCaptionsBodyPlatform } from "./generateCaptionsBodyPlatform";
 import type { GenerateCaptionsBodyPostType } from "./generateCaptionsBodyPostType";
-import type { GenerateCaptionsBodyTone } from "./generateCaptionsBodyTone";
 
 export interface GenerateCaptionsBody {
   niche: GenerateCaptionsBodyNiche;
   postDescription: string;
-  tone: GenerateCaptionsBodyTone;
+  /** One or more tones, comma-separated (e.g. "Professional" or "Casual, Witty") */
+  tone: string;
   platform?: GenerateCaptionsBodyPlatform;
   postType?: GenerateCaptionsBodyPostType;
   captionLength?: GenerateCaptionsBodyCaptionLength;

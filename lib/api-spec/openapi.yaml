@@ -157,19 +157,7 @@ components:
           type: string
         tone:
           type: string
-          enum:
-            - Professional
-            - Casual
-            - Funny
-            - Inspirational
-            - Storytelling
-            - Bold
-            - Empowering
-            - Heartfelt
-            - Witty
-            - Luxurious
-            - Playful
-            - Authentic
+          description: One or more tones, comma-separated (e.g. "Professional" or "Casual, Witty")
         platform:
           type: string
           enum:

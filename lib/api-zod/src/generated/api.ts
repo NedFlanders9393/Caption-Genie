@@ -44,20 +44,11 @@ export const GenerateCaptionsBody = zod.object({
     "Dental/Medical",
   ]),
   postDescription: zod.string(),
-  tone: zod.enum([
-    "Professional",
-    "Casual",
-    "Funny",
-    "Inspirational",
-    "Storytelling",
-    "Bold",
-    "Empowering",
-    "Heartfelt",
-    "Witty",
-    "Luxurious",
-    "Playful",
-    "Authentic",
-  ]),
+  tone: zod
+    .string()
+    .describe(
+      'One or more tones, comma-separated (e.g. \"Professional\" or \"Casual, Witty\")',
+    ),
   platform: zod
     .enum(["Instagram", "Facebook", "LinkedIn", "TikTok", "Twitter/X"])
     .optional(),

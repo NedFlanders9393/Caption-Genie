@@ -37,24 +37,6 @@ export const GenerateCaptionsBodyNiche = {
   "Dental/Medical": "Dental/Medical",
 } as const;
 
-export type GenerateCaptionsBodyTone =
-  (typeof GenerateCaptionsBodyTone)[keyof typeof GenerateCaptionsBodyTone];
-
-export const GenerateCaptionsBodyTone = {
-  Professional: "Professional",
-  Casual: "Casual",
-  Funny: "Funny",
-  Inspirational: "Inspirational",
-  Storytelling: "Storytelling",
-  Bold: "Bold",
-  Empowering: "Empowering",
-  Heartfelt: "Heartfelt",
-  Witty: "Witty",
-  Luxurious: "Luxurious",
-  Playful: "Playful",
-  Authentic: "Authentic",
-} as const;
-
 export type GenerateCaptionsBodyPlatform =
   (typeof GenerateCaptionsBodyPlatform)[keyof typeof GenerateCaptionsBodyPlatform];
 
@@ -118,7 +100,8 @@ export const GenerateCaptionsBodyCtaType = {
 export interface GenerateCaptionsBody {
   niche: GenerateCaptionsBodyNiche;
   postDescription: string;
-  tone: GenerateCaptionsBodyTone;
+  /** One or more tones, comma-separated (e.g. "Professional" or "Casual, Witty") */
+  tone: string;
   platform?: GenerateCaptionsBodyPlatform;
   postType?: GenerateCaptionsBodyPostType;
   captionLength?: GenerateCaptionsBodyCaptionLength;

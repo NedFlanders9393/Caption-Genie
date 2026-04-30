@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Switch,
   Platform,
+  KeyboardAvoidingView,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -153,6 +154,11 @@ export default function GenerateScreen() {
 
   return (
     <>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+      >
       <ScrollView
         style={[styles.scroll, { backgroundColor: colors.background }]}
         contentContainerStyle={[styles.content, { paddingTop: Platform.OS === "web" ? 67 : insets.top + 16, paddingBottom: bottomPad }]}
@@ -291,6 +297,7 @@ export default function GenerateScreen() {
           </View>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
 
       <Paywall visible={showPaywall} onClose={() => setShowPaywall(false)} />
     </>

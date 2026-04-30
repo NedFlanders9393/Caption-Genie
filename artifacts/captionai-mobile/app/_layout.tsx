@@ -31,6 +31,17 @@ function RootLayoutNav() {
     <Stack screenOptions={{ headerBackTitle: "Back" }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="edit-profile"
+        options={{
+          title: "Edit Profile",
+          presentation: "modal",
+          headerStyle: { backgroundColor: "#FAFAFA" },
+          headerTintColor: "#7C3AED",
+          headerTitleStyle: { fontFamily: "Inter_600SemiBold", color: "#19141F" },
+          headerShadowVisible: false,
+        }}
+      />
     </Stack>
   );
 }

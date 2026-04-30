@@ -1,5 +1,6 @@
 import { useAuth, useUser } from "@clerk/expo";
 import { Feather } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
@@ -14,7 +15,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 
 const PRIMARY = "#7C3AED";
-
 const BG = "#FAFAFA";
 const FOREGROUND = "#19141F";
 const MUTED = "#6B7280";
@@ -22,16 +22,24 @@ const CARD_BG = "#FFFFFF";
 const CARD_BORDER = "#F3F4F6";
 const DANGER = "#DC2626";
 
+type UserMeta = {
+  username?: string;
+  location?: string;
+  age?: string;
+};
+
 export default function ProfileScreen() {
   const { user } = useUser();
   const { signOut } = useAuth();
   const router = useRouter();
   const { usageCount: generationCount, freeLimit: FREE_LIMIT } = useApp();
 
+  const meta = (user?.unsafeMetadata ?? {}) as UserMeta;
+
   const initials = user?.firstName && user?.lastName
-    ? `${user.firstName[0]}${user.lastName[0]}`
+    ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
     : user?.firstName
-    ? user.firstName[0]
+    ? user.firstName[0].toUpperCase()
     : user?.emailAddresses[0]?.emailAddress?.[0]?.toUpperCase() ?? "?";
 
   const displayName = user?.firstName
@@ -39,6 +47,7 @@ export default function ProfileScreen() {
     : user?.emailAddresses[0]?.emailAddress ?? "User";
 
   const email = user?.emailAddresses[0]?.emailAddress ?? "";
+  const imageUrl = user?.imageUrl;
 
   const handleSignOut = () => {
     Alert.alert("Sign out", "Are you sure you want to sign out?", [
@@ -60,15 +69,50 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
-        <Text style={styles.pageTitle}>Profile</Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.pageTitle}>Profile</Text>
+          <Pressable
+            style={({ pressed }) => [styles.editButton, pressed && styles.editButtonPressed]}
+            onPress={() => router.push("/edit-profile")}
+          >
+            <Feather name="edit-2" size={15} color={PRIMARY} />
+            <Text style={styles.editButtonText}>Edit</Text>
+          </Pressable>
+        </View>
 
         {/* Avatar + Name */}
         <View style={styles.avatarCard}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials}</Text>
-          </View>
+          <Pressable onPress={() => router.push("/edit-profile")}>
+            {imageUrl ? (
+              <Image source={{ uri: imageUrl }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, styles.avatarFallback]}>
+                <Text style={styles.avatarText}>{initials}</Text>
+              </View>
+            )}
+          </Pressable>
           <Text style={styles.displayName}>{displayName}</Text>
+          {meta.username ? (
+            <Text style={styles.username}>@{meta.username}</Text>
+          ) : null}
           <Text style={styles.email}>{email}</Text>
+          {(meta.location || meta.age) ? (
+            <View style={styles.metaRow}>
+              {meta.location ? (
+                <View style={styles.metaItem}>
+                  <Feather name="map-pin" size={12} color={MUTED} />
+                  <Text style={styles.metaText}>{meta.location}</Text>
+                </View>
+              ) : null}
+              {meta.age ? (
+                <View style={styles.metaItem}>
+                  <Feather name="user" size={12} color={MUTED} />
+                  <Text style={styles.metaText}>{meta.age} yrs</Text>
+                </View>
+              ) : null}
+            </View>
+          ) : null}
         </View>
 
         {/* Usage */}
@@ -129,12 +173,35 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
     gap: 16,
   },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
   pageTitle: {
     fontSize: 28,
     fontWeight: "700",
     color: FOREGROUND,
     fontFamily: "Inter_700Bold",
-    marginBottom: 8,
+  },
+  editButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: "#EDE9FE",
+  },
+  editButtonPressed: {
+    backgroundColor: "#DDD6FE",
+  },
+  editButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: PRIMARY,
+    fontFamily: "Inter_600SemiBold",
   },
   avatarCard: {
     backgroundColor: CARD_BG,
@@ -143,16 +210,18 @@ const styles = StyleSheet.create({
     borderColor: CARD_BORDER,
     padding: 24,
     alignItems: "center",
-    gap: 8,
+    gap: 6,
   },
   avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 4,
+  },
+  avatarFallback: {
     backgroundColor: PRIMARY,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 4,
     shadowColor: PRIMARY,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
@@ -172,11 +241,32 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     textAlign: "center",
   },
+  username: {
+    fontSize: 14,
+    color: PRIMARY,
+    fontFamily: "Inter_500Medium",
+    textAlign: "center",
+  },
   email: {
     fontSize: 14,
     color: MUTED,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
+  },
+  metaRow: {
+    flexDirection: "row",
+    gap: 16,
+    marginTop: 2,
+  },
+  metaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  metaText: {
+    fontSize: 13,
+    color: MUTED,
+    fontFamily: "Inter_400Regular",
   },
   card: {
     backgroundColor: CARD_BG,

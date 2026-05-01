@@ -119,6 +119,17 @@ const NICHE_PROFILES: Record<string, string> = {
   "Non-Profit": "Audience: values-driven donors and volunteers who want their contribution to matter. They respond to: specific impact (20 meals served, 1 family housed), personal stories, urgency of need, 'you made this possible' appreciation, mission clarity.",
   "Travel/Tourism": "Audience: experience-seekers, adventure-craving, escape-needing people. They respond to: vivid sensory language that transports them, FOMO-inducing specifics, insider local knowledge, 'most tourists never know about this' angles, dream-selling then logistics.",
   "Dental/Medical": "Audience: anxiety-prone patients (dental fear is real), health-conscious adults, parents researching care for families. They respond to: fear-reduction language ('painless', 'gentle', 'we get it — most people feel nervous'), specific technology/expertise proof, 'this is what modern care looks like' education.",
+  "Influencer/Creator": "Audience: engaged followers who follow the creator for their personality, perspective, and lifestyle — not a product or service. They want authentic access, opinions, and entertainment. They respond to: unfiltered honesty, 'storytime' style hooks, relatable struggles, strong POV, behind-the-scenes access, and content that makes them feel like an insider.",
+  "Fashion Influencer": "Audience: style-conscious followers who trust this creator's taste. They're aspiration-driven but budget-aware. They respond to: outfit breakdowns ('this $30 find looks like $300'), styling tips and tricks, 'where I got it' transparency, trend alerts with personal takes, and 'you can wear this anywhere' versatility angles.",
+  "Beauty Influencer": "Audience: makeup lovers, skincare obsessives, beauty beginners and enthusiasts who treat this creator as their trusted friend in the industry. They respond to: honest reviews ('I was NOT expecting this'), before/after language, ingredient breakdowns in plain English, drugstore vs. luxury comparisons, and 'this changed my routine' testimonials.",
+  "Lifestyle Influencer": "Audience: people who aspire to the creator's aesthetic, habits, or way of living. They respond to: 'a day in my life' intimacy, practical tips that feel achievable, morning routine and productivity content, aesthetic visual descriptions, and 'here's how I actually do it' authenticity over curated perfection.",
+  "Food Influencer": "Audience: food lovers, home cooks, recipe seekers who are hungry (literally and figuratively) for inspiration. They respond to: mouthwatering sensory language ('crispy edges, melty center'), difficulty level ('5 ingredients, 20 minutes'), 'you NEED to make this' urgency, flavor profile descriptions, and surprising ingredient reveals.",
+  "Fitness Influencer": "Audience: people who follow for workout motivation, form tips, transformation inspiration. They respond to: 'you can do this' encouragement, specific workout details ('4 sets, 12 reps'), myth-busting ('you don't need a gym for this'), real progress updates (not just peak performance), and 'I struggled with this too' vulnerability.",
+  "Travel Influencer": "Audience: wanderlust-filled followers who travel vicariously through this creator — some planning their own trips, some just dreaming. They respond to: vivid destination descriptions, 'hidden gem' discoveries, honest travel tips ('skip this, do this instead'), cost breakdowns, and 'how to visit on a budget' practical angles.",
+  "Tech/Gaming Creator": "Audience: tech enthusiasts, gamers, early adopters who trust this creator's honest take over brand marketing. They respond to: spec breakdowns in plain English, 'is it actually worth it' angles, setup tours, gaming moments, 'hot take' opinions on industry news, and community challenges.",
+  "Parenting/Family Creator": "Audience: parents (often overwhelmed, looking for solidarity and practical advice) who feel seen by this creator. They respond to: relatable parenting humor, 'you're not alone' validation, practical hacks that actually work, honest moments (not just highlight reel), and 'things I wish someone told me' content.",
+  "Finance/Money Creator": "Audience: people who feel behind financially and want guidance they can trust. They respond to: specific numbers and examples ('I paid off $40K in 18 months'), myth-busting ('you don't need to earn more to save more'), simple explainers of complex concepts, 'mistake I made so you don't have to' honesty, and actionable first steps.",
+  "Digital Products": "Audience: entrepreneurs, creators, and side-hustlers looking for passive income or digital tools. They're skeptical of hype but excited by proof. They respond to: specific income claims with context, 'what's inside' transparency, social proof (students/customers), the problem the product solves, and limited-time launch urgency.",
 };
 
 // Platform-specific deep knowledge
@@ -171,6 +182,30 @@ const PLATFORM_GUIDES: Record<string, string> = {
 - Punchy rhythm: short sentences. Fragments are fine.
 - Avoid links in body text if possible — X deprioritizes external links
 - Numbers and specifics dramatically boost credibility and saves`,
+
+  YouTube: `YOUTUBE ALGORITHM + BEST PRACTICES:
+- This caption is for a YouTube Community post or Shorts description — both serve different purposes
+- Community posts: up to 5,000 characters. Think of it like a Facebook post — conversational, engaging, drives comments
+- Shorts descriptions: only the FIRST 100 characters show without clicking 'more' — make them count
+- Video descriptions: first 2-3 lines are visible before 'show more' — lead with the hook and key info
+- YouTube rewards watch time and engagement — captions should tease the value inside the video, not spoil it
+- Hook formula: state the benefit or intrigue in the first line ('This one trick got me 10K views in a week')
+- Subscribe CTA works well here — YouTube audience expects and responds to subscribe prompts
+- Hashtags: 3-5 placed at the END of the description (YouTube treats them specially and creates clickable links)
+- Include relevant keywords naturally — YouTube is a search engine, so searchable language matters
+- No links in descriptions unless directing to a landing page — keep focus on the video itself`,
+
+  Pinterest: `PINTEREST ALGORITHM + BEST PRACTICES:
+- Pinterest is a visual SEARCH ENGINE, not a social network — keywords are everything
+- Pin description limit: 500 characters. Write rich, keyword-heavy descriptions naturally
+- Users are in planning/discovery mode — they're dreaming, collecting ideas, preparing to buy
+- Lead with the most searchable phrase ('Easy weeknight dinner ideas' / 'Home office decor inspiration')
+- Write as if describing the pin to someone who can't see the image — what is it, why is it valuable?
+- Include 2-3 relevant keyword phrases woven naturally into the text (not as a list — as sentences)
+- Seasonal and evergreen content both perform — 'Summer outfit ideas' and 'timeless living room decor'
+- Action-oriented language works: 'Save this for later' / 'Try this recipe tonight' / 'Shop the look'
+- Hashtags: 2-5 highly relevant hashtags (Pinterest uses them, but keywords in the description matter more)
+- Avoid clickbait — Pinterest audience is intentional and will not click misleading pins`,
 };
 
 // Post type specific formulas
@@ -196,6 +231,18 @@ const POST_TYPE_FORMULAS: Record<string, string> = {
   "Motivational Quote": "Don't just share the quote — add YOUR take. What does it mean in the context of your industry? Why did it stop you? Make it relevant to your specific audience.",
   "Community Post": "Invite participation. Ask a real question you'd genuinely want to know. 'Drop your answer below.' Make people feel their opinion matters — because it does.",
   "User-Generated Content": "Make the original creator feel celebrated. Tag them, credit them. 'When our community creates content like this, we're speechless.' Encourage others to share.",
+  "Sponsored Content": "Transparency + authenticity. Lead with the value/content first, not the brand. Disclose naturally ('partnered with [brand]' or '#ad'). The hook should be about the BENEFIT to the audience, not the brand deal. If it reads like an ad, it fails.",
+  "Brand Partnership/Collab": "Lead with the excitement — 'I've been waiting to share this.' Explain WHY this collab makes sense (shared values, complementary audiences). Make followers feel like they're getting something special from it, not just being sold to.",
+  "Brand Deal Reveal": "Story angle: 'They reached out and I said yes because...' Be specific about why this brand fits. Make the audience feel like insiders. 'I only say yes to brands I actually use' builds long-term trust.",
+  "Get Ready With Me": "Invite readers into the routine — 'pull up a chair.' Sensory, step-by-step language. Share thoughts, music, mood. GRWM content is about intimacy, not instruction. Make them feel like they're getting ready WITH you.",
+  "Outfit/Look of the Day": "Lead with the feeling, not the clothes. 'Feeling [mood] today in this [vibe] look.' Then break down pieces. Include budget info if relevant ('under $100 total'). Where to get it is the #1 question — answer it.",
+  "Haul": "Build anticipation ('you have to see what I found'). Go piece by piece — each item gets its own mini moment. Include honest reactions. Price points matter. End with your top pick or biggest surprise.",
+  "Favorites/Recommendations": "Position as 'trusted friend sharing the good stuff.' Lead with why these are YOUR favorites (specificity builds trust). Include context for each — not just 'I like it' but 'I use this every morning and here's why.' Link in bio / save this CTA works perfectly here.",
+  "Reel/Short Video": "Caption should complement, not repeat the video. Hook line should make them watch (or rewatch). Include the key takeaway in text for accessibility. 'Watch until the end' style CTAs drive completion rates.",
+  "Story Content": "Casual, conversational, in-the-moment energy. Like texting your best friend. Use questions that beg replies. Build suspense across multiple 'slides' (reference the next part). Personal and unfiltered wins over polished.",
+  "Poll/This or That": "Make the choice fun and slightly debatable — 'settle this debate for me.' Both options should be appealing or interesting. The point is engagement, so pick a topic your audience has a real opinion about. React to results in follow-up content.",
+  "Follow Me Around": "Scene-setting opening ('We're going to...') that builds anticipation. Share the itinerary or plan briefly. Use conversational asides and personal commentary. Make followers feel like they're along for the ride, not watching from the outside.",
+  "Unboxing": "Lead with anticipation ('I've been waiting for this for WEEKS'). Describe each element as you encounter it — texture, smell, quality, first impression. Honest reaction > scripted enthusiasm. First impression = the hook.",
 };
 
 // Tone blending guide
@@ -287,6 +334,8 @@ function buildCaptionPrompt(params: {
     LinkedIn: "Include 3-5 professional hashtags. Industry + topic + audience focused.",
     TikTok: "Include 5-8 hashtags. Mix trending (check what's hot in this niche) + niche-specific.",
     "Twitter/X": "Include 1-2 hashtags ONLY. Weave them naturally into the text or at the end. Every character counts.",
+    YouTube: "Include 3-5 hashtags placed at the very end of the description. Focus on broad searchable terms relevant to the video topic.",
+    Pinterest: "Include 2-5 hashtags at the end. Highly descriptive and keyword-rich — think what someone would search to find this pin.",
   }[platform] ?? "Include 6-10 relevant hashtags.";
 
   const brandVoiceSection = brandVoice && (brandVoice.brandName || brandVoice.personality?.length || brandVoice.targetAudience || brandVoice.alwaysInclude || brandVoice.neverSay)

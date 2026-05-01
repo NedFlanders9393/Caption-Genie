@@ -74,7 +74,7 @@ const CTAS = [
   "Learn More", "Try It Free",
   "Join the Waitlist", "Download Now",
 ];
-const MULTI_PLATFORMS = ["Instagram", "TikTok", "Facebook", "LinkedIn", "Twitter/X"];
+const MULTI_PLATFORMS = ["Instagram", "TikTok", "Facebook", "LinkedIn", "Twitter/X", "YouTube", "Pinterest"];
 
 const PLATFORM_COLORS: Record<string, string> = {
   Instagram: "#E1306C",
@@ -82,6 +82,8 @@ const PLATFORM_COLORS: Record<string, string> = {
   Facebook: "#1877F2",
   LinkedIn: "#0A66C2",
   "Twitter/X": "#000000",
+  YouTube: "#FF0000",
+  Pinterest: "#E60023",
 };
 
 export default function GenerateScreen() {

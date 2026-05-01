@@ -2,8 +2,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ── Streak tracking ──────────────────────────────────────────────────────────
 
-const STREAK_KEY = "quill:streak";
-const LAST_ACTIVE_KEY = "quill:lastActiveDate";
+const STREAK_KEY = "inkwell:streak";
+const LAST_ACTIVE_KEY = "inkwell:lastActiveDate";
 
 function todayString(): string {
   return new Date().toISOString().split("T")[0];

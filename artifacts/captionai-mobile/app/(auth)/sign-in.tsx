@@ -207,7 +207,7 @@ export default function SignInPage() {
               <Feather name="feather" size={28} color="#FFFFFF" />
             </View>
             <Text style={styles.title}>Welcome back</Text>
-            <Text style={styles.subtitle}>Sign in to your Quill account</Text>
+            <Text style={styles.subtitle}>Sign in to your Inkwell account</Text>
           </View>
 
           <View style={styles.form}>

@@ -7,6 +7,8 @@ import {
   clearHistory,
   getUsageCount,
   incrementUsage,
+  getStreak,
+  updateStreak,
   FREE_LIMIT,
   type HistoryEntry,
 } from "@/lib/storage";
@@ -20,6 +22,7 @@ interface AppContextValue {
   usageCount: number;
   freeLimit: number;
   isOverLimit: boolean;
+  streak: number;
   addToHistory: (entry: HistoryEntry) => Promise<void>;
   removeFromHistory: (id: string) => Promise<void>;
   wipeHistory: () => Promise<void>;
@@ -37,11 +40,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [usageCount, setUsageCount] = useState(0);
+  const [streak, setStreak] = useState(0);
 
   const loadData = useCallback(async () => {
-    const [h, u] = await Promise.all([getHistory(), getUsageCount()]);
+    const [h, u, s] = await Promise.all([getHistory(), getUsageCount(), getStreak()]);
     setHistory(h);
     setUsageCount(u);
+    setStreak(s);
   }, []);
 
   useEffect(() => {
@@ -69,10 +74,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const consumeGeneration = useCallback(async (): Promise<boolean> => {
-    if (isBetaTester) return true;
+    if (isBetaTester) {
+      // Still track streak for beta testers
+      const s = await updateStreak();
+      setStreak(s);
+      return true;
+    }
     if (usageCount >= FREE_LIMIT) return false;
-    const next = await incrementUsage();
+    const [next, s] = await Promise.all([incrementUsage(), updateStreak()]);
     setUsageCount(next);
+    setStreak(s);
     return true;
   }, [usageCount, isBetaTester]);
 
@@ -85,6 +96,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         usageCount,
         freeLimit: FREE_LIMIT,
         isOverLimit,
+        streak,
         addToHistory,
         removeFromHistory,
         wipeHistory,

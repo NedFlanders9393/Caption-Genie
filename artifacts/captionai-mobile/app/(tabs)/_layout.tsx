@@ -9,9 +9,15 @@ import React from "react";
 import { ActivityIndicator, Platform, StyleSheet, View, useColorScheme } from "react-native";
 import { useColors } from "@/hooks/useColors";
 
+const AMBER = "#E8B669";
+
 function NativeTabLayout() {
   return (
     <NativeTabs>
+      <NativeTabs.Trigger name="home">
+        <Icon sf={{ default: "house", selected: "house.fill" }} />
+        <Label>Home</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="index">
         <Icon sf={{ default: "wand.and.stars", selected: "wand.and.stars" }} />
         <Label>Generate</Label>
@@ -41,8 +47,9 @@ function ClassicTabLayout() {
 
   return (
     <Tabs
+      initialRouteName="home"
       screenOptions={{
-        tabBarActiveTintColor: colors.primary,
+        tabBarActiveTintColor: AMBER,
         tabBarInactiveTintColor: colors.mutedForeground,
         headerShown: false,
         tabBarStyle: {
@@ -65,6 +72,18 @@ function ClassicTabLayout() {
           ) : null,
       }}
     >
+      <Tabs.Screen
+        name="home"
+        options={{
+          title: "Home",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="house.fill" tintColor={color} size={24} />
+            ) : (
+              <Feather name="home" size={22} color={color} />
+            ),
+        }}
+      />
       <Tabs.Screen
         name="index"
         options={{
@@ -122,8 +141,8 @@ export default function TabLayout() {
 
   if (!isLoaded) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#FAFAFA" }}>
-        <ActivityIndicator size="large" color="#7C3AED" />
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#FFFDF9" }}>
+        <ActivityIndicator size="large" color={AMBER} />
       </View>
     );
   }

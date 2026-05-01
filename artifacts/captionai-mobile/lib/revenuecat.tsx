@@ -47,6 +47,7 @@ function getRevenueCatApiKey() {
 }
 
 export function initializeRevenueCat() {
+  if (Platform.OS === "web") return;
   if (!purchasesAvailable) {
     console.warn("[RevenueCat] Native module not available (Expo Go). Subscription features will be disabled.");
     return;

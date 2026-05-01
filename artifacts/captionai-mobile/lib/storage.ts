@@ -1,5 +1,55 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// ── Streak tracking ──────────────────────────────────────────────────────────
+
+const STREAK_KEY = "quill:streak";
+const LAST_ACTIVE_KEY = "quill:lastActiveDate";
+
+function todayString(): string {
+  return new Date().toISOString().split("T")[0];
+}
+
+function yesterdayString(): string {
+  return new Date(Date.now() - 86_400_000).toISOString().split("T")[0];
+}
+
+export async function getStreak(): Promise<number> {
+  const [streakStr, lastActive] = await Promise.all([
+    AsyncStorage.getItem(STREAK_KEY),
+    AsyncStorage.getItem(LAST_ACTIVE_KEY),
+  ]);
+  const streak = streakStr ? parseInt(streakStr, 10) : 0;
+  const today = todayString();
+  const yesterday = yesterdayString();
+  // Streak expired if last active was before yesterday
+  if (lastActive && lastActive !== today && lastActive !== yesterday) {
+    return 0;
+  }
+  return streak;
+}
+
+export async function updateStreak(): Promise<number> {
+  const today = todayString();
+  const yesterday = yesterdayString();
+  const [streakStr, lastActive] = await Promise.all([
+    AsyncStorage.getItem(STREAK_KEY),
+    AsyncStorage.getItem(LAST_ACTIVE_KEY),
+  ]);
+  const currentStreak = streakStr ? parseInt(streakStr, 10) : 0;
+
+  // Already updated today — no change
+  if (lastActive === today) return currentStreak;
+
+  const newStreak = lastActive === yesterday ? currentStreak + 1 : 1;
+  await Promise.all([
+    AsyncStorage.setItem(STREAK_KEY, String(newStreak)),
+    AsyncStorage.setItem(LAST_ACTIVE_KEY, today),
+  ]);
+  return newStreak;
+}
+
+// ── History + Usage ──────────────────────────────────────────────────────────
+
 export interface HistoryEntry {
   id: string;
   createdAt: number;

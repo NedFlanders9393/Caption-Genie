@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Modal,
@@ -53,7 +54,7 @@ export default function ProfileScreen() {
   const { signOut, getToken } = useAuth();
   const router = useRouter();
   const { usageCount: generationCount, freeLimit: FREE_LIMIT } = useApp();
-  const { isSubscribed } = useSubscription();
+  const { isSubscribed, restore, isRestoring } = useSubscription();
   const [paywallVisible, setPaywallVisible] = useState(false);
   const [bugModalVisible, setBugModalVisible] = useState(false);
   const [bugDescription, setBugDescription] = useState("");
@@ -88,6 +89,21 @@ export default function ProfileScreen() {
         },
       },
     ]);
+  };
+
+  const handleRestore = async () => {
+    try {
+      const info = await restore();
+      const active = (info.activeSubscriptions?.length ?? 0) > 0 ||
+        Object.keys(info.entitlements?.active ?? {}).length > 0;
+      if (active) {
+        Alert.alert("Purchases Restored", "Your Pro subscription has been restored successfully.");
+      } else {
+        Alert.alert("No Purchases Found", "We couldn't find any previous purchases tied to your account.");
+      }
+    } catch (err: any) {
+      Alert.alert("Restore Failed", err?.message ?? "Unable to restore purchases. Please try again.");
+    }
   };
 
   const usagePercent = Math.min((generationCount / FREE_LIMIT) * 100, 100);
@@ -260,6 +276,21 @@ export default function ProfileScreen() {
               </Pressable>
             )}
           </View>
+          <View style={styles.divider} />
+          <Pressable
+            style={({ pressed }) => [styles.restoreRow, pressed && styles.restoreRowPressed]}
+            onPress={handleRestore}
+            disabled={isRestoring}
+          >
+            {isRestoring ? (
+              <ActivityIndicator size="small" color={PRIMARY} />
+            ) : (
+              <Feather name="refresh-cw" size={16} color={PRIMARY} />
+            )}
+            <Text style={styles.restoreText}>
+              {isRestoring ? "Restoring…" : "Restore Purchases"}
+            </Text>
+          </Pressable>
         </View>
 
         {/* Upgrade to Pro banner — only for free users */}
@@ -676,6 +707,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Inter_500Medium",
     color: PRIMARY,
+  },
+  restoreRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 2,
+  },
+  restoreRowPressed: {
+    opacity: 0.6,
+  },
+  restoreText: {
+    fontSize: 15,
+    color: PRIMARY,
+    fontFamily: "Inter_500Medium",
   },
   upgradePill: {
     marginLeft: "auto",

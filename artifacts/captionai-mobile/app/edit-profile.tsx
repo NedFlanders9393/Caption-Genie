@@ -119,9 +119,23 @@ export default function EditProfileScreen() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // Try to update name — may fail for OAuth users (Google/Apple controls it)
+      const nameChanged =
+        firstName.trim() !== (user?.firstName ?? "") ||
+        lastName.trim() !== (user?.lastName ?? "");
+      if (nameChanged) {
+        try {
+          await user?.update({
+            firstName: firstName.trim() || undefined,
+            lastName: lastName.trim() || undefined,
+          });
+        } catch {
+          // Name is read-only for this account type — silently skip
+        }
+      }
+
+      // Always save metadata (username, location, age)
       await user?.update({
-        firstName: firstName.trim() || undefined,
-        lastName: lastName.trim() || undefined,
         unsafeMetadata: {
           ...meta,
           username: username.trim(),
@@ -129,6 +143,7 @@ export default function EditProfileScreen() {
           age: age.trim(),
         },
       });
+
       router.back();
     } catch (err: any) {
       Alert.alert(

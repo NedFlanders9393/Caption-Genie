@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   FlatList,
+  ScrollView,
   TouchableOpacity,
   Platform,
   Alert,
@@ -16,6 +17,62 @@ import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
 import type { HistoryEntry } from "@/lib/storage";
 
+const PLATFORM_COLORS: Record<string, string> = {
+  Instagram: "#E1306C",
+  TikTok: "#010101",
+  Facebook: "#1877F2",
+  LinkedIn: "#0A66C2",
+  "Twitter/X": "#000000",
+};
+
+function CaptionList({
+  captions,
+  colors,
+}: {
+  captions: { caption: string; hashtags: string }[];
+  colors: any;
+}) {
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+
+  const handleCopy = async (caption: string, hashtags: string, idx: number) => {
+    const text = hashtags ? `${caption}\n\n${hashtags}` : caption;
+    await Clipboard.setStringAsync(text);
+    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 2000);
+  };
+
+  return (
+    <View style={styles.captionList}>
+      {captions.map((c, i) => (
+        <View
+          key={i}
+          style={[styles.captionItem, { borderTopColor: colors.border, borderTopWidth: i > 0 ? StyleSheet.hairlineWidth : 0 }]}
+        >
+          <Text style={[styles.captionText, { color: colors.foreground }]}>{c.caption}</Text>
+          {c.hashtags ? (
+            <Text style={[styles.hashtagText, { color: colors.primary }]}>{c.hashtags}</Text>
+          ) : null}
+          <TouchableOpacity
+            onPress={() => handleCopy(c.caption, c.hashtags, i)}
+            style={styles.copyRow}
+            activeOpacity={0.7}
+          >
+            <Feather
+              name={copiedIdx === i ? "check" : "copy"}
+              size={14}
+              color={copiedIdx === i ? colors.primary : colors.mutedForeground}
+            />
+            <Text style={[styles.copyText, { color: copiedIdx === i ? colors.primary : colors.mutedForeground }]}>
+              {copiedIdx === i ? "Copied" : "Copy"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 function HistoryItem({
   item,
   onDelete,
@@ -26,18 +83,11 @@ function HistoryItem({
   colors: any;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("");
+  const isMulti = !!(item.multiPlatformResults && item.multiPlatformResults.length > 0);
 
   const date = new Date(item.createdAt);
   const timeStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-
-  const handleCopy = async (caption: string, hashtags: string, idx: number) => {
-    const text = hashtags ? `${caption}\n\n${hashtags}` : caption;
-    await Clipboard.setStringAsync(text);
-    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setCopiedIdx(idx);
-    setTimeout(() => setCopiedIdx(null), 2000);
-  };
 
   const handleDelete = () => {
     if (Platform.OS === "web") {
@@ -50,6 +100,22 @@ function HistoryItem({
     ]);
   };
 
+  const handleExpand = () => {
+    const next = !expanded;
+    setExpanded(next);
+    if (next && isMulti && !activeTab) {
+      setActiveTab(item.multiPlatformResults![0].platform);
+    }
+  };
+
+  const activeMultiCaptions = isMulti
+    ? (item.multiPlatformResults!.find((r) => r.platform === activeTab)?.captions ?? item.captions)
+    : item.captions;
+
+  const previewCaption = isMulti
+    ? item.multiPlatformResults![0]?.captions[0]?.caption
+    : item.captions[0]?.caption;
+
   return (
     <View
       style={[
@@ -61,7 +127,7 @@ function HistoryItem({
         },
       ]}
     >
-      <TouchableOpacity onPress={() => setExpanded((v) => !v)} activeOpacity={0.7}>
+      <TouchableOpacity onPress={handleExpand} activeOpacity={0.7}>
         <View style={styles.cardHeader}>
           <View style={styles.cardMeta}>
             <Text style={[styles.cardNiche, { color: colors.foreground }]}>
@@ -84,39 +150,41 @@ function HistoryItem({
         </View>
         {!expanded && (
           <Text style={[styles.preview, { color: colors.mutedForeground }]} numberOfLines={2}>
-            {item.captions[0]?.caption ?? ""}
+            {previewCaption ?? ""}
           </Text>
         )}
       </TouchableOpacity>
 
       {expanded && (
-        <View style={styles.captionList}>
-          {item.captions.map((c, i) => (
-            <View
-              key={i}
-              style={[styles.captionItem, { borderTopColor: colors.border, borderTopWidth: i > 0 ? StyleSheet.hairlineWidth : 0 }]}
-            >
-              <Text style={[styles.captionText, { color: colors.foreground }]}>{c.caption}</Text>
-              {c.hashtags ? (
-                <Text style={[styles.hashtagText, { color: colors.primary }]}>{c.hashtags}</Text>
-              ) : null}
-              <TouchableOpacity
-                onPress={() => handleCopy(c.caption, c.hashtags, i)}
-                style={styles.copyRow}
-                activeOpacity={0.7}
-              >
-                <Feather
-                  name={copiedIdx === i ? "check" : "copy"}
-                  size={14}
-                  color={copiedIdx === i ? colors.primary : colors.mutedForeground}
-                />
-                <Text style={[styles.copyText, { color: copiedIdx === i ? colors.primary : colors.mutedForeground }]}>
-                  {copiedIdx === i ? "Copied" : "Copy"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
+        <>
+          {isMulti && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.platformTabs}>
+              {item.multiPlatformResults!.map((r) => {
+                const active = activeTab === r.platform;
+                const accent = PLATFORM_COLORS[r.platform] ?? colors.primary;
+                return (
+                  <TouchableOpacity
+                    key={r.platform}
+                    onPress={() => setActiveTab(r.platform)}
+                    style={[
+                      styles.platformTab,
+                      {
+                        backgroundColor: active ? accent : colors.background,
+                        borderColor: active ? accent : colors.border,
+                      },
+                    ]}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.platformTabText, { color: active ? "#fff" : colors.foreground }]}>
+                      {r.platform}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          )}
+          <CaptionList captions={activeMultiCaptions} colors={colors} />
+        </>
       )}
     </View>
   );
@@ -215,6 +283,14 @@ const styles = StyleSheet.create({
   cardActions: { flexDirection: "row", alignItems: "center", gap: 4 },
   iconBtn: { padding: 4 },
   preview: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 19 },
+  platformTabs: { flexDirection: "row", gap: 8, paddingVertical: 8 },
+  platformTab: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1.5,
+  },
+  platformTabText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
   captionList: { gap: 0 },
   captionItem: { paddingTop: 12, gap: 6 },
   captionText: { fontSize: 14, lineHeight: 21, fontFamily: "Inter_400Regular" },

@@ -42,10 +42,10 @@ export default function Paywall({ visible, onClose }: Props) {
 
   // Find monthly and annual packages by identifier
   const monthlyPkg = packages.find(
-    (p) => p.packageType === "MONTHLY" || p.identifier === "$rc_monthly"
+    (p: any) => p.packageType === "MONTHLY" || p.identifier === "$rc_monthly"
   );
   const annualPkg = packages.find(
-    (p) => p.packageType === "ANNUAL" || p.identifier === "$rc_annual"
+    (p: any) => p.packageType === "ANNUAL" || p.identifier === "$rc_annual"
   );
 
   const [selected, setSelected] = useState<"monthly" | "annual">("annual");

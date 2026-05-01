@@ -12,6 +12,7 @@ export interface HistoryEntry {
     captionLength?: string;
   };
   captions: { caption: string; hashtags: string }[];
+  multiPlatformResults?: { platform: string; captions: { caption: string; hashtags: string }[] }[];
 }
 
 const HISTORY_KEY = "captionai:history";

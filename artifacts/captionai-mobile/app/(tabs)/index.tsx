@@ -130,6 +130,7 @@ export default function GenerateScreen() {
           createdAt: Date.now(),
           params: { niche, postDescription: description.trim(), tone: tones.join(", "), platform: "All Platforms", postType, captionLength },
           captions: results[0]?.captions ?? [],
+          multiPlatformResults: results,
         });
       } else {
         const params = buildParams();
@@ -182,9 +183,21 @@ export default function GenerateScreen() {
   );
 
   const toggleTone = useCallback((t: string) => {
-    setTones((prev) =>
-      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
-    );
+    setTones((prev) => {
+      if (prev.includes(t)) return prev.filter((x) => x !== t);
+      if (prev.length >= 3) return prev; // enforce max 3
+      return [...prev, t];
+    });
+  }, []);
+
+  const handleToggleMultiPlatform = useCallback((val: boolean) => {
+    setMultiPlatform(val);
+    if (val) {
+      setCaptions([]);   // clear single-platform results when switching to multi
+    } else {
+      setMultiResults([]); // clear multi-platform results when switching to single
+    }
+    setError(null);
   }, []);
 
   const activePlatformCaptions = multiResults.find((r) => r.platform === activePlatformTab)?.captions ?? [];
@@ -254,7 +267,7 @@ export default function GenerateScreen() {
             </View>
           )}
           {/* Multi-platform toggle */}
-          <TouchableOpacity
+          <View
             style={[
               styles.multiPlatformRow,
               {
@@ -263,8 +276,6 @@ export default function GenerateScreen() {
                 borderRadius: colors.radius / 2,
               },
             ]}
-            onPress={() => setMultiPlatform((v) => !v)}
-            activeOpacity={0.8}
           >
             <View style={styles.multiPlatformIcons}>
               {MULTI_PLATFORMS.map((p) => (
@@ -276,12 +287,12 @@ export default function GenerateScreen() {
             </Text>
             <Switch
               value={multiPlatform}
-              onValueChange={setMultiPlatform}
+              onValueChange={handleToggleMultiPlatform}
               trackColor={{ true: colors.primary, false: colors.border }}
               thumbColor="#fff"
               style={{ transform: [{ scaleX: 0.85 }, { scaleY: 0.85 }] }}
             />
-          </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.section}>

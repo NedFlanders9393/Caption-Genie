@@ -68,26 +68,31 @@ export default function EditProfileScreen() {
       try {
         const asset = result.assets[0];
 
-        // Moderation check before uploading
+        // Moderation check before uploading (fail open — never block upload on network error)
         if (asset.base64) {
-          const mimeType = asset.mimeType ?? "image/jpeg";
-          const moderationRes = await fetch(
-            `${process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : ""}/api/moderate-image`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ imageBase64: asset.base64, mimeType }),
+          try {
+            const modMimeType = asset.mimeType ?? "image/jpeg";
+            const moderationRes = await fetch(
+              `${process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : ""}/api/moderate-image`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ imageBase64: asset.base64, mimeType: modMimeType }),
+              }
+            );
+            if (moderationRes.ok) {
+              const { safe, reason } = await moderationRes.json();
+              if (!safe) {
+                Alert.alert(
+                  "Photo not allowed",
+                  reason ?? "This photo contains inappropriate content and cannot be used as a profile picture."
+                );
+                setIsUploadingImage(false);
+                return;
+              }
             }
-          );
-          if (moderationRes.ok) {
-            const { safe, reason } = await moderationRes.json();
-            if (!safe) {
-              Alert.alert(
-                "Photo not allowed",
-                reason ?? "This photo contains inappropriate content and cannot be used as a profile picture."
-              );
-              return;
-            }
+          } catch {
+            // Moderation service unreachable — proceed with upload anyway
           }
         }
 

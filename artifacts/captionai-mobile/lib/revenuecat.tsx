@@ -1,8 +1,20 @@
 import React, { createContext, useContext } from "react";
 import { Platform } from "react-native";
-import Purchases from "react-native-purchases";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Constants from "expo-constants";
+
+// react-native-purchases is a native module — it cannot be imported in Expo Go.
+// We load it lazily and fall back to a no-op stub when unavailable.
+let Purchases: any = null;
+let purchasesAvailable = false;
+
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  Purchases = require("react-native-purchases").default;
+  purchasesAvailable = true;
+} catch {
+  purchasesAvailable = false;
+}
 
 const REVENUECAT_TEST_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY;
 const REVENUECAT_IOS_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY;
@@ -35,36 +47,47 @@ function getRevenueCatApiKey() {
 }
 
 export function initializeRevenueCat() {
+  if (!purchasesAvailable) {
+    console.warn("[RevenueCat] Native module not available (Expo Go). Subscription features will be disabled.");
+    return;
+  }
+
   const apiKey = getRevenueCatApiKey();
   if (!apiKey) throw new Error("RevenueCat Public API Key not found");
 
   Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
   Purchases.configure({ apiKey });
-
-  console.log("Configured RevenueCat");
 }
+
+// Stub customer info returned when native module is unavailable
+const STUB_CUSTOMER_INFO = {
+  entitlements: { active: {} },
+};
 
 function useSubscriptionContext() {
   const customerInfoQuery = useQuery({
     queryKey: ["revenuecat", "customer-info"],
     queryFn: async () => {
-      const info = await Purchases.getCustomerInfo();
-      return info;
+      if (!purchasesAvailable) return STUB_CUSTOMER_INFO;
+      return Purchases.getCustomerInfo();
     },
     staleTime: 60 * 1000,
+    retry: false,
   });
 
   const offeringsQuery = useQuery({
     queryKey: ["revenuecat", "offerings"],
     queryFn: async () => {
-      const offerings = await Purchases.getOfferings();
-      return offerings;
+      if (!purchasesAvailable) return null;
+      return Purchases.getOfferings();
     },
     staleTime: 300 * 1000,
+    retry: false,
   });
 
   const purchaseMutation = useMutation({
     mutationFn: async (packageToPurchase: any) => {
+      if (!purchasesAvailable) throw new Error("Purchases not available in Expo Go. Please use a development build.");
       const { customerInfo } = await Purchases.purchasePackage(packageToPurchase);
       return customerInfo;
     },
@@ -73,6 +96,7 @@ function useSubscriptionContext() {
 
   const restoreMutation = useMutation({
     mutationFn: async () => {
+      if (!purchasesAvailable) throw new Error("Purchases not available in Expo Go. Please use a development build.");
       return Purchases.restorePurchases();
     },
     onSuccess: () => customerInfoQuery.refetch(),
@@ -90,6 +114,7 @@ function useSubscriptionContext() {
     restore: restoreMutation.mutateAsync,
     isPurchasing: purchaseMutation.isPending,
     isRestoring: restoreMutation.isPending,
+    isNativeAvailable: purchasesAvailable,
   };
 }
 

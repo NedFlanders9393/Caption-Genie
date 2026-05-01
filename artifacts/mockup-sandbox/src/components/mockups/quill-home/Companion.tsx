@@ -1,5 +1,5 @@
 import React from "react";
-import { PenTool, Hash, History, Sparkles, ChevronRight, Zap, Coffee } from "lucide-react";
+import { Feather, Hash, History, Sparkles, ChevronRight, Zap, Coffee } from "lucide-react";
 
 export function Companion() {
   const niches = ["Coffee Shop", "Bakery", "Behind the Scenes", "Team", "Announcement", "Menu Item"];
@@ -21,7 +21,7 @@ export function Companion() {
         <header className="px-6 pt-12 pb-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-[#E8B669] flex items-center justify-center text-white shadow-sm">
-              <PenTool size={16} />
+              <Feather size={16} />
             </div>
             <span style={{ fontFamily: "Outfit, sans-serif" }} className="font-semibold text-xl tracking-tight text-[#3A3129]">Quill</span>
           </div>
@@ -151,7 +151,7 @@ export function Companion() {
       {/* Bottom Nav */}
       <div className="absolute bottom-0 left-0 right-0 h-20 bg-white border-t border-[#F0E3D3] px-8 flex justify-between items-center pb-4">
         <button className="flex flex-col items-center gap-1 text-[#E8B669]">
-          <PenTool size={24} />
+          <Feather size={24} />
           <span className="text-[10px] font-medium">Create</span>
         </button>
         <button className="flex flex-col items-center gap-1 text-[#A6988C]">

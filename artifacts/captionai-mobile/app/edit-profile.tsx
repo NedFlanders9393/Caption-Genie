@@ -95,9 +95,16 @@ export default function EditProfileScreen() {
           }
         }
 
-        const response = await fetch(asset.uri);
-        const blob = await response.blob();
-        await user?.setProfileImage({ file: blob });
+        // React Native's fetch().blob() loses the MIME type on local file URIs.
+        // Pass a {uri, name, type} object — React Native FormData handles this correctly.
+        const ext = asset.uri.split(".").pop() ?? "jpg";
+        const mimeType = asset.mimeType ?? "image/jpeg";
+        const file = {
+          uri: asset.uri,
+          name: `profile.${ext}`,
+          type: mimeType,
+        } as unknown as File;
+        await user?.setProfileImage({ file });
       } catch (err: any) {
         Alert.alert(
           "Upload failed",

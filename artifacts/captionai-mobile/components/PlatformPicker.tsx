@@ -1,22 +1,26 @@
 import React from "react";
-import { ScrollView, TouchableOpacity, Text, StyleSheet, View } from "react-native";
+import { ScrollView, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 
 export const PLATFORMS = [
-  { id: "Instagram", icon: "instagram" as const },
-  { id: "Facebook", icon: "facebook" as const },
-  { id: "LinkedIn", icon: "linkedin" as const },
-  { id: "TikTok", icon: "music" as const },
-  { id: "Twitter/X", icon: "twitter" as const },
+  { id: "Instagram",  icon: "instagram" as const },
+  { id: "TikTok",     icon: "music"     as const },
+  { id: "Facebook",   icon: "facebook"  as const },
+  { id: "LinkedIn",   icon: "linkedin"  as const },
+  { id: "Twitter/X",  icon: "twitter"   as const },
+  { id: "YouTube",    icon: "youtube"   as const },
+  { id: "Pinterest",  icon: "bookmark"  as const },
 ];
 
+const MAX = 7;
+
 interface Props {
-  selected: string;
-  onSelect: (platform: string) => void;
+  selected: string[];
+  onToggle: (platform: string) => void;
 }
 
-export default function PlatformPicker({ selected, onSelect }: Props) {
+export default function PlatformPicker({ selected, onToggle }: Props) {
   const colors = useColors();
 
   return (
@@ -26,17 +30,19 @@ export default function PlatformPicker({ selected, onSelect }: Props) {
       contentContainerStyle={styles.container}
     >
       {PLATFORMS.map((p) => {
-        const isActive = selected === p.id;
+        const isActive = selected.includes(p.id);
+        const atMax = selected.length >= MAX && !isActive;
         return (
           <TouchableOpacity
             key={p.id}
-            onPress={() => onSelect(p.id)}
+            onPress={() => !atMax && onToggle(p.id)}
             style={[
               styles.pill,
               {
                 backgroundColor: isActive ? colors.primary : colors.card,
                 borderColor: isActive ? colors.primary : colors.border,
                 borderRadius: colors.radius / 2,
+                opacity: atMax ? 0.4 : 1,
               },
             ]}
             activeOpacity={0.75}
@@ -65,7 +71,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     gap: 8,
-    paddingHorizontal: 16,
     paddingVertical: 4,
   },
   pill: {

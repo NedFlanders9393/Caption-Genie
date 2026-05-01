@@ -65,9 +65,9 @@ export async function generateCaptions(params: CaptionParams, token: string | nu
 
 export async function generateMultiPlatform(
   params: Omit<CaptionParams, "platform">,
+  platforms: string[],
   token: string | null = null
 ): Promise<MultiPlatformResult[]> {
-  const platforms = ["Instagram", "TikTok", "Facebook", "LinkedIn", "Twitter/X"];
   const results = await Promise.all(
     platforms.map(async (platform) => {
       const captions = await generateCaptions({ ...params, platform }, token);

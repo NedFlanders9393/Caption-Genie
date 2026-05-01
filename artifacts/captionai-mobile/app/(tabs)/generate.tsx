@@ -74,8 +74,6 @@ const CTAS = [
   "Learn More", "Try It Free",
   "Join the Waitlist", "Download Now",
 ];
-const MULTI_PLATFORMS = ["Instagram", "TikTok", "Facebook", "LinkedIn", "Twitter/X", "YouTube", "Pinterest"];
-
 const PLATFORM_COLORS: Record<string, string> = {
   Instagram: "#E1306C",
   TikTok: "#010101",
@@ -95,8 +93,7 @@ export default function GenerateScreen() {
   const { addToHistory, consumeGeneration, isOverLimit } = useApp();
   const { isSubscribed } = useSubscription();
 
-  const [platform, setPlatform] = useState("Instagram");
-  const [multiPlatform, setMultiPlatform] = useState(false);
+  const [platforms, setPlatforms] = useState<string[]>(["Instagram"]);
   const [activePlatformTab, setActivePlatformTab] = useState("Instagram");
   const [niche, setNiche] = useState("");
   const [postType, setPostType] = useState("");
@@ -117,17 +114,19 @@ export default function GenerateScreen() {
 
   const canGenerate = niche && tones.length > 0 && description.trim();
 
+  const multiPlatform = platforms.length > 1;
+
   const buildParams = useCallback((): CaptionParams => ({
     niche,
     postDescription: description.trim(),
     tone: tones.join(", "),
-    platform,
+    platform: platforms[0] ?? "Instagram",
     postType: postType || undefined,
     captionLength,
     includeEmojis,
     ctaType: ctaType === "None" ? undefined : ctaType,
     brandVoice: hasBrandVoice ? brandVoice : undefined,
-  }), [niche, description, tones, platform, postType, captionLength, includeEmojis, ctaType, hasBrandVoice, brandVoice]);
+  }), [niche, description, tones, platforms, postType, captionLength, includeEmojis, ctaType, hasBrandVoice, brandVoice]);
 
   const handleGenerate = useCallback(async () => {
     if (!canGenerate) return;
@@ -145,14 +144,14 @@ export default function GenerateScreen() {
       const token = await getToken();
       if (multiPlatform) {
         const params = buildParams();
-        const results = await generateMultiPlatform(params, token);
+        const results = await generateMultiPlatform(params, platforms, token);
         setMultiResults(results);
-        setActivePlatformTab("Instagram");
+        setActivePlatformTab(platforms[0] ?? "Instagram");
 
         await addToHistory({
           id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
           createdAt: Date.now(),
-          params: { niche, postDescription: description.trim(), tone: tones.join(", "), platform: "All Platforms", postType, captionLength },
+          params: { niche, postDescription: description.trim(), tone: tones.join(", "), platform: platforms.join(", "), postType, captionLength },
           captions: results[0]?.captions ?? [],
           multiPlatformResults: results,
         });
@@ -165,7 +164,7 @@ export default function GenerateScreen() {
         await addToHistory({
           id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
           createdAt: Date.now(),
-          params: { niche, postDescription: description.trim(), tone: tones.join(", "), platform, postType, captionLength },
+          params: { niche, postDescription: description.trim(), tone: tones.join(", "), platform: platforms[0] ?? "Instagram", postType, captionLength },
           captions: result,
         });
       }
@@ -176,7 +175,7 @@ export default function GenerateScreen() {
     } finally {
       setLoading(false);
     }
-  }, [canGenerate, isSubscribed, isOverLimit, multiPlatform, buildParams, niche, description, tones, platform, postType, captionLength, addToHistory, consumeGeneration]);
+  }, [canGenerate, isSubscribed, isOverLimit, multiPlatform, buildParams, niche, description, tones, platforms, postType, captionLength, addToHistory, consumeGeneration]);
 
   const handleRegenerate = useCallback(
     async (idx: number) => {
@@ -215,13 +214,22 @@ export default function GenerateScreen() {
     });
   }, []);
 
-  const handleToggleMultiPlatform = useCallback((val: boolean) => {
-    setMultiPlatform(val);
-    if (val) {
-      setCaptions([]);   // clear single-platform results when switching to multi
-    } else {
-      setMultiResults([]); // clear multi-platform results when switching to single
-    }
+  const togglePlatform = useCallback((p: string) => {
+    setPlatforms((prev) => {
+      if (prev.includes(p)) {
+        // keep at least 1 selected
+        if (prev.length === 1) return prev;
+        const next = prev.filter((x) => x !== p);
+        // reset results when switching modes
+        setCaptions([]);
+        setMultiResults([]);
+        return next;
+      }
+      if (prev.length >= 7) return prev;
+      setCaptions([]);
+      setMultiResults([]);
+      return [...prev, p];
+    });
     setError(null);
   }, []);
 
@@ -285,39 +293,10 @@ export default function GenerateScreen() {
 
         {/* Platform */}
         <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Platform</Text>
-          {!multiPlatform && (
-            <View style={styles.platformRow}>
-              <PlatformPicker selected={platform} onSelect={setPlatform} />
-            </View>
-          )}
-          {/* Multi-platform toggle */}
-          <View
-            style={[
-              styles.multiPlatformRow,
-              {
-                backgroundColor: multiPlatform ? "#F8EFE4" : colors.card,
-                borderColor: multiPlatform ? colors.primary : colors.border,
-                borderRadius: colors.radius / 2,
-              },
-            ]}
-          >
-            <View style={styles.multiPlatformIcons}>
-              {MULTI_PLATFORMS.map((p) => (
-                <View key={p} style={[styles.multiPlatformDot, { backgroundColor: PLATFORM_COLORS[p] }]} />
-              ))}
-            </View>
-            <Text style={[styles.multiPlatformText, { color: multiPlatform ? colors.primary : colors.foreground }]}>
-              Generate for all 5 platforms
-            </Text>
-            <Switch
-              value={multiPlatform}
-              onValueChange={handleToggleMultiPlatform}
-              trackColor={{ true: colors.primary, false: colors.border }}
-              thumbColor="#fff"
-              style={{ transform: [{ scaleX: 0.85 }, { scaleY: 0.85 }] }}
-            />
-          </View>
+          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>
+            Platform <Text style={{ fontFamily: "Inter_400Regular" }}>(pick up to 7)</Text>
+          </Text>
+          <PlatformPicker selected={platforms} onToggle={togglePlatform} />
         </View>
 
         <View style={styles.section}>
@@ -404,7 +383,7 @@ export default function GenerateScreen() {
             <>
               <Feather name={multiPlatform ? "layers" : "zap"} size={18} color={canGenerate ? "#fff" : colors.mutedForeground} />
               <Text style={[styles.generateText, { color: canGenerate ? "#fff" : colors.mutedForeground }]}>
-                {multiPlatform ? "Generate for All 5 Platforms" : "Generate Captions"}
+                {multiPlatform ? `Generate for ${platforms.length} Platforms` : "Generate Captions"}
               </Text>
             </>
           )}
@@ -414,7 +393,7 @@ export default function GenerateScreen() {
         {!multiPlatform && captions.length > 0 && (
           <View style={styles.results}>
             <Text style={[styles.resultsLabel, { color: colors.foreground }]}>Your Captions</Text>
-            <BestTimeCard platform={platform} />
+            <BestTimeCard platform={platforms[0] ?? "Instagram"} />
             {captions.map((c, i) => (
               <CaptionCard
                 key={i}
@@ -432,10 +411,10 @@ export default function GenerateScreen() {
         {multiPlatform && multiResults.length > 0 && (
           <View style={styles.results}>
             <Text style={[styles.resultsLabel, { color: colors.foreground }]}>All Platforms</Text>
-            <BestTimeCard platform={platform} multiPlatforms={MULTI_PLATFORMS} />
+            <BestTimeCard platform={platforms[0] ?? "Instagram"} multiPlatforms={platforms} />
             {/* Platform tabs */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.platformTabs}>
-              {MULTI_PLATFORMS.map((p) => {
+              {platforms.map((p) => {
                 const active = activePlatformTab === p;
                 return (
                   <TouchableOpacity
@@ -536,29 +515,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     textTransform: "uppercase",
     letterSpacing: 0.5,
-  },
-  platformRow: { marginHorizontal: -16 },
-  multiPlatformRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderWidth: 1.5,
-  },
-  multiPlatformIcons: {
-    flexDirection: "row",
-    gap: 3,
-  },
-  multiPlatformDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  multiPlatformText: {
-    flex: 1,
-    fontSize: 14,
-    fontFamily: "Inter_500Medium",
   },
   row: { flexDirection: "row", gap: 12 },
   flex1: { flex: 1 },

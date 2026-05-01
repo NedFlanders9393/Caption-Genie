@@ -6,7 +6,7 @@ import { sql, desc } from "drizzle-orm";
 import { getResendClient } from "../resendClient";
 import { logger } from "../lib/logger";
 
-const OWNER_EMAIL = "Nedflanders9393@gmail.com";
+const OWNER_EMAIL = "nedflanders9393@gmail.com";
 
 const bugsRouter: IRouter = Router();
 
@@ -115,7 +115,7 @@ async function sendBugEmails(payload: BugEmailPayload) {
   const userLine = userEmail ? `<p><strong>From:</strong> ${userEmail}</p>` : "<p><strong>From:</strong> Anonymous user</p>";
 
   // 1) Notify the owner
-  await client.emails.send({
+  const result = await client.emails.send({
     from: fromEmail,
     to: OWNER_EMAIL,
     subject: "🐛 New Bug Report — Inkwell",
@@ -142,5 +142,5 @@ async function sendBugEmails(payload: BugEmailPayload) {
     `,
   });
 
-  logger.info("Owner notification email sent");
+  logger.info({ resendId: result.data?.id, resendError: result.error }, "Owner notification email result");
 }

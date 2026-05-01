@@ -44,7 +44,7 @@ export default function SignUpPage() {
   // Auto-navigate when auth state updates
   useEffect(() => {
     if (isSignedIn) {
-      router.replace("/(tabs)");
+      router.replace("/(tabs)/home");
     }
   }, [isSignedIn]);
 
@@ -76,7 +76,7 @@ export default function SignUpPage() {
       if (signUp.status === "complete") {
         await signUp.finalize({
           navigate: () => {
-            router.replace("/(tabs)");
+            router.replace("/(tabs)/home");
           },
         });
       } else {

@@ -46,7 +46,7 @@ export default function SignInPage() {
 
   useEffect(() => {
     if (isSignedIn) {
-      router.replace("/(tabs)");
+      router.replace("/(tabs)/home");
     }
   }, [isSignedIn]);
 
@@ -60,7 +60,7 @@ export default function SignInPage() {
       }
 
       if (signIn.status === "complete") {
-        await signIn.finalize({ navigate: () => router.replace("/(tabs)") });
+        await signIn.finalize({ navigate: () => router.replace("/(tabs)/home") });
       } else if (signIn.status === "needs_second_factor") {
         // Send email code as second factor
         const { error: mfaError } = await signIn.mfa.sendEmailCode();
@@ -86,7 +86,7 @@ export default function SignInPage() {
         return;
       }
       if (signIn.status === "complete") {
-        await signIn.finalize({ navigate: () => router.replace("/(tabs)") });
+        await signIn.finalize({ navigate: () => router.replace("/(tabs)/home") });
       } else {
         setGeneralError("Verification incomplete. Please try again.");
       }

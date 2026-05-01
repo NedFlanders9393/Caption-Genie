@@ -18,7 +18,7 @@ function NativeTabLayout() {
         <Icon sf={{ default: "house", selected: "house.fill" }} />
         <Label>Home</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="index">
+      <NativeTabs.Trigger name="generate">
         <Icon sf={{ default: "wand.and.stars", selected: "wand.and.stars" }} />
         <Label>Generate</Label>
       </NativeTabs.Trigger>
@@ -85,7 +85,7 @@ function ClassicTabLayout() {
         }}
       />
       <Tabs.Screen
-        name="index"
+        name="generate"
         options={{
           title: "Generate",
           tabBarIcon: ({ color }) =>

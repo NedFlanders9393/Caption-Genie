@@ -113,7 +113,7 @@ export default function HomeScreen() {
           {/* Write a Caption — primary dark tile */}
           <TouchableOpacity
             style={[styles.tile, styles.tileDark]}
-            onPress={() => router.navigate("/(tabs)")}
+            onPress={() => router.navigate("/(tabs)/generate")}
             activeOpacity={0.85}
           >
             <View style={styles.tileIconAmber}>
@@ -173,7 +173,7 @@ export default function HomeScreen() {
             <Text style={styles.emptyText}>Your first caption will appear here.</Text>
             <TouchableOpacity
               style={styles.emptyBtn}
-              onPress={() => router.navigate("/(tabs)")}
+              onPress={() => router.navigate("/(tabs)/generate")}
             >
               <Text style={styles.emptyBtnText}>Write your first caption</Text>
             </TouchableOpacity>

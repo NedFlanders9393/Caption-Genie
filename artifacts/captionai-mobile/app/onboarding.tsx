@@ -116,7 +116,7 @@ export default function OnboardingScreen() {
       )}
 
       {/* Slides */}
-      <Animated.FlatList
+      <FlatList
         ref={flatListRef}
         data={SLIDES}
         keyExtractor={(item) => item.id}

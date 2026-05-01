@@ -14,12 +14,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const PRIMARY = "#7C3AED";
-const BG = "#FAFAFA";
-const FOREGROUND = "#19141F";
-const MUTED = "#6B7280";
+const PRIMARY = "#E8B669";
+const BG = "#FFFDF9";
+const FOREGROUND = "#3A3129";
+const MUTED = "#8C7A6B";
 const CARD_BG = "#FFFFFF";
-const CARD_BORDER = "#F3F4F6";
+const CARD_BORDER = "#F0E3D3";
 
 const PERSONALITIES = [
   "Professional", "Playful", "Witty", "Inspiring",
@@ -225,13 +225,13 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: { padding: 16, gap: 16, paddingBottom: 40 },
   heroCard: {
-    backgroundColor: "#EDE9FE",
+    backgroundColor: "#F8EFE4",
     borderRadius: 16,
     padding: 20,
     alignItems: "center",
     gap: 10,
     borderWidth: 1,
-    borderColor: "#DDD6FE",
+    borderColor: "#F0E3D3",
   },
   heroIcon: {
     width: 56,
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   heroDesc: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
-    color: "#5B21B6",
+    color: MUTED,
     textAlign: "center",
     lineHeight: 20,
   },
@@ -275,13 +275,13 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1.5,
-    borderColor: "#E5E7EB",
+    borderColor: CARD_BORDER,
     borderRadius: 10,
     padding: 12,
     fontSize: 15,
     fontFamily: "Inter_400Regular",
     color: FOREGROUND,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#FFFDF9",
   },
   textarea: {
     minHeight: 72,
@@ -302,11 +302,11 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: "#E5E7EB",
-    backgroundColor: "#F9FAFB",
+    borderColor: CARD_BORDER,
+    backgroundColor: "#FFFDF9",
   },
   chipSelected: {
-    backgroundColor: "#EDE9FE",
+    backgroundColor: "#F8EFE4",
     borderColor: PRIMARY,
   },
   chipDisabled: {
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#D1D5DB",
   },
   saveBtnPressed: {
-    backgroundColor: "#6D28D9",
+    backgroundColor: "#D4A055",
   },
   saveBtnText: {
     fontSize: 16,

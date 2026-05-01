@@ -18,12 +18,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const PRIMARY = "#7C3AED";
-const BG = "#FAFAFA";
-const FOREGROUND = "#19141F";
-const MUTED = "#6B7280";
+const PRIMARY = "#E8B669";
+const BG = "#FFFDF9";
+const FOREGROUND = "#3A3129";
+const MUTED = "#8C7A6B";
 const CARD_BG = "#FFFFFF";
-const CARD_BORDER = "#F3F4F6";
+const CARD_BORDER = "#F0E3D3";
 
 type UserMeta = {
   username?: string;

@@ -294,6 +294,32 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
+        {/* Legal */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Legal</Text>
+          <Pressable
+            style={({ pressed }) => [styles.helpRow, pressed && styles.helpRowPressed]}
+            onPress={() => router.push("/privacy-policy")}
+          >
+            <View style={styles.helpIcon}>
+              <Feather name="shield" size={16} color={PRIMARY} />
+            </View>
+            <Text style={styles.helpText}>Privacy Policy</Text>
+            <Feather name="chevron-right" size={16} color={MUTED} />
+          </Pressable>
+          <View style={styles.helpDivider} />
+          <Pressable
+            style={({ pressed }) => [styles.helpRow, pressed && styles.helpRowPressed]}
+            onPress={() => router.push("/terms")}
+          >
+            <View style={styles.helpIcon}>
+              <Feather name="file-text" size={16} color={PRIMARY} />
+            </View>
+            <Text style={styles.helpText}>Terms of Service</Text>
+            <Feather name="chevron-right" size={16} color={MUTED} />
+          </Pressable>
+        </View>
+
         {/* Sign out */}
         <Pressable
           style={({ pressed }) => [styles.signOutButton, pressed && styles.signOutPressed]}
@@ -723,6 +749,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "Inter_500Medium",
     color: FOREGROUND,
+  },
+  helpDivider: {
+    height: 1,
+    backgroundColor: CARD_BORDER,
+    marginVertical: 4,
   },
   modalRoot: {
     flex: 1,

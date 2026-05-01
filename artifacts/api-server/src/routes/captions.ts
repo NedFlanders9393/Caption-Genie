@@ -77,9 +77,9 @@ const captionRateLimit = rateLimit({
   message: { error: "Too many requests. Please wait a few minutes and try again." },
 });
 
-// Apply auth + rate limiting to all caption routes
-captionsRouter.use(requireAuth({ signInUrl: "/api/unauthorized" }));
-captionsRouter.use(captionRateLimit);
+// Apply auth + rate limiting only to caption routes (scoped to /captions prefix)
+captionsRouter.use("/captions", requireAuth({ signInUrl: "/api/unauthorized" }));
+captionsRouter.use("/captions", captionRateLimit);
 
 const SYSTEM_PROMPT = `You are the world's best social media copywriter — you've written viral content for thousands of small businesses across every industry. You understand platform algorithms, consumer psychology, and what actually makes people stop scrolling, engage, and buy.
 

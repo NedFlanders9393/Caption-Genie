@@ -28,7 +28,7 @@ async function ensureTable() {
 
 ensureTable().catch(() => {});
 
-bugsRouter.post("/api/bugs", async (req, res) => {
+bugsRouter.post("/bugs", async (req, res) => {
   try {
     const auth = getAuth(req);
     const { description, expectedBehavior, screen, appVersion, platform, userEmail } = req.body as {
@@ -72,7 +72,7 @@ bugsRouter.post("/api/bugs", async (req, res) => {
   }
 });
 
-bugsRouter.get("/api/bugs", async (req, res) => {
+bugsRouter.get("/bugs", async (req, res) => {
   try {
     const { status = "open", limit = "50" } = req.query as { status?: string; limit?: string };
     const reports = await db

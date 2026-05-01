@@ -4,6 +4,7 @@ import { db } from "@workspace/db";
 import { bugReports } from "@workspace/db";
 import { sql, desc } from "drizzle-orm";
 import { getResendClient } from "../resendClient";
+import { logger } from "../lib/logger";
 
 const OWNER_EMAIL = "Nedflanders9393@gmail.com";
 
@@ -63,7 +64,9 @@ bugsRouter.post("/bugs", async (req, res) => {
       platform: platform?.trim(),
       appVersion: appVersion?.trim(),
       userEmail: userEmail?.trim(),
-    }).catch(() => {});
+    }).catch((emailErr) => {
+      logger.error({ err: emailErr }, "Failed to send bug report emails");
+    });
 
     res.json({ success: true, message: "Bug report submitted. Thank you!" });
   } catch (err) {
@@ -102,7 +105,9 @@ interface BugEmailPayload {
 }
 
 async function sendBugEmails(payload: BugEmailPayload) {
+  logger.info("Sending bug report emails via Resend...");
   const { client, fromEmail } = await getResendClient();
+  logger.info({ fromEmail }, "Resend client ready");
   const { description, expectedBehavior, platform, appVersion, userEmail } = payload;
 
   const platformLine = platform ? `<p><strong>Platform:</strong> ${platform}${appVersion ? ` v${appVersion}` : ""}</p>` : "";
@@ -137,6 +142,8 @@ async function sendBugEmails(payload: BugEmailPayload) {
     `,
   });
 
+  logger.info("Owner notification email sent");
+
   // 2) Auto-reply to the user (only if they have an email)
   if (userEmail) {
     await client.emails.send({
@@ -163,5 +170,6 @@ async function sendBugEmails(payload: BugEmailPayload) {
         </div>
       `,
     });
+    logger.info({ to: userEmail }, "Auto-reply email sent to user");
   }
 }

@@ -1,39 +1,10 @@
-// Resend integration — conn_resend_01KPDYY6GQYR6FSS5NTTV3S9H2
+// Resend email client — uses RESEND_API_KEY and RESEND_FROM_EMAIL secrets
 import { Resend } from "resend";
 
-interface ResendCredentials {
-  apiKey: string;
-  fromEmail: string;
-}
-
-async function getCredentials(): Promise<ResendCredentials> {
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  const xReplitToken = process.env.REPL_IDENTITY
-    ? "repl " + process.env.REPL_IDENTITY
-    : process.env.WEB_REPL_RENEWAL
-    ? "depl " + process.env.WEB_REPL_RENEWAL
-    : null;
-
-  if (!xReplitToken) throw new Error("X-Replit-Token not found");
-
-  const data = await fetch(
-    `https://${hostname}/api/v2/connection?include_secrets=true&connector_names=resend`,
-    {
-      headers: {
-        Accept: "application/json",
-        "X-Replit-Token": xReplitToken,
-      },
-    }
-  )
-    .then((r) => r.json())
-    .then((d) => d.items?.[0]);
-
-  if (!data?.settings?.api_key) throw new Error("Resend not connected");
-  return { apiKey: data.settings.api_key, fromEmail: data.settings.from_email };
-}
-
-// WARNING: Never cache — tokens expire. Always call fresh.
 export async function getResendClient() {
-  const { apiKey, fromEmail } = await getCredentials();
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.RESEND_FROM_EMAIL;
+  if (!apiKey) throw new Error("RESEND_API_KEY is not set");
+  if (!fromEmail) throw new Error("RESEND_FROM_EMAIL is not set");
   return { client: new Resend(apiKey), fromEmail };
 }

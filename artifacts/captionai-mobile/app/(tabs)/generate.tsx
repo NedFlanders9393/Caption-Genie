@@ -42,6 +42,10 @@ const NICHES = [
   "Education/Tutoring", "Home Services", "Law Firm", "Coffee Shop",
   "Yoga Studio", "Automotive", "Marketing Agency", "Non-Profit",
   "Travel/Tourism", "Dental/Medical",
+  "Influencer/Creator", "Fashion Influencer", "Beauty Influencer",
+  "Lifestyle Influencer", "Food Influencer", "Fitness Influencer",
+  "Travel Influencer", "Tech/Gaming Creator", "Parenting/Family Creator",
+  "Finance/Money Creator", "Digital Products",
 ];
 
 const POST_TYPES = [
@@ -51,6 +55,10 @@ const POST_TYPES = [
   "Q&A", "Announcement", "Milestone/Celebration", "Seasonal/Holiday",
   "Customer Story", "Testimonial/Review", "Before & After", "Motivational Quote",
   "Community Post", "User-Generated Content",
+  "Sponsored Content", "Brand Partnership/Collab", "Brand Deal Reveal",
+  "Get Ready With Me", "Outfit/Look of the Day", "Haul",
+  "Favorites/Recommendations", "Reel/Short Video", "Story Content",
+  "Poll/This or That", "Follow Me Around", "Unboxing",
 ];
 
 const LENGTHS = ["Short", "Medium", "Long"];

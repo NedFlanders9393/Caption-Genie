@@ -1,13 +1,15 @@
 import { useAuth } from "@clerk/expo";
 import { BlurView } from "expo-blur";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Redirect, Tabs } from "expo-router";
+import { Redirect, Tabs, useRouter } from "expo-router";
 import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import { SymbolView } from "expo-symbols";
 import { Feather } from "@expo/vector-icons";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Platform, StyleSheet, View, useColorScheme } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useColors } from "@/hooks/useColors";
+import { ONBOARDING_KEY } from "@/lib/storage";
 
 const AMBER = "#E8B669";
 
@@ -142,8 +144,20 @@ function ClassicTabLayout() {
 
 export default function TabLayout() {
   const { isSignedIn, isLoaded } = useAuth();
+  const router = useRouter();
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
 
-  if (!isLoaded) {
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return;
+    AsyncStorage.getItem(ONBOARDING_KEY).then((val) => {
+      if (!val) {
+        router.replace("/onboarding");
+      }
+      setOnboardingChecked(true);
+    });
+  }, [isLoaded, isSignedIn]);
+
+  if (!isLoaded || (isSignedIn && !onboardingChecked)) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#FFFDF9" }}>
         <ActivityIndicator size="large" color={AMBER} />

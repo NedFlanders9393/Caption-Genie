@@ -1,5 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// ── Onboarding ────────────────────────────────────────────────────────────────
+export const ONBOARDING_KEY = "inkwell_onboarding_done";
+
 // ── Streak tracking ──────────────────────────────────────────────────────────
 
 const STREAK_KEY = "inkwell:streak";

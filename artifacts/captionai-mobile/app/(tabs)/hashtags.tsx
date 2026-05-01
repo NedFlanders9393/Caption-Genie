@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
+import { useAuth } from "@clerk/expo";
 import { useColors } from "@/hooks/useColors";
 import { useSubscription } from "@/lib/revenuecat";
 import { useApp } from "@/context/AppContext";
@@ -139,6 +140,7 @@ function GroupCard({ groupKey, tags, colors, selected, onTagPress }: GroupCardPr
 export default function HashtagsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { getToken } = useAuth();
   const { isSubscribed } = useSubscription();
   const { isOverLimit, consumeGeneration } = useApp();
 
@@ -166,7 +168,8 @@ export default function HashtagsScreen() {
     setError(null);
     setSelected(new Set());
     try {
-      const result = await generateHashtags({ niche, topic: topic.trim(), platform });
+      const token = await getToken();
+      const result = await generateHashtags({ niche, topic: topic.trim(), platform }, token);
       setGrouped(result.grouped);
       if (!isSubscribed) await consumeGeneration();
     } catch (e: any) {

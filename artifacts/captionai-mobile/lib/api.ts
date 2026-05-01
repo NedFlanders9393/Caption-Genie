@@ -1,5 +1,12 @@
 const BASE = process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : "";
 
+function authHeaders(token: string | null): HeadersInit {
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
 export interface BrandVoice {
   brandName?: string;
   personality?: string[];
@@ -42,10 +49,10 @@ export interface HashtagGroups {
   broad: string[];
 }
 
-export async function generateCaptions(params: CaptionParams): Promise<CaptionItem[]> {
+export async function generateCaptions(params: CaptionParams, token: string | null = null): Promise<CaptionItem[]> {
   const res = await fetch(`${BASE}/api/captions/generate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders(token),
     body: JSON.stringify(params),
   });
   if (!res.ok) {
@@ -57,12 +64,13 @@ export async function generateCaptions(params: CaptionParams): Promise<CaptionIt
 }
 
 export async function generateMultiPlatform(
-  params: Omit<CaptionParams, "platform">
+  params: Omit<CaptionParams, "platform">,
+  token: string | null = null
 ): Promise<MultiPlatformResult[]> {
-  const platforms = ["Instagram", "TikTok", "Facebook", "LinkedIn"];
+  const platforms = ["Instagram", "TikTok", "Facebook", "LinkedIn", "Twitter/X"];
   const results = await Promise.all(
     platforms.map(async (platform) => {
-      const captions = await generateCaptions({ ...params, platform });
+      const captions = await generateCaptions({ ...params, platform }, token);
       return { platform, captions };
     })
   );
@@ -70,11 +78,12 @@ export async function generateMultiPlatform(
 }
 
 export async function regenerateOneCaption(
-  params: CaptionParams & { existingCaptions: string[] }
+  params: CaptionParams & { existingCaptions: string[] },
+  token: string | null = null
 ): Promise<CaptionItem> {
   const res = await fetch(`${BASE}/api/captions/regenerate-one`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders(token),
     body: JSON.stringify(params),
   });
   if (!res.ok) {
@@ -85,11 +94,12 @@ export async function regenerateOneCaption(
 }
 
 export async function generateHashtags(
-  params: HashtagParams
+  params: HashtagParams,
+  token: string | null = null
 ): Promise<{ hashtags: string[]; grouped: HashtagGroups }> {
   const res = await fetch(`${BASE}/api/captions/hashtags`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders(token),
     body: JSON.stringify(params),
   });
   if (!res.ok) {

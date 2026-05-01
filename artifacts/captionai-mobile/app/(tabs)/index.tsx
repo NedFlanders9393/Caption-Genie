@@ -14,7 +14,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { useUser } from "@clerk/expo";
+import { useUser, useAuth } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
@@ -69,6 +69,7 @@ export default function GenerateScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { user } = useUser();
+  const { getToken } = useAuth();
   const { addToHistory, consumeGeneration, isOverLimit } = useApp();
   const { isSubscribed } = useSubscription();
 
@@ -119,9 +120,10 @@ export default function GenerateScreen() {
     setError(null);
 
     try {
+      const token = await getToken();
       if (multiPlatform) {
         const params = buildParams();
-        const results = await generateMultiPlatform(params);
+        const results = await generateMultiPlatform(params, token);
         setMultiResults(results);
         setActivePlatformTab("Instagram");
 
@@ -134,7 +136,7 @@ export default function GenerateScreen() {
         });
       } else {
         const params = buildParams();
-        const result = await generateCaptions(params);
+        const result = await generateCaptions(params, token);
         setCaptions(result);
         setMultiResults([]);
 
@@ -162,11 +164,12 @@ export default function GenerateScreen() {
       }
       setRegeneratingIdx(idx);
       try {
+        const token = await getToken();
         const existing = captions.map((c) => c.caption);
         const fresh = await regenerateOneCaption({
           ...buildParams(),
           existingCaptions: existing,
-        });
+        }, token);
         setCaptions((prev) => {
           const next = [...prev];
           next[idx] = fresh;
@@ -179,7 +182,7 @@ export default function GenerateScreen() {
         setRegeneratingIdx(null);
       }
     },
-    [captions, isSubscribed, isOverLimit, buildParams, consumeGeneration]
+    [captions, isSubscribed, isOverLimit, buildParams, consumeGeneration, getToken]
   );
 
   const toggleTone = useCallback((t: string) => {

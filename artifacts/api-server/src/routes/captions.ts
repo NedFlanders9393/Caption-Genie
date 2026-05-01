@@ -1,8 +1,24 @@
 import { Router, type IRouter } from "express";
+import { requireAuth } from "@clerk/express";
+import rateLimit from "express-rate-limit";
 import { anthropic } from "@workspace/integrations-anthropic-ai";
 import { GenerateCaptionsBody, RegenerateOneCaptionBody, GenerateHashtagsBody } from "@workspace/api-zod";
 
 const captionsRouter: IRouter = Router();
+
+// Rate limiter: max 30 requests per 10 minutes per user (identified by Clerk userId)
+const captionRateLimit = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 30,
+  keyGenerator: (req) => (req as any).auth?.userId ?? req.ip ?? "anonymous",
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { error: "Too many requests. Please wait a few minutes and try again." },
+});
+
+// Apply auth + rate limiting to all caption routes
+captionsRouter.use(requireAuth({ signInUrl: "/api/unauthorized" }));
+captionsRouter.use(captionRateLimit);
 
 const SYSTEM_PROMPT = `You are the world's best social media copywriter — you've written viral content for thousands of small businesses across every industry. You understand platform algorithms, consumer psychology, and what actually makes people stop scrolling, engage, and buy.
 

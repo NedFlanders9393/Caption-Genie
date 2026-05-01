@@ -20,6 +20,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppProvider } from "@/context/AppContext";
 import { SubscriptionProvider, initializeRevenueCat, linkRevenueCatIdentity } from "@/lib/revenuecat";
+import { initGlobalCrashHandler, flushPendingCrashes, reportCrash } from "@/lib/crashReporter";
 
 function RevenueCatIdentityLinker() {
   const { user } = useUser();
@@ -32,6 +33,10 @@ function RevenueCatIdentityLinker() {
 }
 
 SplashScreen.preventAutoHideAsync();
+
+// Install the global JS error handler immediately at module load time.
+// This runs before any component mounts so no crashes slip through.
+initGlobalCrashHandler();
 
 const queryClient = new QueryClient();
 
@@ -96,6 +101,11 @@ export default function RootLayout() {
     }
   }, []);
 
+  // Flush any crashes that were queued offline during a previous session
+  useEffect(() => {
+    flushPendingCrashes().catch(() => {});
+  }, []);
+
   // Handle tapping a notification — route the user to the relevant screen
   useEffect(() => {
     notifListenerRef.current = Notifications.addNotificationResponseReceivedListener(
@@ -124,7 +134,7 @@ export default function RootLayout() {
       <ClerkLoaded>
         <RevenueCatIdentityLinker />
         <SafeAreaProvider>
-          <ErrorBoundary>
+          <ErrorBoundary onError={(error, stack) => reportCrash(error, "ErrorBoundary").catch(() => {})}>
             <QueryClientProvider client={queryClient}>
               <SubscriptionProvider>
                 <AppProvider>

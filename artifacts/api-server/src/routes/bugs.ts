@@ -25,6 +25,10 @@ async function ensureTable() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+  // Add type column if it doesn't exist yet (crash vs. bug)
+  await db.execute(sql`
+    ALTER TABLE bug_reports ADD COLUMN IF NOT EXISTS type TEXT NOT NULL DEFAULT 'bug'
+  `);
 }
 
 ensureTable().catch(() => {});
@@ -32,13 +36,14 @@ ensureTable().catch(() => {});
 bugsRouter.post("/bugs", async (req, res) => {
   try {
     const auth = getAuth(req);
-    const { description, expectedBehavior, screen, appVersion, platform, userEmail } = req.body as {
+    const { description, expectedBehavior, screen, appVersion, platform, userEmail, type } = req.body as {
       description?: string;
       expectedBehavior?: string;
       screen?: string;
       appVersion?: string;
       platform?: string;
       userEmail?: string;
+      type?: "bug" | "crash";
     };
 
     if (!description || description.trim().length < 5) {
@@ -46,16 +51,22 @@ bugsRouter.post("/bugs", async (req, res) => {
       return;
     }
 
-    await db.insert(bugReports).values({
-      userId: auth?.userId ?? null,
-      userEmail: userEmail?.trim() ?? null,
-      description: description.trim(),
-      expectedBehavior: expectedBehavior?.trim() ?? null,
-      screen: screen?.trim() ?? null,
-      appVersion: appVersion?.trim() ?? null,
-      platform: platform?.trim() ?? null,
-      status: "open",
-    });
+    const reportType = type === "crash" ? "crash" : "bug";
+
+    await db.execute(sql`
+      INSERT INTO bug_reports (user_id, user_email, description, expected_behavior, screen, app_version, platform, status, type)
+      VALUES (
+        ${auth?.userId ?? null},
+        ${userEmail?.trim() ?? null},
+        ${description.trim()},
+        ${expectedBehavior?.trim() ?? null},
+        ${screen?.trim() ?? null},
+        ${appVersion?.trim() ?? null},
+        ${platform?.trim() ?? null},
+        'open',
+        ${reportType}
+      )
+    `);
 
     // Fire emails in the background — don't block the response
     sendBugEmails({
@@ -64,6 +75,7 @@ bugsRouter.post("/bugs", async (req, res) => {
       platform: platform?.trim(),
       appVersion: appVersion?.trim(),
       userEmail: userEmail?.trim(),
+      type: reportType,
     }).catch((emailErr) => {
       logger.error({ err: emailErr }, "Failed to send bug report emails");
     });
@@ -102,37 +114,65 @@ interface BugEmailPayload {
   platform?: string;
   appVersion?: string;
   userEmail?: string;
+  type?: "bug" | "crash";
 }
 
 async function sendBugEmails(payload: BugEmailPayload) {
   logger.info("Sending bug report emails via Resend...");
   const { client, fromEmail } = await getResendClient();
   logger.info({ fromEmail }, "Resend client ready");
-  const { description, expectedBehavior, platform, appVersion, userEmail } = payload;
+  const { description, expectedBehavior, platform, appVersion, userEmail, type } = payload;
+  const isCrash = type === "crash";
 
-  const platformLine = platform ? `<p><strong>Platform:</strong> ${platform}${appVersion ? ` v${appVersion}` : ""}</p>` : "";
-  const expectedLine = expectedBehavior ? `<p><strong>Expected behavior:</strong> ${expectedBehavior}</p>` : "";
-  const userLine = userEmail ? `<p><strong>From:</strong> ${userEmail}</p>` : "<p><strong>From:</strong> Anonymous user</p>";
+  const platformLine = platform
+    ? `<p><strong>Platform:</strong> ${platform}${appVersion ? ` v${appVersion}` : ""}</p>`
+    : "";
+  const userLine = userEmail
+    ? `<p><strong>From:</strong> ${userEmail}</p>`
+    : "<p><strong>From:</strong> Anonymous user</p>";
 
-  // 1) Notify the owner
+  const headerBg = isCrash ? "#8B0000" : "#3A3129";
+  const accentColor = isCrash ? "#FF6B6B" : "#E8B669";
+  const blockquoteBg = isCrash ? "#FFF0F0" : "#F8EFE4";
+  const emoji = isCrash ? "🚨" : "🐛";
+  const title = isCrash ? "Crash Report" : "New Bug Report";
+  const subtitle = isCrash
+    ? "The app crashed automatically — no user action needed"
+    : "Someone submitted a report in Inkwell";
+  const subject = isCrash
+    ? `🚨 App Crash — Inkwell`
+    : `🐛 New Bug Report — Inkwell`;
+
+  const stackSection = isCrash && expectedBehavior
+    ? `<p><strong>Stack trace:</strong></p>
+       <pre style="background:#F5F5F5;padding:12px;border-radius:4px;font-size:11px;overflow:auto;white-space:pre-wrap;">${expectedBehavior}</pre>`
+    : expectedBehavior
+    ? `<p><strong>Expected behavior:</strong> ${expectedBehavior}</p>`
+    : "";
+
+  const screenLine = isCrash
+    ? ""  // screen is used as context in crash reports, included in description
+    : "";
+
   const result = await client.emails.send({
     from: fromEmail,
     to: OWNER_EMAIL,
-    subject: "🐛 New Bug Report — Inkwell",
+    subject,
     html: `
       <div style="font-family:sans-serif;max-width:560px;margin:auto;color:#3A3129;">
-        <div style="background:#3A3129;padding:24px 32px;border-radius:12px 12px 0 0;">
-          <h1 style="color:#E8B669;margin:0;font-size:22px;">New Bug Report</h1>
-          <p style="color:#C4B09A;margin:6px 0 0;font-size:14px;">Someone submitted a report in Inkwell</p>
+        <div style="background:${headerBg};padding:24px 32px;border-radius:12px 12px 0 0;">
+          <h1 style="color:${accentColor};margin:0;font-size:22px;">${emoji} ${title}</h1>
+          <p style="color:#C4B09A;margin:6px 0 0;font-size:14px;">${subtitle}</p>
         </div>
         <div style="background:#FFFDF9;border:1px solid #F0E3D3;border-top:none;padding:24px 32px;border-radius:0 0 12px 12px;">
           ${userLine}
-          <p><strong>Description:</strong></p>
-          <blockquote style="border-left:3px solid #E8B669;margin:0 0 16px;padding:10px 16px;background:#F8EFE4;border-radius:4px;">
-            ${description}
-          </blockquote>
-          ${expectedLine}
           ${platformLine}
+          <p><strong>${isCrash ? "Error:" : "Description:"}</strong></p>
+          <blockquote style="border-left:3px solid ${accentColor};margin:0 0 16px;padding:10px 16px;background:${blockquoteBg};border-radius:4px;font-family:${isCrash ? "monospace" : "inherit"};">
+            ${description.replace("[CRASH] ", "")}
+          </blockquote>
+          ${stackSection}
+          ${screenLine}
           <hr style="border:none;border-top:1px solid #F0E3D3;margin:20px 0;" />
           <p style="font-size:12px;color:#8C7A6B;">
             Status: <strong>Open</strong> — ask the agent to review and fix this report any time.
@@ -142,5 +182,5 @@ async function sendBugEmails(payload: BugEmailPayload) {
     `,
   });
 
-  logger.info({ resendId: result.data?.id, resendError: result.error }, "Owner notification email result");
+  logger.info({ resendId: result.data?.id, resendError: result.error }, "Bug/crash email result");
 }

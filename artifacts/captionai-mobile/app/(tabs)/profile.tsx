@@ -97,7 +97,7 @@ export default function ProfileScreen() {
         {/* Avatar + Name */}
         <View style={styles.avatarCard}>
           <Pressable onPress={() => router.push("/edit-profile")}>
-            {imageUrl ? (
+            {user?.hasImage && imageUrl ? (
               <Image source={{ uri: imageUrl }} style={styles.avatar} />
             ) : (
               <View style={[styles.avatar, styles.avatarFallback]}>

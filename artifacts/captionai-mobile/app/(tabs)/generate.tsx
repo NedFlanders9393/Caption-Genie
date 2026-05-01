@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import * as StoreReview from "expo-store-review";
 import { useUser, useAuth } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
@@ -90,7 +91,7 @@ export default function GenerateScreen() {
   const router = useRouter();
   const { user } = useUser();
   const { getToken } = useAuth();
-  const { addToHistory, consumeGeneration, isOverLimit } = useApp();
+  const { addToHistory, consumeGeneration, isOverLimit, history } = useApp();
   const { isSubscribed } = useSubscription();
 
   const [platforms, setPlatforms] = useState<string[]>(["Instagram"]);
@@ -140,6 +141,9 @@ export default function GenerateScreen() {
     setLoading(true);
     setError(null);
 
+    // Capture history length before generation — used to trigger review on 3rd caption
+    const isThirdGeneration = history.length === 2;
+
     try {
       const token = await getToken();
       if (multiPlatform) {
@@ -170,12 +174,18 @@ export default function GenerateScreen() {
       }
 
       if (!isSubscribed) await consumeGeneration();
+
+      // Ask for a review on the 3rd successful caption — best moment in the user journey
+      if (isThirdGeneration) {
+        const canReview = await StoreReview.isAvailableAsync();
+        if (canReview) StoreReview.requestReview();
+      }
     } catch (e: any) {
       setError(e?.message ?? "Something went wrong. Try again.");
     } finally {
       setLoading(false);
     }
-  }, [canGenerate, isSubscribed, isOverLimit, multiPlatform, buildParams, niche, description, tones, platforms, postType, captionLength, addToHistory, consumeGeneration]);
+  }, [canGenerate, isSubscribed, isOverLimit, multiPlatform, buildParams, niche, description, tones, platforms, postType, captionLength, addToHistory, consumeGeneration, history.length]);
 
   const handleRegenerate = useCallback(
     async (idx: number) => {

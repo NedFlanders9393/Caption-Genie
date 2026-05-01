@@ -50,7 +50,7 @@ type UserMeta = {
 
 export default function ProfileScreen() {
   const { user } = useUser();
-  const { signOut } = useAuth();
+  const { signOut, getToken } = useAuth();
   const router = useRouter();
   const { usageCount: generationCount, freeLimit: FREE_LIMIT } = useApp();
   const { isSubscribed } = useSubscription();
@@ -100,8 +100,8 @@ export default function ProfileScreen() {
     }
     setBugSubmitting(true);
     try {
-      const token = await user?.getToken?.();
-      await fetch(`${BASE_URL}/api/bugs`, {
+      const token = await getToken();
+      const res = await fetch(`${BASE_URL}/api/bugs`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -115,11 +115,15 @@ export default function ProfileScreen() {
           userEmail: email,
         }),
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as any)?.error ?? `Server error ${res.status}`);
+      }
       setBugSubmitted(true);
       setBugDescription("");
       setBugExpected("");
-    } catch {
-      Alert.alert("Error", "Could not submit your report. Please try again.");
+    } catch (err: any) {
+      Alert.alert("Error", err?.message ?? "Could not submit your report. Please try again.");
     } finally {
       setBugSubmitting(false);
     }

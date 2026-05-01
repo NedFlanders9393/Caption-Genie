@@ -118,3 +118,40 @@ export async function incrementUsage(): Promise<number> {
 }
 
 export const FREE_LIMIT = 10;
+
+// ── Favorites ─────────────────────────────────────────────────────────────────
+
+export interface FavoriteEntry {
+  id: string;            // stable unique ID — historyEntryId_captionIndex or content hash
+  caption: string;
+  hashtags: string;
+  platform?: string;
+  niche?: string;
+  savedAt: number;
+}
+
+const FAVORITES_KEY = "inkwell:favorites";
+
+export async function getFavorites(): Promise<FavoriteEntry[]> {
+  const raw = await AsyncStorage.getItem(FAVORITES_KEY);
+  return raw ? JSON.parse(raw) : [];
+}
+
+export async function addFavorite(entry: FavoriteEntry): Promise<void> {
+  const existing = await getFavorites();
+  if (existing.some((e) => e.id === entry.id)) return; // already saved
+  await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify([entry, ...existing]));
+}
+
+export async function removeFavorite(id: string): Promise<void> {
+  const existing = await getFavorites();
+  await AsyncStorage.setItem(
+    FAVORITES_KEY,
+    JSON.stringify(existing.filter((e) => e.id !== id))
+  );
+}
+
+export async function isFavorite(id: string): Promise<boolean> {
+  const existing = await getFavorites();
+  return existing.some((e) => e.id === id);
+}

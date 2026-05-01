@@ -19,7 +19,7 @@ import { useAuth } from "@clerk/expo";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
 import { remixCaption } from "@/lib/api";
-import type { HistoryEntry } from "@/lib/storage";
+import type { HistoryEntry, FavoriteEntry } from "@/lib/storage";
 
 const PLATFORM_COLORS: Record<string, string> = {
   Instagram: "#E1306C",
@@ -44,12 +44,17 @@ function CaptionList({
   captions,
   platform,
   colors,
+  entryId,
+  niche,
 }: {
   captions: { caption: string; hashtags: string }[];
   platform?: string;
   colors: any;
+  entryId?: string;
+  niche?: string;
 }) {
   const { getToken } = useAuth();
+  const { toggleFavorite, isFavorited } = useApp();
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [remixOpenIdx, setRemixOpenIdx] = useState<number | null>(null);
   const [remixLoadingIdx, setRemixLoadingIdx] = useState<number | null>(null);
@@ -139,6 +144,26 @@ function CaptionList({
               <Feather name="share-2" size={13} color={colors.mutedForeground} />
               <Text style={[styles.actionText, { color: colors.mutedForeground }]}>Share</Text>
             </TouchableOpacity>
+
+            {entryId && (() => {
+              const favId = `${entryId}_${i}`;
+              const saved = isFavorited(favId);
+              return (
+                <TouchableOpacity
+                  onPress={() => {
+                    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    toggleFavorite({ id: favId, caption: c.caption, hashtags: c.hashtags, platform, niche, savedAt: Date.now() });
+                  }}
+                  style={styles.actionBtn}
+                  activeOpacity={0.7}
+                >
+                  <Feather name="bookmark" size={13} color={saved ? "#E8B669" : colors.mutedForeground} />
+                  <Text style={[styles.actionText, { color: saved ? "#E8B669" : colors.mutedForeground }]}>
+                    {saved ? "Saved" : "Save"}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })()}
 
             {remixLoadingIdx === i ? (
               <View style={styles.actionBtn}>
@@ -343,17 +368,124 @@ function HistoryItem({
               })}
             </ScrollView>
           )}
-          <CaptionList captions={activeMultiCaptions} platform={activePlatform} colors={colors} />
+          <CaptionList
+            captions={activeMultiCaptions}
+            platform={activePlatform}
+            colors={colors}
+            entryId={item.id}
+            niche={item.params.niche}
+          />
         </>
       )}
     </View>
   );
 }
 
+// ── Favorites list ────────────────────────────────────────────────────────────
+function FavoritesList({ colors, bottomPad }: { colors: any; bottomPad: number }) {
+  const { favorites, toggleFavorite } = useApp();
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopy = async (entry: FavoriteEntry) => {
+    const text = entry.hashtags ? `${entry.caption}\n\n${entry.hashtags}` : entry.caption;
+    await Clipboard.setStringAsync(text);
+    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setCopiedId(entry.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleShare = async (entry: FavoriteEntry) => {
+    const text = entry.hashtags ? `${entry.caption}\n\n${entry.hashtags}` : entry.caption;
+    if (Platform.OS === "web") { await Clipboard.setStringAsync(text); return; }
+    try { await Share.share({ message: text }); } catch {}
+  };
+
+  if (favorites.length === 0) {
+    return (
+      <View style={[styles.empty, { paddingBottom: bottomPad }]}>
+        <Feather name="bookmark" size={40} color={colors.border} />
+        <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No favorites yet</Text>
+        <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
+          Tap the bookmark on any caption to save it here
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <FlatList
+      data={favorites}
+      keyExtractor={(item) => item.id}
+      contentContainerStyle={[styles.listContent, { paddingBottom: bottomPad }]}
+      showsVerticalScrollIndicator={false}
+      ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+      renderItem={({ item }) => (
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: "#E8B669", borderRadius: colors.radius }]}>
+          {/* Header */}
+          <View style={styles.favHeader}>
+            <View style={styles.favMeta}>
+              {item.platform ? (
+                <Text style={[styles.favPlatform, { color: PLATFORM_COLORS[item.platform] ?? colors.mutedForeground }]}>
+                  {item.platform}
+                </Text>
+              ) : null}
+              {item.niche ? (
+                <Text style={[styles.favNiche, { color: colors.mutedForeground }]}>{item.niche}</Text>
+              ) : null}
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                toggleFavorite(item);
+              }}
+              hitSlop={10}
+              activeOpacity={0.7}
+            >
+              <Feather name="bookmark" size={16} color="#E8B669" />
+            </TouchableOpacity>
+          </View>
+          {/* Caption */}
+          <Text style={[styles.captionText, { color: colors.foreground }]}>{item.caption}</Text>
+          {item.hashtags ? (
+            <Text style={[styles.hashtagText, { color: colors.primary }]}>{item.hashtags}</Text>
+          ) : null}
+          {/* Actions */}
+          <View style={styles.actionRow}>
+            <TouchableOpacity
+              onPress={() => handleCopy(item)}
+              style={styles.actionBtn}
+              activeOpacity={0.7}
+            >
+              <Feather
+                name={copiedId === item.id ? "check" : "copy"}
+                size={13}
+                color={copiedId === item.id ? colors.primary : colors.mutedForeground}
+              />
+              <Text style={[styles.actionText, { color: copiedId === item.id ? colors.primary : colors.mutedForeground }]}>
+                {copiedId === item.id ? "Copied" : "Copy"}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => handleShare(item)}
+              style={styles.actionBtn}
+              activeOpacity={0.7}
+            >
+              <Feather name="share-2" size={13} color={colors.mutedForeground} />
+              <Text style={[styles.actionText, { color: colors.mutedForeground }]}>Share</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+    />
+  );
+}
+
+// ── Main screen ───────────────────────────────────────────────────────────────
 export default function HistoryScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { history, removeFromHistory, wipeHistory } = useApp();
+  const { history, removeFromHistory, wipeHistory, favorites } = useApp();
+  const [activeFilter, setActiveFilter] = useState<"all" | "favorites">("all");
 
   const handleClearAll = () => {
     if (Platform.OS === "web") {
@@ -369,6 +501,53 @@ export default function HistoryScreen() {
   const bottomPad = Platform.OS === "web" ? 34 + 84 : insets.bottom + 90;
   const topPad = Platform.OS === "web" ? 67 : insets.top + 16;
 
+  const FilterBar = (
+    <View style={styles.filterBar}>
+      {(["all", "favorites"] as const).map((f) => (
+        <TouchableOpacity
+          key={f}
+          onPress={() => setActiveFilter(f)}
+          style={[
+            styles.filterBtn,
+            activeFilter === f && { backgroundColor: "#E8B669" },
+          ]}
+          activeOpacity={0.8}
+        >
+          {f === "favorites" && (
+            <Feather
+              name="bookmark"
+              size={12}
+              color={activeFilter === f ? "#3A3129" : colors.mutedForeground}
+            />
+          )}
+          <Text
+            style={[
+              styles.filterText,
+              { color: activeFilter === f ? "#3A3129" : colors.mutedForeground },
+              activeFilter === f && { fontFamily: "Inter_600SemiBold" },
+            ]}
+          >
+            {f === "all" ? "All" : `Saved${favorites.length > 0 ? ` (${favorites.length})` : ""}`}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  if (activeFilter === "favorites") {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.listContent, { paddingTop: topPad }]}>
+          <View style={styles.listHeader}>
+            <Text style={[styles.title, { color: colors.foreground }]}>History</Text>
+          </View>
+          {FilterBar}
+        </View>
+        <FavoritesList colors={colors} bottomPad={bottomPad} />
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <FlatList
@@ -380,14 +559,17 @@ export default function HistoryScreen() {
           { paddingTop: topPad, paddingBottom: bottomPad },
         ]}
         ListHeaderComponent={
-          <View style={styles.listHeader}>
-            <Text style={[styles.title, { color: colors.foreground }]}>History</Text>
-            {history.length > 0 && (
-              <TouchableOpacity onPress={handleClearAll} activeOpacity={0.7}>
-                <Text style={[styles.clearText, { color: colors.destructive }]}>Clear all</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          <>
+            <View style={styles.listHeader}>
+              <Text style={[styles.title, { color: colors.foreground }]}>History</Text>
+              {history.length > 0 && (
+                <TouchableOpacity onPress={handleClearAll} activeOpacity={0.7}>
+                  <Text style={[styles.clearText, { color: colors.destructive }]}>Clear all</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            {FilterBar}
+          </>
         }
         ListEmptyComponent={
           <View style={styles.empty}>
@@ -507,4 +689,45 @@ const styles = StyleSheet.create({
   empty: { alignItems: "center", justifyContent: "center", paddingTop: 80, gap: 12 },
   emptyTitle: { fontSize: 18, fontFamily: "Inter_600SemiBold" },
   emptyText: { fontSize: 14, fontFamily: "Inter_400Regular", textAlign: "center" },
+
+  // Filter bar
+  filterBar: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 16,
+  },
+  filterBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: "transparent",
+  },
+  filterText: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+  },
+
+  // Favorites card header
+  favHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  favMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+  },
+  favPlatform: {
+    fontSize: 12,
+    fontFamily: "Inter_600SemiBold",
+  },
+  favNiche: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+  },
 });

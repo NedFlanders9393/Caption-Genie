@@ -17,6 +17,9 @@ interface Props {
   index: number;
   caption: string;
   hashtags: string;
+  favoriteId?: string;
+  isFavorited?: boolean;
+  onFavorite?: () => void;
   onRegenerate?: () => Promise<void>;
   isRegenerating?: boolean;
 }
@@ -25,6 +28,9 @@ export default function CaptionCard({
   index,
   caption,
   hashtags,
+  favoriteId,
+  isFavorited = false,
+  onFavorite,
   onRegenerate,
   isRegenerating,
 }: Props) {
@@ -50,13 +56,23 @@ export default function CaptionCard({
     } catch {}
   };
 
+  const handleFavorite = () => {
+    if (!onFavorite) return;
+    if (Platform.OS !== "web") {
+      Haptics.impactAsync(
+        isFavorited ? Haptics.ImpactFeedbackStyle.Light : Haptics.ImpactFeedbackStyle.Medium
+      );
+    }
+    onFavorite();
+  };
+
   return (
     <View
       style={[
         styles.card,
         {
           backgroundColor: colors.card,
-          borderColor: colors.border,
+          borderColor: isFavorited ? "#E8B669" : colors.border,
           borderRadius: colors.radius,
         },
       ]}
@@ -95,6 +111,16 @@ export default function CaptionCard({
               color={copied ? colors.primary : colors.mutedForeground}
             />
           </TouchableOpacity>
+          {onFavorite && (
+            <TouchableOpacity onPress={handleFavorite} style={styles.iconBtn} activeOpacity={0.7}>
+              <Feather
+                name={isFavorited ? "bookmark" : "bookmark"}
+                size={16}
+                color={isFavorited ? "#E8B669" : colors.mutedForeground}
+                style={isFavorited ? styles.bookmarkFilled : undefined}
+              />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -136,6 +162,9 @@ const styles = StyleSheet.create({
     height: 32,
     alignItems: "center",
     justifyContent: "center",
+  },
+  bookmarkFilled: {
+    // Feather doesn't have a filled bookmark so we colour it amber and rely on the filled stroke weight
   },
   caption: {
     fontSize: 15,

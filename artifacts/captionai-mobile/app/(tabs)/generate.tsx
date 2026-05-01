@@ -92,7 +92,7 @@ export default function GenerateScreen() {
   const router = useRouter();
   const { user } = useUser();
   const { getToken } = useAuth();
-  const { addToHistory, consumeGeneration, isOverLimit, history, streak } = useApp();
+  const { addToHistory, consumeGeneration, isOverLimit, history, streak, toggleFavorite, isFavorited } = useApp();
   const { isSubscribed } = useSubscription();
 
   const [platforms, setPlatforms] = useState<string[]>(["Instagram"]);
@@ -110,6 +110,7 @@ export default function GenerateScreen() {
   const [error, setError] = useState<string | null>(null);
   const [regeneratingIdx, setRegeneratingIdx] = useState<number | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [currentGenerationId, setCurrentGenerationId] = useState<string | null>(null);
 
   const brandVoice = user?.unsafeMetadata?.brandVoice as BrandVoice | undefined;
   const hasBrandVoice = !!(brandVoice?.brandName || brandVoice?.tagline || brandVoice?.personality?.length || brandVoice?.targetAudience || brandVoice?.captionStyle?.length || brandVoice?.sampleCaption);
@@ -148,14 +149,16 @@ export default function GenerateScreen() {
 
     try {
       const token = await getToken();
+      const genId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
       if (multiPlatform) {
         const params = buildParams();
         const results = await generateMultiPlatform(params, platforms, token);
         setMultiResults(results);
         setActivePlatformTab(platforms[0] ?? "Instagram");
+        setCurrentGenerationId(genId);
 
         await addToHistory({
-          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+          id: genId,
           createdAt: Date.now(),
           params: { niche, postDescription: description.trim(), tone: tones.join(", "), platform: platforms.join(", "), postType, captionLength },
           captions: results[0]?.captions ?? [],
@@ -166,9 +169,10 @@ export default function GenerateScreen() {
         const result = await generateCaptions(params, token);
         setCaptions(result);
         setMultiResults([]);
+        setCurrentGenerationId(genId);
 
         await addToHistory({
-          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+          id: genId,
           createdAt: Date.now(),
           params: { niche, postDescription: description.trim(), tone: tones.join(", "), platform: platforms[0] ?? "Instagram", postType, captionLength },
           captions: result,
@@ -412,16 +416,29 @@ export default function GenerateScreen() {
           <View style={styles.results}>
             <Text style={[styles.resultsLabel, { color: colors.foreground }]}>Your Captions</Text>
             <BestTimeCard platform={platforms[0] ?? "Instagram"} />
-            {captions.map((c, i) => (
-              <CaptionCard
-                key={i}
-                index={i}
-                caption={c.caption}
-                hashtags={c.hashtags}
-                onRegenerate={() => handleRegenerate(i)}
-                isRegenerating={regeneratingIdx === i}
-              />
-            ))}
+            {captions.map((c, i) => {
+              const favId = currentGenerationId ? `${currentGenerationId}_${i}` : undefined;
+              return (
+                <CaptionCard
+                  key={i}
+                  index={i}
+                  caption={c.caption}
+                  hashtags={c.hashtags}
+                  favoriteId={favId}
+                  isFavorited={favId ? isFavorited(favId) : false}
+                  onFavorite={favId ? () => toggleFavorite({
+                    id: favId,
+                    caption: c.caption,
+                    hashtags: c.hashtags,
+                    platform: platforms[0],
+                    niche,
+                    savedAt: Date.now(),
+                  }) : undefined}
+                  onRegenerate={() => handleRegenerate(i)}
+                  isRegenerating={regeneratingIdx === i}
+                />
+              );
+            })}
           </View>
         )}
 
@@ -456,16 +473,31 @@ export default function GenerateScreen() {
             </ScrollView>
 
             {/* Captions for active tab */}
-            {activePlatformCaptions.map((c, i) => (
-              <CaptionCard
-                key={`${activePlatformTab}-${i}`}
-                index={i}
-                caption={c.caption}
-                hashtags={c.hashtags}
-                onRegenerate={async () => {}}
-                isRegenerating={false}
-              />
-            ))}
+            {activePlatformCaptions.map((c, i) => {
+              const favId = currentGenerationId
+                ? `${currentGenerationId}_${activePlatformTab}_${i}`
+                : undefined;
+              return (
+                <CaptionCard
+                  key={`${activePlatformTab}-${i}`}
+                  index={i}
+                  caption={c.caption}
+                  hashtags={c.hashtags}
+                  favoriteId={favId}
+                  isFavorited={favId ? isFavorited(favId) : false}
+                  onFavorite={favId ? () => toggleFavorite({
+                    id: favId,
+                    caption: c.caption,
+                    hashtags: c.hashtags,
+                    platform: activePlatformTab,
+                    niche,
+                    savedAt: Date.now(),
+                  }) : undefined}
+                  onRegenerate={async () => {}}
+                  isRegenerating={false}
+                />
+              );
+            })}
           </View>
         )}
       </ScrollView>

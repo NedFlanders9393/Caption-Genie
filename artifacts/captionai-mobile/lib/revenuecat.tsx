@@ -60,6 +60,15 @@ export function initializeRevenueCat() {
   Purchases.configure({ apiKey });
 }
 
+export async function linkRevenueCatIdentity(clerkUserId: string): Promise<void> {
+  if (Platform.OS === "web" || !purchasesAvailable) return;
+  try {
+    await Purchases.logIn(clerkUserId);
+  } catch (err) {
+    console.warn("[RevenueCat] Failed to link identity:", err);
+  }
+}
+
 // Stub customer info returned when native module is unavailable
 const STUB_CUSTOMER_INFO = {
   entitlements: { active: {} },

@@ -1,8 +1,68 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import { requireAuth } from "@clerk/express";
 import rateLimit from "express-rate-limit";
 import { anthropic } from "@workspace/integrations-anthropic-ai";
 import { GenerateCaptionsBody, RegenerateOneCaptionBody, GenerateHashtagsBody } from "@workspace/api-zod";
+import { db } from "@workspace/db";
+import { sql } from "drizzle-orm";
+
+const FREE_MONTHLY_LIMIT = 10;
+const PRO_MONTHLY_LIMIT = 500;
+
+function getYearMonth(): string {
+  const now = new Date();
+  return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
+async function isRevenueCatPro(userId: string): Promise<boolean> {
+  const secretKey = process.env.REVENUECAT_SECRET_KEY;
+  if (!secretKey) return false;
+  try {
+    const res = await fetch(`https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(userId)}`, {
+      headers: {
+        Authorization: `Bearer ${secretKey}`,
+        "X-Platform": "ios",
+      },
+    });
+    if (!res.ok) return false;
+    const data = await res.json() as { subscriber?: { entitlements?: { active?: Record<string, unknown> } } };
+    return !!data.subscriber?.entitlements?.active?.["pro"];
+  } catch {
+    return false;
+  }
+}
+
+async function enforceUsageLimit(userId: string, req: Request, res: Response): Promise<boolean> {
+  const yearMonth = getYearMonth();
+  const isPro = await isRevenueCatPro(userId);
+  const limit = isPro ? PRO_MONTHLY_LIMIT : FREE_MONTHLY_LIMIT;
+
+  const result = await db.execute(
+    sql`INSERT INTO monthly_usage (user_id, year_month, count)
+        VALUES (${userId}, ${yearMonth}, 1)
+        ON CONFLICT (user_id, year_month)
+        DO UPDATE SET count = monthly_usage.count + 1
+        RETURNING count`
+  );
+  const newCount = (result.rows[0] as { count: number }).count;
+
+  if (newCount > limit) {
+    await db.execute(
+      sql`UPDATE monthly_usage SET count = count - 1
+          WHERE user_id = ${userId} AND year_month = ${yearMonth}`
+    );
+    res.status(429).json({
+      error: isPro
+        ? `Monthly generation limit reached (${PRO_MONTHLY_LIMIT}/month for Pro). Resets on the 1st.`
+        : `Free tier limit reached (${FREE_MONTHLY_LIMIT}/month). Upgrade to Pro for 500 generations/month.`,
+      limit,
+      isPro,
+    });
+    return false;
+  }
+
+  return true;
+}
 
 const captionsRouter: IRouter = Router();
 
@@ -340,6 +400,10 @@ captionsRouter.post("/captions/generate", async (req, res) => {
     return;
   }
 
+  const userId = (req as any).auth?.userId as string;
+  const allowed = await enforceUsageLimit(userId, req, res);
+  if (!allowed) return;
+
   const { niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType } = parsed.data;
   const brandVoice = req.body.brandVoice as BrandVoice | undefined;
 
@@ -396,6 +460,10 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
     res.status(400).json({ error: "Invalid request body" });
     return;
   }
+
+  const userId = (req as any).auth?.userId as string;
+  const allowed = await enforceUsageLimit(userId, req, res);
+  if (!allowed) return;
 
   const { niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType, existingCaptions } = parsed.data;
   const brandVoice = req.body.brandVoice as BrandVoice | undefined;
@@ -454,6 +522,10 @@ captionsRouter.post("/captions/hashtags", async (req, res) => {
     res.status(400).json({ error: "Invalid request body" });
     return;
   }
+
+  const userId = (req as any).auth?.userId as string;
+  const allowed = await enforceUsageLimit(userId, req, res);
+  if (!allowed) return;
 
   const { niche, topic, platform } = parsed.data;
 

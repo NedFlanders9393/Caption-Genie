@@ -5,7 +5,7 @@ import {
   Inter_700Bold,
   useFonts,
 } from "@expo-google-fonts/inter";
-import { ClerkLoaded, ClerkProvider } from "@clerk/expo";
+import { ClerkLoaded, ClerkProvider, useUser } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
@@ -18,7 +18,17 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppProvider } from "@/context/AppContext";
-import { SubscriptionProvider, initializeRevenueCat } from "@/lib/revenuecat";
+import { SubscriptionProvider, initializeRevenueCat, linkRevenueCatIdentity } from "@/lib/revenuecat";
+
+function RevenueCatIdentityLinker() {
+  const { user } = useUser();
+  useEffect(() => {
+    if (user?.id) {
+      linkRevenueCatIdentity(user.id);
+    }
+  }, [user?.id]);
+  return null;
+}
 
 SplashScreen.preventAutoHideAsync();
 
@@ -37,9 +47,9 @@ function RootLayoutNav() {
         options={{
           title: "Edit Profile",
           presentation: "modal",
-          headerStyle: { backgroundColor: "#FAFAFA" },
-          headerTintColor: "#7C3AED",
-          headerTitleStyle: { fontFamily: "Inter_600SemiBold", color: "#19141F" },
+          headerStyle: { backgroundColor: "#FFFDF9" },
+          headerTintColor: "#E8B669",
+          headerTitleStyle: { fontFamily: "Inter_600SemiBold", color: "#3A3129" },
           headerShadowVisible: false,
         }}
       />
@@ -48,9 +58,9 @@ function RootLayoutNav() {
         options={{
           title: "Brand Voice",
           presentation: "modal",
-          headerStyle: { backgroundColor: "#FAFAFA" },
-          headerTintColor: "#7C3AED",
-          headerTitleStyle: { fontFamily: "Inter_600SemiBold", color: "#19141F" },
+          headerStyle: { backgroundColor: "#FFFDF9" },
+          headerTintColor: "#E8B669",
+          headerTitleStyle: { fontFamily: "Inter_600SemiBold", color: "#3A3129" },
           headerShadowVisible: false,
         }}
       />
@@ -89,6 +99,7 @@ export default function RootLayout() {
       proxyUrl={proxyUrl}
     >
       <ClerkLoaded>
+        <RevenueCatIdentityLinker />
         <SafeAreaProvider>
           <ErrorBoundary>
             <QueryClientProvider client={queryClient}>

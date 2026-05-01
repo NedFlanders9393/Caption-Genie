@@ -9,6 +9,7 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Share,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -71,6 +72,17 @@ function CaptionList({
     setTimeout(() => setCopiedRemixIdx(null), 2000);
   };
 
+  const handleShare = async (caption: string, hashtags: string) => {
+    const text = hashtags ? `${caption}\n\n${hashtags}` : caption;
+    if (Platform.OS === "web") {
+      await Clipboard.setStringAsync(text);
+      return;
+    }
+    try {
+      await Share.share({ message: text });
+    } catch {}
+  };
+
   const handleRemix = async (idx: number, direction: string) => {
     const original = captions[idx];
     if (!original) return;
@@ -117,6 +129,15 @@ function CaptionList({
               <Text style={[styles.actionText, { color: copiedIdx === i ? colors.primary : colors.mutedForeground }]}>
                 {copiedIdx === i ? "Copied" : "Copy"}
               </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => handleShare(c.caption, c.hashtags)}
+              style={styles.actionBtn}
+              activeOpacity={0.7}
+            >
+              <Feather name="share-2" size={13} color={colors.mutedForeground} />
+              <Text style={[styles.actionText, { color: colors.mutedForeground }]}>Share</Text>
             </TouchableOpacity>
 
             {remixLoadingIdx === i ? (
@@ -178,20 +199,30 @@ function CaptionList({
               {remixResults[i]!.hashtags ? (
                 <Text style={[styles.hashtagText, { color: "#E8B669" }]}>{remixResults[i]!.hashtags}</Text>
               ) : null}
-              <TouchableOpacity
-                onPress={() => handleCopyRemix(remixResults[i]!.caption, remixResults[i]!.hashtags, i)}
-                style={styles.actionBtn}
-                activeOpacity={0.7}
-              >
-                <Feather
-                  name={copiedRemixIdx === i ? "check" : "copy"}
-                  size={13}
-                  color={copiedRemixIdx === i ? "#E8B669" : "#8C7A6B"}
-                />
-                <Text style={[styles.actionText, { color: copiedRemixIdx === i ? "#E8B669" : "#8C7A6B" }]}>
-                  {copiedRemixIdx === i ? "Copied" : "Copy remix"}
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.actionRow}>
+                <TouchableOpacity
+                  onPress={() => handleCopyRemix(remixResults[i]!.caption, remixResults[i]!.hashtags, i)}
+                  style={styles.actionBtn}
+                  activeOpacity={0.7}
+                >
+                  <Feather
+                    name={copiedRemixIdx === i ? "check" : "copy"}
+                    size={13}
+                    color={copiedRemixIdx === i ? "#E8B669" : "#8C7A6B"}
+                  />
+                  <Text style={[styles.actionText, { color: copiedRemixIdx === i ? "#E8B669" : "#8C7A6B" }]}>
+                    {copiedRemixIdx === i ? "Copied" : "Copy"}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleShare(remixResults[i]!.caption, remixResults[i]!.hashtags)}
+                  style={styles.actionBtn}
+                  activeOpacity={0.7}
+                >
+                  <Feather name="share-2" size={13} color="#8C7A6B" />
+                  <Text style={[styles.actionText, { color: "#8C7A6B" }]}>Share</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         </View>

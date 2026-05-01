@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
 import { useAuth } from "@clerk/expo";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
@@ -384,6 +385,7 @@ function HistoryItem({
 // ── Favorites list ────────────────────────────────────────────────────────────
 function FavoritesList({ colors, bottomPad }: { colors: any; bottomPad: number }) {
   const { favorites, toggleFavorite } = useApp();
+  const router = useRouter();
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleCopy = async (entry: FavoriteEntry) => {
@@ -403,11 +405,21 @@ function FavoritesList({ colors, bottomPad }: { colors: any; bottomPad: number }
   if (favorites.length === 0) {
     return (
       <View style={[styles.empty, { paddingBottom: bottomPad }]}>
-        <Feather name="bookmark" size={40} color={colors.border} />
-        <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No favorites yet</Text>
+        <View style={styles.emptyIconCircle}>
+          <Feather name="bookmark" size={26} color="#E8B669" />
+        </View>
+        <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No saved captions yet</Text>
         <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-          Tap the bookmark on any caption to save it here
+          Tap the bookmark icon on any caption to save it here for quick access
         </Text>
+        <TouchableOpacity
+          style={styles.emptyCta}
+          onPress={() => router.navigate("/(tabs)/generate")}
+          activeOpacity={0.85}
+        >
+          <Feather name="feather" size={14} color="#fff" />
+          <Text style={styles.emptyCtaText}>Write a caption</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -484,6 +496,7 @@ function FavoritesList({ colors, bottomPad }: { colors: any; bottomPad: number }
 export default function HistoryScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { history, removeFromHistory, wipeHistory, favorites } = useApp();
   const [activeFilter, setActiveFilter] = useState<"all" | "favorites">("all");
 
@@ -573,11 +586,21 @@ export default function HistoryScreen() {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Feather name="clock" size={40} color={colors.border} />
-            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No history yet</Text>
+            <View style={styles.emptyIconCircle}>
+              <Feather name="clock" size={26} color="#E8B669" />
+            </View>
+            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No captions yet</Text>
             <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-              Generated captions will appear here
+              Every caption you generate will be saved here so you can revisit and reuse them
             </Text>
+            <TouchableOpacity
+              style={styles.emptyCta}
+              onPress={() => router.navigate("/(tabs)/generate")}
+              activeOpacity={0.85}
+            >
+              <Feather name="zap" size={14} color="#fff" />
+              <Text style={styles.emptyCtaText}>Write your first caption</Text>
+            </TouchableOpacity>
           </View>
         }
         renderItem={({ item }) => (
@@ -686,9 +709,35 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.4,
   },
-  empty: { alignItems: "center", justifyContent: "center", paddingTop: 80, gap: 12 },
-  emptyTitle: { fontSize: 18, fontFamily: "Inter_600SemiBold" },
-  emptyText: { fontSize: 14, fontFamily: "Inter_400Regular", textAlign: "center" },
+  empty: { alignItems: "center", justifyContent: "center", paddingTop: 64, paddingHorizontal: 32, gap: 12 },
+  emptyTitle: { fontSize: 18, fontFamily: "Inter_600SemiBold", textAlign: "center" },
+  emptyText: { fontSize: 14, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 20 },
+  emptyIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#FDF3E3",
+    borderWidth: 1,
+    borderColor: "#F0E3D3",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  emptyCta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 4,
+    backgroundColor: "#E8B669",
+    borderRadius: 22,
+    paddingHorizontal: 20,
+    paddingVertical: 11,
+  },
+  emptyCtaText: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    color: "#FFFFFF",
+  },
 
   // Filter bar
   filterBar: {

@@ -287,6 +287,26 @@ export default function HashtagsScreen() {
           )}
         </TouchableOpacity>
 
+        {!grouped && !loading && (
+          <View style={styles.preResultsHint}>
+            <View style={styles.preResultsIconRow}>
+              {["niche", "trending", "broad"].map((label, i) => (
+                <View key={label} style={[styles.preResultsPill, i === 0 && styles.preResultsPillDark]}>
+                  <Text style={[styles.preResultsPillText, i === 0 && styles.preResultsPillTextLight]}>
+                    #{label === "niche" ? "targeted" : label === "trending" ? "trending" : "broad"}
+                  </Text>
+                </View>
+              ))}
+            </View>
+            <Text style={[styles.preResultsTitle, { color: colors.foreground }]}>
+              Get 30 ready-to-use hashtags
+            </Text>
+            <Text style={[styles.preResultsBody, { color: colors.mutedForeground }]}>
+              Describe your post above and tap Generate. You'll get three curated sets — niche, trending, and broad reach — plus a Smart Mix of the best 8.
+            </Text>
+          </View>
+        )}
+
         {grouped && (
           <View style={styles.results}>
             {/* Smart Mix */}
@@ -453,4 +473,50 @@ const styles = StyleSheet.create({
   tags: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   tag: { paddingHorizontal: 10, paddingVertical: 5 },
   tagText: { fontSize: 13, fontFamily: "Inter_500Medium" },
+
+  // Pre-results hint (shown before first generation)
+  preResultsHint: {
+    marginTop: 28,
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 8,
+  },
+  preResultsIconRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 4,
+  },
+  preResultsPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: "#F8EFE4",
+    borderWidth: 1,
+    borderColor: "#F0E3D3",
+  },
+  preResultsPillDark: {
+    backgroundColor: "#3A3129",
+    borderColor: "#3A3129",
+  },
+  preResultsPillText: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+    color: "#8C7A6B",
+  },
+  preResultsPillTextLight: {
+    color: "#E8B669",
+  },
+  preResultsTitle: {
+    fontSize: 17,
+    fontFamily: "Inter_700Bold",
+    textAlign: "center",
+    letterSpacing: -0.3,
+  },
+  preResultsBody: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    textAlign: "center",
+    lineHeight: 19,
+    paddingHorizontal: 8,
+  },
 });

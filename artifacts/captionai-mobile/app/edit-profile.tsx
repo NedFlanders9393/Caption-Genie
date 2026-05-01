@@ -60,7 +60,6 @@ export default function EditProfileScreen() {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
-      base64: true,
     });
 
     if (!result.canceled && result.assets[0]) {
@@ -96,19 +95,8 @@ export default function EditProfileScreen() {
           }
         }
 
-        const mimeType = asset.mimeType ?? "image/jpeg";
-        let blob: Blob;
-        if (asset.base64) {
-          const byteCharacters = atob(asset.base64);
-          const byteArray = new Uint8Array(byteCharacters.length);
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteArray[i] = byteCharacters.charCodeAt(i);
-          }
-          blob = new Blob([byteArray], { type: mimeType });
-        } else {
-          const response = await fetch(asset.uri);
-          blob = await response.blob();
-        }
+        const response = await fetch(asset.uri);
+        const blob = await response.blob();
         await user?.setProfileImage({ file: blob });
       } catch (err: any) {
         Alert.alert(

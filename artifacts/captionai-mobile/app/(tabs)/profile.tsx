@@ -24,10 +24,19 @@ const CARD_BG = "#FFFFFF";
 const CARD_BORDER = "#F3F4F6";
 const DANGER = "#DC2626";
 
+type BrandVoice = {
+  brandName?: string;
+  personality?: string[];
+  targetAudience?: string;
+  alwaysInclude?: string;
+  neverSay?: string;
+};
+
 type UserMeta = {
   username?: string;
   location?: string;
   age?: string;
+  brandVoice?: BrandVoice;
 };
 
 export default function ProfileScreen() {
@@ -141,6 +150,36 @@ export default function ProfileScreen() {
             </Text>
           )}
         </View>
+
+        {/* Brand Voice */}
+        <Pressable
+          style={({ pressed }) => [styles.card, styles.brandVoiceCard, pressed && styles.brandVoiceCardPressed]}
+          onPress={() => router.push("/brand-voice")}
+        >
+          <View style={styles.brandVoiceHeader}>
+            <View style={styles.brandVoiceIconWrap}>
+              <Feather name="mic" size={18} color={PRIMARY} />
+            </View>
+            <View style={styles.flex1}>
+              <Text style={styles.brandVoiceTitle}>Brand Voice</Text>
+              {meta.brandVoice?.brandName ? (
+                <Text style={styles.brandVoiceSub}>{meta.brandVoice.brandName}</Text>
+              ) : (
+                <Text style={styles.brandVoiceEmpty}>Set your brand's personality</Text>
+              )}
+            </View>
+            <Feather name="chevron-right" size={16} color={MUTED} />
+          </View>
+          {meta.brandVoice?.personality && meta.brandVoice.personality.length > 0 && (
+            <View style={styles.personalityRow}>
+              {meta.brandVoice.personality.slice(0, 4).map((p) => (
+                <View key={p} style={styles.personalityChip}>
+                  <Text style={styles.personalityChipText}>{p}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </Pressable>
 
         {/* Account */}
         <View style={styles.card}>
@@ -385,9 +424,62 @@ const styles = StyleSheet.create({
     color: DANGER,
     fontFamily: "Inter_600SemiBold",
   },
+  flex1: { flex: 1 },
   proText: {
     color: "#16A34A",
     fontFamily: "Inter_600SemiBold",
+  },
+  brandVoiceCard: {
+    gap: 12,
+  },
+  brandVoiceCardPressed: {
+    backgroundColor: "#F5F3FF",
+  },
+  brandVoiceHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  brandVoiceIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#EDE9FE",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  brandVoiceTitle: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    color: FOREGROUND,
+  },
+  brandVoiceSub: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    color: MUTED,
+    marginTop: 1,
+  },
+  brandVoiceEmpty: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    color: PRIMARY,
+    marginTop: 1,
+  },
+  personalityRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  personalityChip: {
+    backgroundColor: "#EDE9FE",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  personalityChipText: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+    color: PRIMARY,
   },
   upgradePill: {
     marginLeft: "auto",

@@ -31,17 +31,73 @@ const NICHES = [
 
 const PLATFORMS = ["Instagram", "Facebook", "LinkedIn", "TikTok", "Twitter/X"];
 
-interface GroupCardProps {
-  title: string;
-  tags: string[];
+const GROUP_META = {
+  niche: {
+    label: "Targeted",
+    icon: "crosshair" as const,
+    accent: "#7C3AED",
+    bg: "#EDE9FE",
+    desc: "Hyper-specific to your industry — reaches the exact audience most likely to buy",
+  },
+  trending: {
+    label: "Trending",
+    icon: "trending-up" as const,
+    accent: "#F59E0B",
+    bg: "#FEF3C7",
+    desc: "High-momentum tags that extend your reach beyond existing followers right now",
+  },
+  broad: {
+    label: "Reach",
+    icon: "radio" as const,
+    accent: "#10B981",
+    bg: "#D1FAE5",
+    desc: "High-volume discovery tags that cast the widest net for maximum impressions",
+  },
+};
+
+interface HashtagChipProps {
+  tag: string;
+  selected: boolean;
+  onPress: () => void;
   accent: string;
+  bg: string;
   colors: any;
 }
 
-function GroupCard({ title, tags, accent, colors }: GroupCardProps) {
-  const [copied, setCopied] = useState(false);
+function HashtagChip({ tag, selected, onPress, accent, bg, colors }: HashtagChipProps) {
+  const t = tag.startsWith("#") ? tag : `#${tag}`;
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      style={[
+        styles.tag,
+        {
+          backgroundColor: selected ? accent : colors.secondary,
+          borderColor: selected ? accent : "transparent",
+          borderWidth: selected ? 1.5 : 0,
+          borderRadius: 8,
+        },
+      ]}
+    >
+      <Text style={[styles.tagText, { color: selected ? "#fff" : colors.primary }]}>{t}</Text>
+    </TouchableOpacity>
+  );
+}
 
-  const handleCopy = async () => {
+interface GroupCardProps {
+  groupKey: "niche" | "trending" | "broad";
+  tags: string[];
+  colors: any;
+  selected: Set<string>;
+  onTagPress: (tag: string) => void;
+}
+
+function GroupCard({ groupKey, tags, colors, selected, onTagPress }: GroupCardProps) {
+  const [copied, setCopied] = useState(false);
+  const meta = GROUP_META[groupKey];
+
+  const handleCopyAll = async () => {
     await Clipboard.setStringAsync(tags.map((t) => `#${t.replace(/^#/, "")}`).join(" "));
     if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setCopied(true);
@@ -49,36 +105,32 @@ function GroupCard({ title, tags, accent, colors }: GroupCardProps) {
   };
 
   return (
-    <View
-      style={[
-        styles.groupCard,
-        {
-          backgroundColor: colors.card,
-          borderColor: colors.border,
-          borderRadius: colors.radius,
-        },
-      ]}
-    >
-      <View style={styles.groupHeader}>
-        <View style={[styles.groupBadge, { backgroundColor: accent + "20", borderRadius: 6 }]}>
-          <Text style={[styles.groupBadgeText, { color: accent }]}>{title}</Text>
+    <View style={[styles.groupCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
+      <View style={styles.groupHeaderRow}>
+        <View style={[styles.groupBadge, { backgroundColor: meta.bg, borderRadius: 8 }]}>
+          <Feather name={meta.icon} size={13} color={meta.accent} />
+          <Text style={[styles.groupBadgeText, { color: meta.accent }]}>{meta.label}</Text>
         </View>
-        <TouchableOpacity onPress={handleCopy} style={styles.copyBtn} activeOpacity={0.7}>
+        <TouchableOpacity onPress={handleCopyAll} style={styles.copyBtn} activeOpacity={0.7}>
           <Feather name={copied ? "check" : "copy"} size={14} color={copied ? colors.primary : colors.mutedForeground} />
           <Text style={[styles.copyText, { color: copied ? colors.primary : colors.mutedForeground }]}>
             {copied ? "Copied" : "Copy all"}
           </Text>
         </TouchableOpacity>
       </View>
+      <Text style={[styles.groupDesc, { color: colors.mutedForeground }]}>{meta.desc}</Text>
       <View style={styles.tags}>
-        {tags.map((tag) => {
-          const t = tag.startsWith("#") ? tag : `#${tag}`;
-          return (
-            <View key={tag} style={[styles.tag, { backgroundColor: colors.secondary, borderRadius: 6 }]}>
-              <Text style={[styles.tagText, { color: colors.primary }]}>{t}</Text>
-            </View>
-          );
-        })}
+        {tags.map((tag) => (
+          <HashtagChip
+            key={tag}
+            tag={tag}
+            selected={selected.has(tag)}
+            onPress={() => onTagPress(tag)}
+            accent={meta.accent}
+            bg={meta.bg}
+            colors={colors}
+          />
+        ))}
       </View>
     </View>
   );
@@ -97,21 +149,22 @@ export default function HashtagsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [grouped, setGrouped] = useState<HashtagGroups | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [smartMixCopied, setSmartMixCopied] = useState(false);
+  const [mixCopied, setMixCopied] = useState(false);
 
   const canGenerate = niche && topic.trim();
 
   const handleGenerate = async () => {
     if (!canGenerate) return;
-
     if (!isSubscribed && isOverLimit) {
       setShowPaywall(true);
       return;
     }
-
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     setError(null);
-
+    setSelected(new Set());
     try {
       const result = await generateHashtags({ niche, topic: topic.trim(), platform });
       setGrouped(result.grouped);
@@ -121,6 +174,38 @@ export default function HashtagsScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleTag = (tag: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(tag)) next.delete(tag);
+      else next.add(tag);
+      return next;
+    });
+  };
+
+  const smartMix = grouped
+    ? [
+        ...grouped.niche.slice(0, 3),
+        ...grouped.trending.slice(0, 3),
+        ...grouped.broad.slice(0, 2),
+      ]
+    : [];
+
+  const handleCopySmartMix = async () => {
+    await Clipboard.setStringAsync(smartMix.map((t) => `#${t.replace(/^#/, "")}`).join(" "));
+    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setSmartMixCopied(true);
+    setTimeout(() => setSmartMixCopied(false), 2000);
+  };
+
+  const handleCopySelected = async () => {
+    const tags = Array.from(selected).map((t) => `#${t.replace(/^#/, "")}`).join(" ");
+    await Clipboard.setStringAsync(tags);
+    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setMixCopied(true);
+    setTimeout(() => setMixCopied(false), 2000);
   };
 
   const bottomPad = Platform.OS === "web" ? 34 + 84 : insets.bottom + 90;
@@ -134,10 +219,12 @@ export default function HashtagsScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={[styles.title, { color: colors.foreground }]}>Hashtag Tool</Text>
-        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-          Get curated hashtags for any post topic
-        </Text>
+        <View>
+          <Text style={[styles.title, { color: colors.foreground }]}>Hashtag Intelligence</Text>
+          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+            3 strategic groups + smart mix — tap any tag to select
+          </Text>
+        </View>
 
         <View style={styles.fields}>
           <OptionPicker label="Industry" value={niche} options={NICHES} onSelect={setNiche} />
@@ -199,10 +286,47 @@ export default function HashtagsScreen() {
 
         {grouped && (
           <View style={styles.results}>
-            <Text style={[styles.resultsLabel, { color: colors.foreground }]}>Your Hashtags</Text>
-            <GroupCard title="Niche" tags={grouped.niche} accent={colors.primary} colors={colors} />
-            <GroupCard title="Trending" tags={grouped.trending} accent="#0EA5E9" colors={colors} />
-            <GroupCard title="Broad" tags={grouped.broad} accent="#10B981" colors={colors} />
+            {/* Smart Mix */}
+            <View style={[styles.smartMixCard, { backgroundColor: "#1E1B4B", borderRadius: colors.radius }]}>
+              <View style={styles.smartMixHeader}>
+                <View style={styles.smartMixTitleRow}>
+                  <Feather name="zap" size={16} color="#A5B4FC" />
+                  <Text style={styles.smartMixTitle}>Smart Mix</Text>
+                </View>
+                <Text style={styles.smartMixSub}>Optimal 8-tag set · 3 targeted + 3 trending + 2 reach</Text>
+              </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.smartMixTags}>
+                {smartMix.map((t) => (
+                  <View key={t} style={styles.smartMixTag}>
+                    <Text style={styles.smartMixTagText}>#{t.replace(/^#/, "")}</Text>
+                  </View>
+                ))}
+              </ScrollView>
+              <TouchableOpacity onPress={handleCopySmartMix} style={styles.smartMixCopyBtn} activeOpacity={0.8}>
+                <Feather name={smartMixCopied ? "check" : "copy"} size={14} color={smartMixCopied ? "#86EFAC" : "#A5B4FC"} />
+                <Text style={[styles.smartMixCopyText, { color: smartMixCopied ? "#86EFAC" : "#A5B4FC" }]}>
+                  {smartMixCopied ? "Copied to clipboard!" : "Copy Smart Mix"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Selected mix banner */}
+            {selected.size > 0 && (
+              <View style={[styles.selectionBar, { backgroundColor: colors.card, borderColor: colors.primary, borderRadius: colors.radius / 2 }]}>
+                <Text style={[styles.selectionCount, { color: colors.primary }]}>
+                  {selected.size} tag{selected.size !== 1 ? "s" : ""} selected
+                </Text>
+                <TouchableOpacity onPress={handleCopySelected} style={[styles.copySelectedBtn, { backgroundColor: colors.primary }]} activeOpacity={0.8}>
+                  <Feather name={mixCopied ? "check" : "copy"} size={13} color="#fff" />
+                  <Text style={styles.copySelectedText}>{mixCopied ? "Copied!" : "Copy selection"}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Three groups */}
+            <GroupCard groupKey="niche" tags={grouped.niche} colors={colors} selected={selected} onTagPress={toggleTag} />
+            <GroupCard groupKey="trending" tags={grouped.trending} colors={colors} selected={selected} onTagPress={toggleTag} />
+            <GroupCard groupKey="broad" tags={grouped.broad} colors={colors} selected={selected} onTagPress={toggleTag} />
           </View>
         )}
       </ScrollView>
@@ -216,7 +340,7 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16, gap: 20 },
   title: { fontSize: 26, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
-  subtitle: { fontSize: 15, fontFamily: "Inter_400Regular", marginTop: -12 },
+  subtitle: { fontSize: 14, fontFamily: "Inter_400Regular", marginTop: 2 },
   fields: { gap: 14 },
   fieldGroup: { gap: 6 },
   fieldLabel: {
@@ -249,12 +373,78 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   generateText: { fontSize: 16, fontFamily: "Inter_600SemiBold" },
-  results: { gap: 12 },
-  resultsLabel: { fontSize: 18, fontFamily: "Inter_600SemiBold" },
-  groupCard: { borderWidth: 1.5, padding: 14, gap: 12 },
-  groupHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  groupBadge: { paddingHorizontal: 10, paddingVertical: 4 },
+  results: { gap: 14 },
+  smartMixCard: {
+    padding: 16,
+    gap: 12,
+  },
+  smartMixHeader: { gap: 4 },
+  smartMixTitleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  smartMixTitle: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    color: "#E0E7FF",
+    letterSpacing: -0.2,
+  },
+  smartMixSub: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    color: "#818CF8",
+  },
+  smartMixTags: { flexDirection: "row", gap: 8, paddingBottom: 2 },
+  smartMixTag: {
+    backgroundColor: "rgba(165, 180, 252, 0.15)",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: "rgba(165, 180, 252, 0.3)",
+  },
+  smartMixTagText: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    color: "#C7D2FE",
+  },
+  smartMixCopyBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingTop: 4,
+  },
+  smartMixCopyText: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+  },
+  selectionBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 12,
+    borderWidth: 1.5,
+    gap: 10,
+  },
+  selectionCount: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+  },
+  copySelectedBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+  },
+  copySelectedText: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+    color: "#fff",
+  },
+  groupCard: { borderWidth: 1.5, padding: 14, gap: 10 },
+  groupHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  groupBadge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 5 },
   groupBadgeText: { fontSize: 12, fontFamily: "Inter_600SemiBold", textTransform: "uppercase", letterSpacing: 0.5 },
+  groupDesc: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 17 },
   copyBtn: { flexDirection: "row", alignItems: "center", gap: 5 },
   copyText: { fontSize: 13, fontFamily: "Inter_500Medium" },
   tags: { flexDirection: "row", flexWrap: "wrap", gap: 8 },

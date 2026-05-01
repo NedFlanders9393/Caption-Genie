@@ -14,10 +14,20 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { useUser } from "@clerk/expo";
+import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
 import { useSubscription } from "@/lib/revenuecat";
-import { generateCaptions, regenerateOneCaption, type CaptionParams, type CaptionItem } from "@/lib/api";
+import {
+  generateCaptions,
+  generateMultiPlatform,
+  regenerateOneCaption,
+  type CaptionParams,
+  type CaptionItem,
+  type MultiPlatformResult,
+  type BrandVoice,
+} from "@/lib/api";
 import PlatformPicker from "@/components/PlatformPicker";
 import TonePicker from "@/components/TonePicker";
 import CaptionCard from "@/components/CaptionCard";
@@ -44,14 +54,26 @@ const POST_TYPES = [
 
 const LENGTHS = ["Short", "Medium", "Long"];
 const CTAS = ["None", "Shop Now", "Link in Bio", "DM Us", "Comment Below", "Tag a Friend", "Save This Post"];
+const MULTI_PLATFORMS = ["Instagram", "TikTok", "Facebook", "LinkedIn"];
+
+const PLATFORM_COLORS: Record<string, string> = {
+  Instagram: "#E1306C",
+  TikTok: "#010101",
+  Facebook: "#1877F2",
+  LinkedIn: "#0A66C2",
+};
 
 export default function GenerateScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { user } = useUser();
   const { addToHistory, consumeGeneration, isOverLimit } = useApp();
   const { isSubscribed } = useSubscription();
 
   const [platform, setPlatform] = useState("Instagram");
+  const [multiPlatform, setMultiPlatform] = useState(false);
+  const [activePlatformTab, setActivePlatformTab] = useState("Instagram");
   const [niche, setNiche] = useState("");
   const [postType, setPostType] = useState("");
   const [tones, setTones] = useState<string[]>(["Professional"]);
@@ -60,12 +82,28 @@ export default function GenerateScreen() {
   const [includeEmojis, setIncludeEmojis] = useState(true);
   const [ctaType, setCtaType] = useState("None");
   const [captions, setCaptions] = useState<CaptionItem[]>([]);
+  const [multiResults, setMultiResults] = useState<MultiPlatformResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [regeneratingIdx, setRegeneratingIdx] = useState<number | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
 
+  const brandVoice = user?.unsafeMetadata?.brandVoice as BrandVoice | undefined;
+  const hasBrandVoice = !!(brandVoice?.brandName || brandVoice?.personality?.length || brandVoice?.targetAudience);
+
   const canGenerate = niche && tones.length > 0 && description.trim();
+
+  const buildParams = useCallback((): CaptionParams => ({
+    niche,
+    postDescription: description.trim(),
+    tone: tones.join(", "),
+    platform,
+    postType: postType || undefined,
+    captionLength,
+    includeEmojis,
+    ctaType: ctaType === "None" ? undefined : ctaType,
+    brandVoice: hasBrandVoice ? brandVoice : undefined,
+  }), [niche, description, tones, platform, postType, captionLength, includeEmojis, ctaType, hasBrandVoice, brandVoice]);
 
   const handleGenerate = useCallback(async () => {
     if (!canGenerate) return;
@@ -80,26 +118,31 @@ export default function GenerateScreen() {
     setError(null);
 
     try {
-      const params: CaptionParams = {
-        niche,
-        postDescription: description.trim(),
-        tone: tones.join(", "),
-        platform,
-        postType: postType || undefined,
-        captionLength,
-        includeEmojis,
-        ctaType: ctaType === "None" ? undefined : ctaType,
-      };
+      if (multiPlatform) {
+        const params = buildParams();
+        const results = await generateMultiPlatform(params);
+        setMultiResults(results);
+        setActivePlatformTab("Instagram");
 
-      const result = await generateCaptions(params);
-      setCaptions(result);
+        await addToHistory({
+          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+          createdAt: Date.now(),
+          params: { niche, postDescription: description.trim(), tone: tones.join(", "), platform: "All Platforms", postType, captionLength },
+          captions: results[0]?.captions ?? [],
+        });
+      } else {
+        const params = buildParams();
+        const result = await generateCaptions(params);
+        setCaptions(result);
+        setMultiResults([]);
 
-      await addToHistory({
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-        createdAt: Date.now(),
-        params: { niche, postDescription: description.trim(), tone: tones.join(", "), platform, postType, captionLength },
-        captions: result,
-      });
+        await addToHistory({
+          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+          createdAt: Date.now(),
+          params: { niche, postDescription: description.trim(), tone: tones.join(", "), platform, postType, captionLength },
+          captions: result,
+        });
+      }
 
       if (!isSubscribed) await consumeGeneration();
     } catch (e: any) {
@@ -107,7 +150,7 @@ export default function GenerateScreen() {
     } finally {
       setLoading(false);
     }
-  }, [canGenerate, isSubscribed, isOverLimit, niche, description, tones, platform, postType, captionLength, includeEmojis, ctaType, addToHistory, consumeGeneration]);
+  }, [canGenerate, isSubscribed, isOverLimit, multiPlatform, buildParams, niche, description, tones, platform, postType, captionLength, addToHistory, consumeGeneration]);
 
   const handleRegenerate = useCallback(
     async (idx: number) => {
@@ -119,14 +162,7 @@ export default function GenerateScreen() {
       try {
         const existing = captions.map((c) => c.caption);
         const fresh = await regenerateOneCaption({
-          niche,
-          postDescription: description.trim(),
-          tone: tones.join(", "),
-          platform,
-          postType: postType || undefined,
-          captionLength,
-          includeEmojis,
-          ctaType: ctaType === "None" ? undefined : ctaType,
+          ...buildParams(),
           existingCaptions: existing,
         });
         setCaptions((prev) => {
@@ -141,7 +177,7 @@ export default function GenerateScreen() {
         setRegeneratingIdx(null);
       }
     },
-    [captions, isSubscribed, isOverLimit, niche, description, tones, platform, postType, captionLength, includeEmojis, ctaType, consumeGeneration]
+    [captions, isSubscribed, isOverLimit, buildParams, consumeGeneration]
   );
 
   const toggleTone = useCallback((t: string) => {
@@ -149,6 +185,8 @@ export default function GenerateScreen() {
       prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
     );
   }, []);
+
+  const activePlatformCaptions = multiResults.find((r) => r.platform === activePlatformTab)?.captions ?? [];
 
   const bottomPad = Platform.OS === "web" ? 34 + 84 : insets.bottom + 90;
 
@@ -179,11 +217,70 @@ export default function GenerateScreen() {
           )}
         </View>
 
+        {/* Brand Voice Badge */}
+        {hasBrandVoice ? (
+          <TouchableOpacity
+            style={[styles.brandVoiceBadge, { backgroundColor: "#EDE9FE", borderRadius: colors.radius / 2 }]}
+            onPress={() => router.push("/brand-voice")}
+            activeOpacity={0.7}
+          >
+            <Feather name="mic" size={13} color={colors.primary} />
+            <Text style={[styles.brandVoiceBadgeText, { color: colors.primary }]}>
+              {brandVoice?.brandName ? `${brandVoice.brandName} voice active` : "Brand voice active"}
+            </Text>
+            <Feather name="edit-2" size={12} color={colors.primary} />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.brandVoiceSetup, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius / 2 }]}
+            onPress={() => router.push("/brand-voice")}
+            activeOpacity={0.7}
+          >
+            <Feather name="mic" size={13} color={colors.mutedForeground} />
+            <Text style={[styles.brandVoiceSetupText, { color: colors.mutedForeground }]}>
+              Set up brand voice for personalized captions
+            </Text>
+            <Feather name="chevron-right" size={13} color={colors.mutedForeground} />
+          </TouchableOpacity>
+        )}
+
+        {/* Platform */}
         <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Platform</Text>
-          <View style={styles.platformRow}>
-            <PlatformPicker selected={platform} onSelect={setPlatform} />
-          </View>
+          {!multiPlatform && (
+            <View style={styles.platformRow}>
+              <PlatformPicker selected={platform} onSelect={setPlatform} />
+            </View>
+          )}
+          {/* Multi-platform toggle */}
+          <TouchableOpacity
+            style={[
+              styles.multiPlatformRow,
+              {
+                backgroundColor: multiPlatform ? "#EDE9FE" : colors.card,
+                borderColor: multiPlatform ? colors.primary : colors.border,
+                borderRadius: colors.radius / 2,
+              },
+            ]}
+            onPress={() => setMultiPlatform((v) => !v)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.multiPlatformIcons}>
+              {MULTI_PLATFORMS.map((p) => (
+                <View key={p} style={[styles.multiPlatformDot, { backgroundColor: PLATFORM_COLORS[p] }]} />
+              ))}
+            </View>
+            <Text style={[styles.multiPlatformText, { color: multiPlatform ? colors.primary : colors.foreground }]}>
+              Generate for all 4 platforms
+            </Text>
+            <Switch
+              value={multiPlatform}
+              onValueChange={setMultiPlatform}
+              trackColor={{ true: colors.primary, false: colors.border }}
+              thumbColor="#fff"
+              style={{ transform: [{ scaleX: 0.85 }, { scaleY: 0.85 }] }}
+            />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
@@ -268,20 +365,16 @@ export default function GenerateScreen() {
             <ActivityIndicator color="#fff" />
           ) : (
             <>
-              <Feather name="zap" size={18} color={canGenerate ? "#fff" : colors.mutedForeground} />
-              <Text
-                style={[
-                  styles.generateText,
-                  { color: canGenerate ? "#fff" : colors.mutedForeground },
-                ]}
-              >
-                Generate Captions
+              <Feather name={multiPlatform ? "layers" : "zap"} size={18} color={canGenerate ? "#fff" : colors.mutedForeground} />
+              <Text style={[styles.generateText, { color: canGenerate ? "#fff" : colors.mutedForeground }]}>
+                {multiPlatform ? "Generate for All Platforms" : "Generate Captions"}
               </Text>
             </>
           )}
         </TouchableOpacity>
 
-        {captions.length > 0 && (
+        {/* Single platform results */}
+        {!multiPlatform && captions.length > 0 && (
           <View style={styles.results}>
             <Text style={[styles.resultsLabel, { color: colors.foreground }]}>Your Captions</Text>
             {captions.map((c, i) => (
@@ -292,6 +385,49 @@ export default function GenerateScreen() {
                 hashtags={c.hashtags}
                 onRegenerate={() => handleRegenerate(i)}
                 isRegenerating={regeneratingIdx === i}
+              />
+            ))}
+          </View>
+        )}
+
+        {/* Multi-platform results */}
+        {multiPlatform && multiResults.length > 0 && (
+          <View style={styles.results}>
+            <Text style={[styles.resultsLabel, { color: colors.foreground }]}>All Platforms</Text>
+            {/* Platform tabs */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.platformTabs}>
+              {MULTI_PLATFORMS.map((p) => {
+                const active = activePlatformTab === p;
+                return (
+                  <TouchableOpacity
+                    key={p}
+                    onPress={() => setActivePlatformTab(p)}
+                    style={[
+                      styles.platformTab,
+                      {
+                        backgroundColor: active ? PLATFORM_COLORS[p] : colors.card,
+                        borderColor: active ? PLATFORM_COLORS[p] : colors.border,
+                      },
+                    ]}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.platformTabText, { color: active ? "#fff" : colors.foreground }]}>
+                      {p}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            {/* Captions for active tab */}
+            {activePlatformCaptions.map((c, i) => (
+              <CaptionCard
+                key={`${activePlatformTab}-${i}`}
+                index={i}
+                caption={c.caption}
+                hashtags={c.hashtags}
+                onRegenerate={async () => {}}
+                isRegenerating={false}
               />
             ))}
           </View>
@@ -328,6 +464,33 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Inter_600SemiBold",
   },
+  brandVoiceBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginTop: -8,
+  },
+  brandVoiceBadgeText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+  },
+  brandVoiceSetup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+    marginTop: -8,
+  },
+  brandVoiceSetupText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+  },
   section: { gap: 8 },
   sectionLabel: {
     fontSize: 12,
@@ -336,6 +499,28 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   platformRow: { marginHorizontal: -16 },
+  multiPlatformRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1.5,
+  },
+  multiPlatformIcons: {
+    flexDirection: "row",
+    gap: 3,
+  },
+  multiPlatformDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  multiPlatformText: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: "Inter_500Medium",
+  },
   row: { flexDirection: "row", gap: 12 },
   flex1: { flex: 1 },
   textarea: {
@@ -379,5 +564,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: "Inter_600SemiBold",
     marginBottom: 4,
+  },
+  platformTabs: {
+    flexDirection: "row",
+    gap: 8,
+    paddingBottom: 4,
+  },
+  platformTab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1.5,
+  },
+  platformTabText: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
   },
 });

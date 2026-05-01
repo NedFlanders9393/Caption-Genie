@@ -1,5 +1,13 @@
 const BASE = process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : "";
 
+export interface BrandVoice {
+  brandName?: string;
+  personality?: string[];
+  targetAudience?: string;
+  alwaysInclude?: string;
+  neverSay?: string;
+}
+
 export interface CaptionParams {
   niche: string;
   postDescription: string;
@@ -9,11 +17,17 @@ export interface CaptionParams {
   captionLength?: string;
   includeEmojis?: boolean;
   ctaType?: string;
+  brandVoice?: BrandVoice;
 }
 
 export interface CaptionItem {
   caption: string;
   hashtags: string;
+}
+
+export interface MultiPlatformResult {
+  platform: string;
+  captions: CaptionItem[];
 }
 
 export interface HashtagParams {
@@ -40,6 +54,19 @@ export async function generateCaptions(params: CaptionParams): Promise<CaptionIt
   }
   const data = await res.json();
   return data.captions;
+}
+
+export async function generateMultiPlatform(
+  params: Omit<CaptionParams, "platform">
+): Promise<MultiPlatformResult[]> {
+  const platforms = ["Instagram", "TikTok", "Facebook", "LinkedIn"];
+  const results = await Promise.all(
+    platforms.map(async (platform) => {
+      const captions = await generateCaptions({ ...params, platform });
+      return { platform, captions };
+    })
+  );
+  return results;
 }
 
 export async function regenerateOneCaption(

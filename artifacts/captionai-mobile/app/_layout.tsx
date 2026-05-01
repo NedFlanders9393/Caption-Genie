@@ -43,6 +43,17 @@ function RootLayoutNav() {
           headerShadowVisible: false,
         }}
       />
+      <Stack.Screen
+        name="brand-voice"
+        options={{
+          title: "Brand Voice",
+          presentation: "modal",
+          headerStyle: { backgroundColor: "#FAFAFA" },
+          headerTintColor: "#7C3AED",
+          headerTitleStyle: { fontFamily: "Inter_600SemiBold", color: "#19141F" },
+          headerShadowVisible: false,
+        }}
+      />
     </Stack>
   );
 }

@@ -137,6 +137,14 @@ const TONE_BLEND_GUIDE: Record<string, string> = {
   Authentic: "raw, unpolished in the best way — sounds like a real human, not a brand — specific over general always",
 };
 
+interface BrandVoice {
+  brandName?: string;
+  personality?: string[];
+  targetAudience?: string;
+  alwaysInclude?: string;
+  neverSay?: string;
+}
+
 function buildCaptionPrompt(params: {
   niche: string;
   postDescription: string;
@@ -148,6 +156,7 @@ function buildCaptionPrompt(params: {
   ctaType?: string;
   count?: number;
   avoidCaptions?: string[];
+  brandVoice?: BrandVoice;
 }) {
   const {
     niche,
@@ -160,6 +169,7 @@ function buildCaptionPrompt(params: {
     ctaType,
     count = 3,
     avoidCaptions = [],
+    brandVoice,
   } = params;
 
   const nicheProfile = NICHE_PROFILES[niche] ?? `Audience: potential customers of a ${niche} business. Speak directly to their needs and desires.`;
@@ -202,6 +212,16 @@ function buildCaptionPrompt(params: {
     "Twitter/X": "Include 1-2 hashtags ONLY. Weave them naturally into the text or at the end. Every character counts.",
   }[platform] ?? "Include 6-10 relevant hashtags.";
 
+  const brandVoiceSection = brandVoice && (brandVoice.brandName || brandVoice.personality?.length || brandVoice.targetAudience || brandVoice.alwaysInclude || brandVoice.neverSay)
+    ? `\n━━━ BRAND VOICE (CRITICAL — follow this exactly) ━━━
+${brandVoice.brandName ? `Brand name: ${brandVoice.brandName}` : ""}
+${brandVoice.personality?.length ? `Brand personality: ${brandVoice.personality.join(", ")} — every caption MUST sound like this brand` : ""}
+${brandVoice.targetAudience ? `Their exact audience: ${brandVoice.targetAudience} — write directly to this person` : ""}
+${brandVoice.alwaysInclude ? `Always weave in (naturally, not forced): ${brandVoice.alwaysInclude}` : ""}
+${brandVoice.neverSay ? `NEVER use these words, phrases, or themes: ${brandVoice.neverSay}` : ""}
+This brand voice overrides generic niche advice — make it personal and specific to THIS brand.\n`
+    : "";
+
   return `TASK: Write ${count} exceptional, distinct social media caption(s) for this ${niche} business.
 
 ━━━ THE POST ━━━
@@ -209,7 +229,7 @@ What this post is about: ${postDescription}
 ${postType ? `Post type: ${postType}` : ""}
 
 ━━━ KNOW YOUR AUDIENCE ━━━
-${nicheProfile}
+${nicheProfile}${brandVoiceSection}
 
 ━━━ PLATFORM MASTERY ━━━
 ${platformGuide}
@@ -304,6 +324,7 @@ captionsRouter.post("/captions/generate", async (req, res) => {
   }
 
   const { niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType } = parsed.data;
+  const brandVoice = req.body.brandVoice as BrandVoice | undefined;
 
   try {
     const message = await anthropic.messages.create({
@@ -323,6 +344,7 @@ captionsRouter.post("/captions/generate", async (req, res) => {
             includeEmojis: includeEmojis ?? true,
             ctaType: ctaType ?? undefined,
             count: 3,
+            brandVoice,
           }),
         },
       ],
@@ -359,6 +381,7 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
   }
 
   const { niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType, existingCaptions } = parsed.data;
+  const brandVoice = req.body.brandVoice as BrandVoice | undefined;
 
   try {
     const message = await anthropic.messages.create({
@@ -379,6 +402,7 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
             ctaType: ctaType ?? undefined,
             count: 1,
             avoidCaptions: existingCaptions ?? [],
+            brandVoice,
           }),
         },
       ],

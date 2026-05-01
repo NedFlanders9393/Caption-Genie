@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { useUser } from "@clerk/expo";
 import {
   getHistory,
   addHistory,
@@ -9,6 +10,10 @@ import {
   FREE_LIMIT,
   type HistoryEntry,
 } from "@/lib/storage";
+
+const BETA_TESTERS = [
+  "atlanta@imcmanagement.net",
+];
 
 interface AppContextValue {
   history: HistoryEntry[];
@@ -25,6 +30,11 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useUser();
+  const isBetaTester = BETA_TESTERS.includes(
+    (user?.primaryEmailAddress?.emailAddress ?? "").toLowerCase()
+  );
+
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [usageCount, setUsageCount] = useState(0);
 
@@ -59,13 +69,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const consumeGeneration = useCallback(async (): Promise<boolean> => {
+    if (isBetaTester) return true;
     if (usageCount >= FREE_LIMIT) return false;
     const next = await incrementUsage();
     setUsageCount(next);
     return true;
-  }, [usageCount]);
+  }, [usageCount, isBetaTester]);
 
-  const isOverLimit = usageCount >= FREE_LIMIT;
+  const isOverLimit = isBetaTester ? false : usageCount >= FREE_LIMIT;
 
   return (
     <AppContext.Provider

@@ -17,13 +17,13 @@ interface Props {
   onClose: () => void;
 }
 
-const PRIMARY = "#7C3AED";
-const BG = "#FAFAFA";
-const FOREGROUND = "#19141F";
-const MUTED = "#6B7280";
+const PRIMARY = "#E8B669";
+const BG = "#FFFDF9";
+const FOREGROUND = "#3A3129";
+const MUTED = "#8C7A6B";
 const CARD_BG = "#FFFFFF";
-const CARD_BORDER = "#F3F4F6";
-const SUCCESS = "#16A34A";
+const CARD_BORDER = "#F0E3D3";
+const AMBER_LIGHT = "#F8EFE4";
 
 const FEATURES = [
   "Unlimited caption generation",
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: "#EDE9FE",
+    backgroundColor: AMBER_LIGHT,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 4,
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: "#EDE9FE",
+    backgroundColor: AMBER_LIGHT,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   },
   planCardSelected: {
     borderColor: PRIMARY,
-    backgroundColor: "#FAFAFF",
+    backgroundColor: AMBER_LIGHT,
   },
   planCardTop: {
     flexDirection: "row",
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     color: PRIMARY,
   },
   bestValueBadge: {
-    backgroundColor: "#EDE9FE",
+    backgroundColor: AMBER_LIGHT,
     borderRadius: 6,
     paddingHorizontal: 6,
     paddingVertical: 2,

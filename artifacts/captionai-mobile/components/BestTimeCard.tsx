@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useColors } from "@/hooks/useColors";
+
+const AMBER = "#E8B669";
+const AMBER_LIGHT = "#F8EFE4";
+const AMBER_BORDER = "#F0E3D3";
+const TEXT_PRIMARY = "#3A3129";
+const TEXT_MUTED = "#8C7A6B";
 
 interface PlatformTiming {
   days: string;
@@ -43,7 +48,6 @@ interface BestTimeCardProps {
 }
 
 export default function BestTimeCard({ platform, multiPlatforms }: BestTimeCardProps) {
-  const colors = useColors();
   const [collapsed, setCollapsed] = useState(false);
 
   const platforms = multiPlatforms ?? [platform];
@@ -54,29 +58,20 @@ export default function BestTimeCard({ platform, multiPlatforms }: BestTimeCardP
   const isMulti = validPlatforms.length > 1;
 
   return (
-    <View
-      style={[
-        styles.card,
-        {
-          backgroundColor: "#F5F3FF",
-          borderColor: "#DDD6FE",
-          borderRadius: (colors as any).radius / 2,
-        },
-      ]}
-    >
+    <View style={styles.card}>
       <TouchableOpacity
         onPress={() => setCollapsed((c) => !c)}
         activeOpacity={0.7}
         style={styles.header}
       >
         <View style={styles.headerLeft}>
-          <Feather name="clock" size={14} color="#7C3AED" />
+          <Feather name="clock" size={14} color={AMBER} />
           <Text style={styles.headerText}>Best time to post</Text>
         </View>
         <Feather
           name={collapsed ? "chevron-down" : "chevron-up"}
           size={14}
-          color="#7C3AED"
+          color={AMBER}
         />
       </TouchableOpacity>
 
@@ -99,11 +94,11 @@ export default function BestTimeCard({ platform, multiPlatforms }: BestTimeCardP
             <>
               <View style={styles.singleRow}>
                 <View style={styles.pill}>
-                  <Feather name="calendar" size={11} color="#7C3AED" />
+                  <Feather name="calendar" size={11} color={AMBER} />
                   <Text style={styles.pillText}>{BEST_TIMES[validPlatforms[0]]!.days}</Text>
                 </View>
                 <View style={styles.pill}>
-                  <Feather name="clock" size={11} color="#7C3AED" />
+                  <Feather name="clock" size={11} color={AMBER} />
                   <Text style={styles.pillText}>{BEST_TIMES[validPlatforms[0]]!.times}</Text>
                 </View>
               </View>
@@ -119,6 +114,9 @@ export default function BestTimeCard({ platform, multiPlatforms }: BestTimeCardP
 const styles = StyleSheet.create({
   card: {
     borderWidth: 1.5,
+    borderColor: AMBER_BORDER,
+    backgroundColor: AMBER_LIGHT,
+    borderRadius: 14,
     overflow: "hidden",
   },
   header: {
@@ -136,7 +134,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 13,
     fontFamily: "Inter_600SemiBold",
-    color: "#7C3AED",
+    color: TEXT_PRIMARY,
   },
   body: {
     paddingHorizontal: 14,
@@ -152,7 +150,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    backgroundColor: "#EDE9FE",
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: AMBER_BORDER,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 20,
@@ -160,12 +160,12 @@ const styles = StyleSheet.create({
   pillText: {
     fontSize: 12,
     fontFamily: "Inter_600SemiBold",
-    color: "#7C3AED",
+    color: TEXT_PRIMARY,
   },
   tip: {
     fontSize: 12,
     fontFamily: "Inter_400Regular",
-    color: "#6D28D9",
+    color: TEXT_MUTED,
     lineHeight: 17,
   },
   multiRow: {
@@ -174,12 +174,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#DDD6FE",
+    borderBottomColor: AMBER_BORDER,
   },
   multiPlatformLabel: {
     fontSize: 13,
     fontFamily: "Inter_600SemiBold",
-    color: "#5B21B6",
+    color: TEXT_PRIMARY,
     flex: 1,
   },
   multiRight: {
@@ -188,11 +188,11 @@ const styles = StyleSheet.create({
   multiDays: {
     fontSize: 12,
     fontFamily: "Inter_500Medium",
-    color: "#7C3AED",
+    color: TEXT_PRIMARY,
   },
   multiTimes: {
     fontSize: 11,
     fontFamily: "Inter_400Regular",
-    color: "#6D28D9",
+    color: TEXT_MUTED,
   },
 });

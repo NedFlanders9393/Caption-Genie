@@ -1,8 +1,13 @@
 uploads = []
-outputs = []
 
 [[generated]]
 id = "NK4YPovVEUGLfxzFAcM3I"
 uri = "file://artifacts/captionai-mobile/assets/images/icon.png"
 type = "image"
 title = "captionai app icon"
+
+[[outputs]]
+id = "E-GdJpUgbOg8Hg4cdEGw4"
+uri = "file://qr-expo.png"
+type = "image"
+title = "Scan with Expo Go"

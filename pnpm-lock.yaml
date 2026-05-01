@@ -840,6 +840,10 @@ importers:
         version: 7.1.1
 
   scripts:
+    dependencies:
+      qrcode:
+        specifier: ^1.5.4
+        version: 1.5.4
     devDependencies:
       '@replit/revenuecat-sdk':
         specifier: '*'

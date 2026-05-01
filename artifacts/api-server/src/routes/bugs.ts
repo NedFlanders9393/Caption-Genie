@@ -143,33 +143,4 @@ async function sendBugEmails(payload: BugEmailPayload) {
   });
 
   logger.info("Owner notification email sent");
-
-  // 2) Auto-reply to the user (only if they have an email)
-  if (userEmail) {
-    await client.emails.send({
-      from: fromEmail,
-      to: userEmail,
-      subject: "We got your report — Inkwell",
-      html: `
-        <div style="font-family:sans-serif;max-width:560px;margin:auto;color:#3A3129;">
-          <div style="background:#3A3129;padding:24px 32px;border-radius:12px 12px 0 0;">
-            <h1 style="color:#E8B669;margin:0;font-size:22px;">Thanks for reaching out ✨</h1>
-          </div>
-          <div style="background:#FFFDF9;border:1px solid #F0E3D3;border-top:none;padding:24px 32px;border-radius:0 0 12px 12px;">
-            <p>Hi there,</p>
-            <p>We received your bug report and we're on it. Every submission gets reviewed personally — we take this seriously.</p>
-            <p><strong>Your report:</strong></p>
-            <blockquote style="border-left:3px solid #E8B669;margin:0 0 16px;padding:10px 16px;background:#F8EFE4;border-radius:4px;">
-              ${description}
-            </blockquote>
-            <p>We'll reach out if we need more details. Thanks for helping make Inkwell better!</p>
-            <p style="margin-top:24px;">— The Inkwell Team</p>
-            <hr style="border:none;border-top:1px solid #F0E3D3;margin:20px 0;" />
-            <p style="font-size:12px;color:#8C7A6B;">You're receiving this because you submitted a bug report in the Inkwell app.</p>
-          </div>
-        </div>
-      `,
-    });
-    logger.info({ to: userEmail }, "Auto-reply email sent to user");
-  }
 }

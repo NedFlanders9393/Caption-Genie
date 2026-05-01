@@ -1,4 +1,5 @@
 import { useAuth, useSignUp } from "@clerk/expo";
+import { Feather } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -13,14 +14,14 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const PRIMARY = "#7C3AED";
-const PRIMARY_DARK = "#6D28D9";
-const BG = "#FAFAFA";
-const FOREGROUND = "#19141F";
-const MUTED = "#6B7280";
+const PRIMARY = "#E8B669";
+const PRIMARY_DARK = "#D4A055";
+const BG = "#FFFDF9";
+const FOREGROUND = "#3A3129";
+const MUTED = "#8C7A6B";
 const INPUT_BG = "#FFFFFF";
-const INPUT_BORDER = "#E5E7EB";
-const INPUT_BORDER_FOCUS = "#7C3AED";
+const INPUT_BORDER = "#F0E3D3";
+const INPUT_BORDER_FOCUS = "#E8B669";
 const ERROR_COLOR = "#DC2626";
 const ERROR_BG = "#FEF2F2";
 const ERROR_BORDER = "#FECACA";
@@ -103,7 +104,7 @@ export default function SignUpPage() {
           <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
             <View style={styles.header}>
               <View style={styles.logo}>
-                <Text style={styles.logoText}>✦</Text>
+                <Feather name="feather" size={28} color="#FFFFFF" />
               </View>
               <Text style={styles.title}>Check your email</Text>
               <Text style={styles.subtitle}>
@@ -179,7 +180,7 @@ export default function SignUpPage() {
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
             <View style={styles.logo}>
-              <Text style={styles.logoText}>✦</Text>
+              <Feather name="feather" size={28} color="#FFFFFF" />
             </View>
             <Text style={styles.title}>Create account</Text>
             <Text style={styles.subtitle}>

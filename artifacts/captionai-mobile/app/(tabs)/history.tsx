@@ -163,20 +163,20 @@ function CaptionList({
 
           {/* Remixed result */}
           {remixResults[i] !== undefined && remixResults[i] !== null && (
-            <View style={[styles.remixResult, { backgroundColor: "#F5F3FF", borderColor: "#DDD6FE" }]}>
+            <View style={[styles.remixResult, { backgroundColor: "#F8EFE4", borderColor: "#F0E3D3" }]}>
               <View style={styles.remixResultHeader}>
-                <Feather name="shuffle" size={12} color="#7C3AED" />
+                <Feather name="shuffle" size={12} color="#E8B669" />
                 <Text style={styles.remixResultLabel}>Remixed</Text>
                 <TouchableOpacity
                   onPress={() => setRemixResults((prev) => ({ ...prev, [i]: undefined as any }))}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  <Feather name="x" size={12} color="#7C3AED" />
+                  <Feather name="x" size={12} color="#8C7A6B" />
                 </TouchableOpacity>
               </View>
-              <Text style={[styles.captionText, { color: "#3B0764" }]}>{remixResults[i]!.caption}</Text>
+              <Text style={[styles.captionText, { color: "#3A3129" }]}>{remixResults[i]!.caption}</Text>
               {remixResults[i]!.hashtags ? (
-                <Text style={[styles.hashtagText, { color: "#7C3AED" }]}>{remixResults[i]!.hashtags}</Text>
+                <Text style={[styles.hashtagText, { color: "#E8B669" }]}>{remixResults[i]!.hashtags}</Text>
               ) : null}
               <TouchableOpacity
                 onPress={() => handleCopyRemix(remixResults[i]!.caption, remixResults[i]!.hashtags, i)}
@@ -186,9 +186,9 @@ function CaptionList({
                 <Feather
                   name={copiedRemixIdx === i ? "check" : "copy"}
                   size={13}
-                  color={copiedRemixIdx === i ? "#7C3AED" : "#6D28D9"}
+                  color={copiedRemixIdx === i ? "#E8B669" : "#8C7A6B"}
                 />
-                <Text style={[styles.actionText, { color: copiedRemixIdx === i ? "#7C3AED" : "#6D28D9" }]}>
+                <Text style={[styles.actionText, { color: copiedRemixIdx === i ? "#E8B669" : "#8C7A6B" }]}>
                   {copiedRemixIdx === i ? "Copied" : "Copy remix"}
                 </Text>
               </TouchableOpacity>
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 11,
     fontFamily: "Inter_600SemiBold",
-    color: "#7C3AED",
+    color: "#E8B669",
     textTransform: "uppercase",
     letterSpacing: 0.4,
   },

@@ -36,22 +36,22 @@ const GROUP_META = {
   niche: {
     label: "Targeted",
     icon: "crosshair" as const,
-    accent: "#7C3AED",
-    bg: "#EDE9FE",
+    accent: "#E8B669",
+    bg: "#F8EFE4",
     desc: "Hyper-specific to your industry — reaches the exact audience most likely to buy",
   },
   trending: {
     label: "Trending",
     icon: "trending-up" as const,
-    accent: "#F59E0B",
-    bg: "#FEF3C7",
+    accent: "#E8824A",
+    bg: "#FEF0E7",
     desc: "High-momentum tags that extend your reach beyond existing followers right now",
   },
   broad: {
     label: "Reach",
     icon: "radio" as const,
-    accent: "#10B981",
-    bg: "#D1FAE5",
+    accent: "#4CAF86",
+    bg: "#E6F5EF",
     desc: "High-volume discovery tags that cast the widest net for maximum impressions",
   },
 };
@@ -290,10 +290,10 @@ export default function HashtagsScreen() {
         {grouped && (
           <View style={styles.results}>
             {/* Smart Mix */}
-            <View style={[styles.smartMixCard, { backgroundColor: "#1E1B4B", borderRadius: colors.radius }]}>
+            <View style={[styles.smartMixCard, { backgroundColor: "#3A3129", borderRadius: colors.radius }]}>
               <View style={styles.smartMixHeader}>
                 <View style={styles.smartMixTitleRow}>
-                  <Feather name="zap" size={16} color="#A5B4FC" />
+                  <Feather name="zap" size={16} color="#E8B669" />
                   <Text style={styles.smartMixTitle}>Smart Mix</Text>
                 </View>
                 <Text style={styles.smartMixSub}>Optimal 8-tag set · 3 targeted + 3 trending + 2 reach</Text>
@@ -306,8 +306,8 @@ export default function HashtagsScreen() {
                 ))}
               </ScrollView>
               <TouchableOpacity onPress={handleCopySmartMix} style={styles.smartMixCopyBtn} activeOpacity={0.8}>
-                <Feather name={smartMixCopied ? "check" : "copy"} size={14} color={smartMixCopied ? "#86EFAC" : "#A5B4FC"} />
-                <Text style={[styles.smartMixCopyText, { color: smartMixCopied ? "#86EFAC" : "#A5B4FC" }]}>
+                <Feather name={smartMixCopied ? "check" : "copy"} size={14} color={smartMixCopied ? "#86EFAC" : "#E8B669"} />
+                <Text style={[styles.smartMixCopyText, { color: smartMixCopied ? "#86EFAC" : "#E8B669" }]}>
                   {smartMixCopied ? "Copied to clipboard!" : "Copy Smart Mix"}
                 </Text>
               </TouchableOpacity>
@@ -386,27 +386,27 @@ const styles = StyleSheet.create({
   smartMixTitle: {
     fontSize: 16,
     fontFamily: "Inter_700Bold",
-    color: "#E0E7FF",
+    color: "#FFFDF9",
     letterSpacing: -0.2,
   },
   smartMixSub: {
     fontSize: 12,
     fontFamily: "Inter_400Regular",
-    color: "#818CF8",
+    color: "#B0A090",
   },
   smartMixTags: { flexDirection: "row", gap: 8, paddingBottom: 2 },
   smartMixTag: {
-    backgroundColor: "rgba(165, 180, 252, 0.15)",
+    backgroundColor: "rgba(232, 182, 105, 0.15)",
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderWidth: 1,
-    borderColor: "rgba(165, 180, 252, 0.3)",
+    borderColor: "rgba(232, 182, 105, 0.3)",
   },
   smartMixTagText: {
     fontSize: 13,
     fontFamily: "Inter_500Medium",
-    color: "#C7D2FE",
+    color: "#F8EFE4",
   },
   smartMixCopyBtn: {
     flexDirection: "row",

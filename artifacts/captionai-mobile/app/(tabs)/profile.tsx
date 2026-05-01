@@ -16,12 +16,12 @@ import { useApp } from "@/context/AppContext";
 import Paywall from "@/components/Paywall";
 import { useSubscription } from "@/lib/revenuecat";
 
-const PRIMARY = "#7C3AED";
-const BG = "#FAFAFA";
-const FOREGROUND = "#19141F";
-const MUTED = "#6B7280";
+const PRIMARY = "#E8B669";
+const BG = "#FFFDF9";
+const FOREGROUND = "#3A3129";
+const MUTED = "#8C7A6B";
 const CARD_BG = "#FFFFFF";
-const CARD_BORDER = "#F3F4F6";
+const CARD_BORDER = "#F0E3D3";
 const DANGER = "#DC2626";
 
 type BrandVoice = {
@@ -264,10 +264,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 20,
-    backgroundColor: "#EDE9FE",
+    backgroundColor: "#F8EFE4",
   },
   editButtonPressed: {
-    backgroundColor: "#DDD6FE",
+    backgroundColor: "#F0E3D3",
   },
   editButtonText: {
     fontSize: 14,
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   brandVoiceCardPressed: {
-    backgroundColor: "#F5F3FF",
+    backgroundColor: "#F8EFE4",
   },
   brandVoiceHeader: {
     flexDirection: "row",
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#EDE9FE",
+    backgroundColor: "#F8EFE4",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   personalityChip: {
-    backgroundColor: "#EDE9FE",
+    backgroundColor: "#F8EFE4",
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -483,13 +483,13 @@ const styles = StyleSheet.create({
   },
   upgradePill: {
     marginLeft: "auto",
-    backgroundColor: "#EDE9FE",
+    backgroundColor: "#F8EFE4",
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
   upgradePillPressed: {
-    backgroundColor: "#DDD6FE",
+    backgroundColor: "#F0E3D3",
   },
   upgradePillText: {
     fontSize: 12,
@@ -498,17 +498,17 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
   },
   upgradeCard: {
-    backgroundColor: "#EDE9FE",
+    backgroundColor: "#F8EFE4",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#DDD6FE",
+    borderColor: "#F0E3D3",
     padding: 16,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
   },
   upgradeCardPressed: {
-    backgroundColor: "#DDD6FE",
+    backgroundColor: "#F0E3D3",
   },
   upgradeIcon: {
     width: 40,
@@ -525,12 +525,12 @@ const styles = StyleSheet.create({
   upgradeTitle: {
     fontSize: 15,
     fontWeight: "600",
-    color: PRIMARY,
+    color: "#3A3129",
     fontFamily: "Inter_600SemiBold",
   },
   upgradeSub: {
     fontSize: 12,
-    color: "#5B21B6",
+    color: "#8C7A6B",
     fontFamily: "Inter_400Regular",
   },
 });

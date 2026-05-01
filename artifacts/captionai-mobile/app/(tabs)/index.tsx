@@ -238,7 +238,7 @@ export default function GenerateScreen() {
         {/* Brand Voice Badge */}
         {hasBrandVoice ? (
           <TouchableOpacity
-            style={[styles.brandVoiceBadge, { backgroundColor: "#EDE9FE", borderRadius: colors.radius / 2 }]}
+            style={[styles.brandVoiceBadge, { backgroundColor: "#F8EFE4", borderRadius: colors.radius / 2 }]}
             onPress={() => router.push("/brand-voice")}
             activeOpacity={0.7}
           >
@@ -275,7 +275,7 @@ export default function GenerateScreen() {
             style={[
               styles.multiPlatformRow,
               {
-                backgroundColor: multiPlatform ? "#EDE9FE" : colors.card,
+                backgroundColor: multiPlatform ? "#F8EFE4" : colors.card,
                 borderColor: multiPlatform ? colors.primary : colors.border,
                 borderRadius: colors.radius / 2,
               },

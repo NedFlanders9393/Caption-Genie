@@ -1,78 +1,5 @@
 import React from "react";
-import { Hash, History, Sparkles, ChevronRight, Zap, Coffee } from "lucide-react";
-
-function QuillFeatherIcon({ size = 20, color = "white" }: { size?: number; color?: string }) {
-  // Tilted quill: feather tip upper-right (17,2), nib lower-left (5,22)
-  // Right vane sweeps dramatically wide (like reference image)
-  // Left vane stays very close to shaft
-  // Calamus = long bare shaft below vane base — the unmistakable quill element
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* Filled vane silhouette — right side billows far out, left hugs shaft */}
-      <path
-        d="M17 2 C22 7 22 13 10 15 C13 9 15 5 17 2Z"
-        fill={color}
-        fillOpacity="0.22"
-      />
-      {/* Right vane outer edge — the big dominant sweep */}
-      <path
-        d="M17 2 C22 7 22 13 10 15"
-        stroke={color}
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        fill="none"
-      />
-      {/* Left vane — narrow, close to shaft */}
-      <path
-        d="M17 2 C15 5 13 9 10 15"
-        stroke={color}
-        strokeWidth="1.0"
-        strokeLinecap="round"
-        fill="none"
-        opacity="0.65"
-      />
-      {/* Rachis — central shaft through the vane */}
-      <path
-        d="M17 2 L10 15"
-        stroke={color}
-        strokeWidth="1.3"
-        strokeLinecap="round"
-      />
-      {/* Barbs — fanning out from shaft toward the right vane */}
-      <path d="M16 4 L19.5 6.5"  stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.6" />
-      <path d="M15 6.5 L20 9"    stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.6" />
-      <path d="M14 9 L19.5 11.5" stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.6" />
-      <path d="M12.5 11.5 L17 14" stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.6" />
-      {/* Left side barbs — much shorter, barely off the shaft */}
-      <path d="M16 5 L14.5 6.5"  stroke={color} strokeWidth="0.75" strokeLinecap="round" opacity="0.4" />
-      <path d="M15 8 L13.5 9.5"  stroke={color} strokeWidth="0.75" strokeLinecap="round" opacity="0.4" />
-      <path d="M13.5 11 L12 12.5" stroke={color} strokeWidth="0.75" strokeLinecap="round" opacity="0.4" />
-      {/* CALAMUS — the long bare shaft, the single feature that makes this unmistakably a quill */}
-      <path
-        d="M10 15 L5.5 22"
-        stroke={color}
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-      {/* Nib — sharp angled tip at the bottom */}
-      <path
-        d="M5.5 22 L4 23 L5 21"
-        stroke={color}
-        strokeWidth="1.0"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill={color}
-        fillOpacity="0.7"
-      />
-    </svg>
-  );
-}
+import { PenTool, Hash, History, Sparkles, ChevronRight, Zap, Coffee } from "lucide-react";
 
 export function Companion() {
   const niches = ["Coffee Shop", "Bakery", "Behind the Scenes", "Team", "Announcement", "Menu Item"];
@@ -93,8 +20,8 @@ export function Companion() {
         {/* Header */}
         <header className="px-6 pt-12 pb-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[#E8B669] flex items-center justify-center shadow-sm">
-              <QuillFeatherIcon size={18} color="white" />
+            <div className="w-8 h-8 rounded-full bg-[#E8B669] flex items-center justify-center text-white shadow-sm">
+              <PenTool size={16} />
             </div>
             <span style={{ fontFamily: "Outfit, sans-serif" }} className="font-semibold text-xl tracking-tight text-[#3A3129]">Quill</span>
           </div>
@@ -223,9 +150,9 @@ export function Companion() {
 
       {/* Bottom Nav */}
       <div className="absolute bottom-0 left-0 right-0 h-20 bg-white border-t border-[#F0E3D3] px-8 flex justify-between items-center pb-4">
-        <button className="flex flex-col items-center gap-1">
-          <QuillFeatherIcon size={24} color="#E8B669" />
-          <span className="text-[10px] font-medium text-[#E8B669]">Create</span>
+        <button className="flex flex-col items-center gap-1 text-[#E8B669]">
+          <PenTool size={24} />
+          <span className="text-[10px] font-medium">Create</span>
         </button>
         <button className="flex flex-col items-center gap-1 text-[#A6988C]">
           <History size={24} />

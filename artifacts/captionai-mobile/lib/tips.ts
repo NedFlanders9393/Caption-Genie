@@ -36,6 +36,15 @@ export const tips: string[] = [
   "Emojis in captions increase engagement by 17% on average. Use them to break up text and add personality, not just decoration.",
   "Captions that mention a specific emotion ('excited,' 'grateful,' 'can't stop thinking about') get 15–20% more shares.",
   "Optimal caption length by platform: Instagram 138–150 chars for discovery, Facebook under 80 chars, LinkedIn 25 words, X/Twitter 71–100 chars.",
+
+  // 7 additional tips
+  "Pinning your best-performing post to the top of your profile increases profile-visit-to-follow conversions by up to 50%.",
+  "Stories with a poll sticker get 20% more replies than standard Stories — use them to gather feedback and boost algorithm visibility.",
+  "Cross-posting the same caption word-for-word hurts reach. Tailor the tone: casual on TikTok, professional on LinkedIn, conversational on Instagram.",
+  "Replying to every comment within the first 60 minutes of posting signals high engagement to the algorithm and extends your post's reach window.",
+  "Adding subtitles or on-screen text to videos increases average watch time by 12%, since 85% of social video is watched with the sound off.",
+  "Behind-the-scenes content consistently outperforms polished product posts — audiences want to see the people, process, and story behind the brand.",
+  "Saving a post is the strongest engagement signal across Instagram and TikTok. Captions that say 'Save this for later' see up to 2× more saves.",
 ];
 
 /**

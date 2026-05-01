@@ -152,7 +152,7 @@ export default function HomeScreen() {
         <View style={styles.tipCard}>
           <Feather name="trending-up" size={15} color={C.flame} style={styles.tipIcon} />
           <Text style={styles.tipText}>
-            <Text style={styles.tipBold}>Tip: </Text>
+            <Text style={styles.tipBold}>Tip of the Day: </Text>
             {tip}
           </Text>
         </View>

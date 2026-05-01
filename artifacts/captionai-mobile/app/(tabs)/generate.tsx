@@ -62,7 +62,18 @@ const POST_TYPES = [
 ];
 
 const LENGTHS = ["Short", "Medium", "Long"];
-const CTAS = ["None", "Shop Now", "Link in Bio", "DM Us", "Comment Below", "Tag a Friend", "Save This Post"];
+const CTAS = [
+  "None",
+  "Shop Now", "Grab Yours", "Link in Bio",
+  "Book Now", "Apply Now", "Sign Up",
+  "DM Us", "DM for Details", "DM to Collab",
+  "Comment Below", "Drop a Comment", "Tell Us Below",
+  "Tag a Friend", "Share This",
+  "Save This Post", "Follow for More",
+  "Turn On Notifications", "Watch Until the End",
+  "Learn More", "Try It Free",
+  "Join the Waitlist", "Download Now",
+];
 const MULTI_PLATFORMS = ["Instagram", "TikTok", "Facebook", "LinkedIn", "Twitter/X"];
 
 const PLATFORM_COLORS: Record<string, string> = {

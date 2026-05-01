@@ -10,7 +10,8 @@ const captionsRouter: IRouter = Router();
 const captionRateLimit = rateLimit({
   windowMs: 10 * 60 * 1000,
   limit: 30,
-  keyGenerator: (req) => (req as any).auth?.userId ?? req.ip ?? "anonymous",
+  keyGenerator: (req) => (req as any).auth?.userId ?? "anonymous",
+  validate: { xForwardedForHeader: false },
   standardHeaders: "draft-8",
   legacyHeaders: false,
   message: { error: "Too many requests. Please wait a few minutes and try again." },

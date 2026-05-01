@@ -54,13 +54,14 @@ const POST_TYPES = [
 
 const LENGTHS = ["Short", "Medium", "Long"];
 const CTAS = ["None", "Shop Now", "Link in Bio", "DM Us", "Comment Below", "Tag a Friend", "Save This Post"];
-const MULTI_PLATFORMS = ["Instagram", "TikTok", "Facebook", "LinkedIn"];
+const MULTI_PLATFORMS = ["Instagram", "TikTok", "Facebook", "LinkedIn", "Twitter/X"];
 
 const PLATFORM_COLORS: Record<string, string> = {
   Instagram: "#E1306C",
   TikTok: "#010101",
   Facebook: "#1877F2",
   LinkedIn: "#0A66C2",
+  "Twitter/X": "#000000",
 };
 
 export default function GenerateScreen() {
@@ -271,7 +272,7 @@ export default function GenerateScreen() {
               ))}
             </View>
             <Text style={[styles.multiPlatformText, { color: multiPlatform ? colors.primary : colors.foreground }]}>
-              Generate for all 4 platforms
+              Generate for all 5 platforms
             </Text>
             <Switch
               value={multiPlatform}
@@ -367,7 +368,7 @@ export default function GenerateScreen() {
             <>
               <Feather name={multiPlatform ? "layers" : "zap"} size={18} color={canGenerate ? "#fff" : colors.mutedForeground} />
               <Text style={[styles.generateText, { color: canGenerate ? "#fff" : colors.mutedForeground }]}>
-                {multiPlatform ? "Generate for All Platforms" : "Generate Captions"}
+                {multiPlatform ? "Generate for All 5 Platforms" : "Generate Captions"}
               </Text>
             </>
           )}

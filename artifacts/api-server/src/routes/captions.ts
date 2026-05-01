@@ -263,10 +263,13 @@ const TONE_BLEND_GUIDE: Record<string, string> = {
 
 interface BrandVoice {
   brandName?: string;
+  tagline?: string;
   personality?: string[];
   targetAudience?: string;
+  captionStyle?: string[];
   alwaysInclude?: string;
   neverSay?: string;
+  sampleCaption?: string;
 }
 
 function buildCaptionPrompt(params: {
@@ -338,13 +341,16 @@ function buildCaptionPrompt(params: {
     Pinterest: "Include 2-5 hashtags at the end. Highly descriptive and keyword-rich — think what someone would search to find this pin.",
   }[platform] ?? "Include 6-10 relevant hashtags.";
 
-  const brandVoiceSection = brandVoice && (brandVoice.brandName || brandVoice.personality?.length || brandVoice.targetAudience || brandVoice.alwaysInclude || brandVoice.neverSay)
+  const brandVoiceSection = brandVoice && (brandVoice.brandName || brandVoice.tagline || brandVoice.personality?.length || brandVoice.targetAudience || brandVoice.captionStyle?.length || brandVoice.alwaysInclude || brandVoice.neverSay || brandVoice.sampleCaption)
     ? `\n━━━ BRAND VOICE (CRITICAL — follow this exactly) ━━━
 ${brandVoice.brandName ? `Brand name: ${brandVoice.brandName}` : ""}
+${brandVoice.tagline ? `Brand tagline / slogan: "${brandVoice.tagline}" — mirror the energy, rhythm, and style of this phrase` : ""}
 ${brandVoice.personality?.length ? `Brand personality: ${brandVoice.personality.join(", ")} — every caption MUST sound like this brand` : ""}
 ${brandVoice.targetAudience ? `Their exact audience: ${brandVoice.targetAudience} — write directly to this person` : ""}
+${brandVoice.captionStyle?.length ? `Writing style rules (MUST follow): ${brandVoice.captionStyle.join(", ")}` : ""}
 ${brandVoice.alwaysInclude ? `Always weave in (naturally, not forced): ${brandVoice.alwaysInclude}` : ""}
 ${brandVoice.neverSay ? `NEVER use these words, phrases, or themes: ${brandVoice.neverSay}` : ""}
+${brandVoice.sampleCaption ? `\nSAMPLE CAPTION (study this carefully — match its exact voice, rhythm, length, punctuation style, line structure, and tone):\n---\n${brandVoice.sampleCaption}\n---\nYour captions MUST feel like they were written by the same person who wrote the sample above.` : ""}
 This brand voice overrides generic niche advice — make it personal and specific to THIS brand.\n`
     : "";
 

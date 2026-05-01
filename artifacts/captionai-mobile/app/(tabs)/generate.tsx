@@ -110,7 +110,7 @@ export default function GenerateScreen() {
   const [showPaywall, setShowPaywall] = useState(false);
 
   const brandVoice = user?.unsafeMetadata?.brandVoice as BrandVoice | undefined;
-  const hasBrandVoice = !!(brandVoice?.brandName || brandVoice?.personality?.length || brandVoice?.targetAudience);
+  const hasBrandVoice = !!(brandVoice?.brandName || brandVoice?.tagline || brandVoice?.personality?.length || brandVoice?.targetAudience || brandVoice?.captionStyle?.length || brandVoice?.sampleCaption);
 
   const canGenerate = niche && tones.length > 0 && description.trim();
 

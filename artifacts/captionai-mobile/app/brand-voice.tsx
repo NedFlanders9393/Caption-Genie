@@ -27,12 +27,30 @@ const PERSONALITIES = [
   "Heartfelt", "Casual", "Funny", "Storytelling",
 ];
 
+const WRITING_STYLES = [
+  "Short punchy lines",
+  "Ask a question at the end",
+  "Use storytelling",
+  "Line breaks between sentences",
+  "Bullet points",
+  "First person (I / We)",
+  "Uses ellipsis...",
+  "All lowercase",
+  "Numbered tips",
+  "Heavy emojis",
+  "No emojis",
+  "Conversational asides",
+];
+
 export interface BrandVoice {
   brandName?: string;
+  tagline?: string;
   personality: string[];
   targetAudience?: string;
+  captionStyle?: string[];
   alwaysInclude?: string;
   neverSay?: string;
+  sampleCaption?: string;
 }
 
 export default function BrandVoiceScreen() {
@@ -42,15 +60,24 @@ export default function BrandVoiceScreen() {
   const saved = (user?.unsafeMetadata?.brandVoice ?? {}) as BrandVoice;
 
   const [brandName, setBrandName] = useState(saved.brandName ?? "");
+  const [tagline, setTagline] = useState(saved.tagline ?? "");
   const [personality, setPersonality] = useState<string[]>(saved.personality ?? []);
   const [targetAudience, setTargetAudience] = useState(saved.targetAudience ?? "");
+  const [captionStyle, setCaptionStyle] = useState<string[]>(saved.captionStyle ?? []);
   const [alwaysInclude, setAlwaysInclude] = useState(saved.alwaysInclude ?? "");
   const [neverSay, setNeverSay] = useState(saved.neverSay ?? "");
+  const [sampleCaption, setSampleCaption] = useState(saved.sampleCaption ?? "");
   const [saving, setSaving] = useState(false);
 
   const togglePersonality = (p: string) => {
     setPersonality((prev) =>
       prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]
+    );
+  };
+
+  const toggleStyle = (s: string) => {
+    setCaptionStyle((prev) =>
+      prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
     );
   };
 
@@ -62,10 +89,13 @@ export default function BrandVoiceScreen() {
           ...user.unsafeMetadata,
           brandVoice: {
             brandName: brandName.trim() || undefined,
+            tagline: tagline.trim() || undefined,
             personality,
             targetAudience: targetAudience.trim() || undefined,
+            captionStyle: captionStyle.length > 0 ? captionStyle : undefined,
             alwaysInclude: alwaysInclude.trim() || undefined,
             neverSay: neverSay.trim() || undefined,
+            sampleCaption: sampleCaption.trim() || undefined,
           } satisfies BrandVoice,
         },
       });
@@ -79,10 +109,13 @@ export default function BrandVoiceScreen() {
 
   const hasChanges =
     brandName !== (saved.brandName ?? "") ||
+    tagline !== (saved.tagline ?? "") ||
     JSON.stringify(personality) !== JSON.stringify(saved.personality ?? []) ||
     targetAudience !== (saved.targetAudience ?? "") ||
+    JSON.stringify(captionStyle) !== JSON.stringify(saved.captionStyle ?? []) ||
     alwaysInclude !== (saved.alwaysInclude ?? "") ||
-    neverSay !== (saved.neverSay ?? "");
+    neverSay !== (saved.neverSay ?? "") ||
+    sampleCaption !== (saved.sampleCaption ?? "");
 
   return (
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
@@ -103,7 +136,7 @@ export default function BrandVoiceScreen() {
           </Text>
         </View>
 
-        {/* Brand Name */}
+        {/* Brand Name + Tagline */}
         <View style={styles.card}>
           <Text style={styles.fieldLabel}>Brand Name</Text>
           <TextInput
@@ -114,6 +147,18 @@ export default function BrandVoiceScreen() {
             onChangeText={setBrandName}
           />
           <Text style={styles.hint}>Captions will reference your brand by name when appropriate</Text>
+
+          <View style={styles.divider} />
+
+          <Text style={styles.fieldLabel}>Tagline / Slogan</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="e.g. Built for dreamers, designed for doers"
+            placeholderTextColor={MUTED}
+            value={tagline}
+            onChangeText={setTagline}
+          />
+          <Text style={styles.hint}>Your signature phrase — the AI will mirror its energy and rhythm</Text>
         </View>
 
         {/* Personality */}
@@ -164,6 +209,31 @@ export default function BrandVoiceScreen() {
           <Text style={styles.hint}>Be specific — the AI writes directly to this person</Text>
         </View>
 
+        {/* Writing Style */}
+        <View style={styles.card}>
+          <Text style={styles.fieldLabel}>Writing Style</Text>
+          <Text style={styles.subLabel}>Structural habits that make your captions feel like you</Text>
+          <View style={styles.chips}>
+            {WRITING_STYLES.map((s) => {
+              const selected = captionStyle.includes(s);
+              return (
+                <Pressable
+                  key={s}
+                  onPress={() => toggleStyle(s)}
+                  style={[styles.chip, selected && styles.chipSelected]}
+                >
+                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                    {s}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          {captionStyle.length > 0 && (
+            <Text style={styles.hint}>Selected: {captionStyle.join(", ")}</Text>
+          )}
+        </View>
+
         {/* Always Include */}
         <View style={styles.card}>
           <Text style={styles.fieldLabel}>Always Weave In</Text>
@@ -194,6 +264,25 @@ export default function BrandVoiceScreen() {
             textAlignVertical="top"
           />
           <Text style={styles.hint}>Words or phrases that don't fit your brand</Text>
+        </View>
+
+        {/* Sample Caption */}
+        <View style={styles.card}>
+          <View style={styles.sampleHeader}>
+            <Feather name="star" size={14} color={PRIMARY} />
+            <Text style={styles.fieldLabel}>Sample Caption</Text>
+          </View>
+          <TextInput
+            style={[styles.input, styles.textareaLarge]}
+            placeholder={"Paste one of your best-performing captions here.\n\nThe AI will study its rhythm, length, punctuation, and style — then write like you, not like a generic AI."}
+            placeholderTextColor={MUTED}
+            value={sampleCaption}
+            onChangeText={setSampleCaption}
+            multiline
+            numberOfLines={5}
+            textAlignVertical="top"
+          />
+          <Text style={styles.hint}>This is the single most powerful way to clone your voice</Text>
         </View>
 
         {/* Save Button */}
@@ -262,6 +351,16 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 10,
   },
+  sampleHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: CARD_BORDER,
+    marginVertical: 2,
+  },
   fieldLabel: {
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
@@ -285,6 +384,10 @@ const styles = StyleSheet.create({
   },
   textarea: {
     minHeight: 72,
+    lineHeight: 22,
+  },
+  textareaLarge: {
+    minHeight: 110,
     lineHeight: 22,
   },
   hint: {

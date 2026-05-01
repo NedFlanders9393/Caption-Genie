@@ -9,10 +9,13 @@ function authHeaders(token: string | null): HeadersInit {
 
 export interface BrandVoice {
   brandName?: string;
+  tagline?: string;
   personality?: string[];
   targetAudience?: string;
+  captionStyle?: string[];
   alwaysInclude?: string;
   neverSay?: string;
+  sampleCaption?: string;
 }
 
 export interface CaptionParams {

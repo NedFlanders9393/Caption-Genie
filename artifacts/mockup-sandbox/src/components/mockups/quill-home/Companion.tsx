@@ -10,46 +10,58 @@ function QuillFeatherIcon({ size = 20, color = "white" }: { size?: number; color
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Main feather vane — right side */}
+      {/* Feather vane fill — asymmetric: right side billows wide, left stays narrow */}
       <path
-        d="M12 2 C16 4, 20 8, 19 14 C18 18, 14 20, 12 22"
-        stroke={color}
-        strokeWidth="1.2"
-        strokeLinecap="round"
-        fill="none"
-        opacity="0.5"
-      />
-      {/* Main feather vane — left side */}
-      <path
-        d="M12 2 C8 4, 4 8, 5 14 C6 18, 10 20, 12 22"
-        stroke={color}
-        strokeWidth="1.2"
-        strokeLinecap="round"
-        fill="none"
-        opacity="0.5"
-      />
-      {/* Central rachis (shaft) */}
-      <path
-        d="M12 2 L12 22"
-        stroke={color}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      {/* Feather barbs — right */}
-      <path d="M12 5 C14.5 5.5, 16.5 6.5, 17.5 8" stroke={color} strokeWidth="0.9" strokeLinecap="round" opacity="0.7" />
-      <path d="M12 8 C14.5 8.5, 16.5 9.5, 17.8 11" stroke={color} strokeWidth="0.9" strokeLinecap="round" opacity="0.7" />
-      <path d="M12 11 C14 11.5, 16 12.5, 17.5 14" stroke={color} strokeWidth="0.9" strokeLinecap="round" opacity="0.7" />
-      <path d="M12 14 C13.5 14.5, 15 15.5, 16 17" stroke={color} strokeWidth="0.9" strokeLinecap="round" opacity="0.7" />
-      {/* Feather barbs — left */}
-      <path d="M12 5 C9.5 5.5, 7.5 6.5, 6.5 8" stroke={color} strokeWidth="0.9" strokeLinecap="round" opacity="0.7" />
-      <path d="M12 8 C9.5 8.5, 7.5 9.5, 6.2 11" stroke={color} strokeWidth="0.9" strokeLinecap="round" opacity="0.7" />
-      <path d="M12 11 C10 11.5, 8 12.5, 6.5 14" stroke={color} strokeWidth="0.9" strokeLinecap="round" opacity="0.7" />
-      <path d="M12 14 C10.5 14.5, 9 15.5, 8 17" stroke={color} strokeWidth="0.9" strokeLinecap="round" opacity="0.7" />
-      {/* Calamus (quill tip) */}
-      <path
-        d="M12 19 C11.2 20, 10.5 21.5, 12 23 C13.5 21.5, 12.8 20, 12 19Z"
+        d="M12 2 C18 4 22 10 19 16 C17.5 18.5 15 19.5 13 19.5 L12 19.5 L11 19.5 C9.5 19.5 8 18 8 15.5 C7.5 10 9.5 4 12 2Z"
         fill={color}
-        opacity="0.85"
+        fillOpacity="0.18"
+      />
+      {/* Right vane edge — sweeps out wide (dominant side) */}
+      <path
+        d="M12 2 C18 4 22 10 19 16 C17.5 18.5 15 19.5 13 19.5"
+        stroke={color}
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        fill="none"
+      />
+      {/* Left vane edge — stays close to shaft (narrow side, key asymmetry) */}
+      <path
+        d="M12 2 C9.5 4 8 8 8 12 C8 15.5 9.5 18.5 11 19.5"
+        stroke={color}
+        strokeWidth="1.1"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.75"
+      />
+      {/* Central rachis — the spine running through the whole feather */}
+      <path
+        d="M12 2 L12 19.5"
+        stroke={color}
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+      {/* Right barbs — diagonal, going down-right from shaft */}
+      <path d="M12 5 L16.5 7.5"  stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.6" />
+      <path d="M12 8 L17.5 10.5" stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.6" />
+      <path d="M12 11 L17 13.5" stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.6" />
+      <path d="M12 14 L15.5 16"  stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.6" />
+      {/* Left barbs — shorter, going down-left (asymmetric to right) */}
+      <path d="M12 6 L9.5 8"   stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.45" />
+      <path d="M12 9 L9 11.5"  stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.45" />
+      <path d="M12 12 L9.5 14" stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.45" />
+      {/* Calamus — the bare hollow tube below the vane, tapering to a sharp nib */}
+      {/* This narrow base is the single feature that makes a quill unambiguous */}
+      <path
+        d="M11 19.5 L10.5 21.5 L12 23.5 L13.5 21.5 L13 19.5"
+        stroke={color}
+        strokeWidth="1.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M11 19.5 L10.5 21.5 L12 23.5 L13.5 21.5 L13 19.5 Z"
+        fill={color}
+        fillOpacity="0.6"
       />
     </svg>
   );

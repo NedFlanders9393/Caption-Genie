@@ -1,5 +1,59 @@
 import React from "react";
-import { PenTool, Hash, History, Sparkles, ChevronRight, Zap, Coffee } from "lucide-react";
+import { Hash, History, Sparkles, ChevronRight, Zap, Coffee } from "lucide-react";
+
+function QuillFeatherIcon({ size = 20, color = "white" }: { size?: number; color?: string }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Main feather vane — right side */}
+      <path
+        d="M12 2 C16 4, 20 8, 19 14 C18 18, 14 20, 12 22"
+        stroke={color}
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.5"
+      />
+      {/* Main feather vane — left side */}
+      <path
+        d="M12 2 C8 4, 4 8, 5 14 C6 18, 10 20, 12 22"
+        stroke={color}
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.5"
+      />
+      {/* Central rachis (shaft) */}
+      <path
+        d="M12 2 L12 22"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      {/* Feather barbs — right */}
+      <path d="M12 5 C14.5 5.5, 16.5 6.5, 17.5 8" stroke={color} strokeWidth="0.9" strokeLinecap="round" opacity="0.7" />
+      <path d="M12 8 C14.5 8.5, 16.5 9.5, 17.8 11" stroke={color} strokeWidth="0.9" strokeLinecap="round" opacity="0.7" />
+      <path d="M12 11 C14 11.5, 16 12.5, 17.5 14" stroke={color} strokeWidth="0.9" strokeLinecap="round" opacity="0.7" />
+      <path d="M12 14 C13.5 14.5, 15 15.5, 16 17" stroke={color} strokeWidth="0.9" strokeLinecap="round" opacity="0.7" />
+      {/* Feather barbs — left */}
+      <path d="M12 5 C9.5 5.5, 7.5 6.5, 6.5 8" stroke={color} strokeWidth="0.9" strokeLinecap="round" opacity="0.7" />
+      <path d="M12 8 C9.5 8.5, 7.5 9.5, 6.2 11" stroke={color} strokeWidth="0.9" strokeLinecap="round" opacity="0.7" />
+      <path d="M12 11 C10 11.5, 8 12.5, 6.5 14" stroke={color} strokeWidth="0.9" strokeLinecap="round" opacity="0.7" />
+      <path d="M12 14 C10.5 14.5, 9 15.5, 8 17" stroke={color} strokeWidth="0.9" strokeLinecap="round" opacity="0.7" />
+      {/* Calamus (quill tip) */}
+      <path
+        d="M12 19 C11.2 20, 10.5 21.5, 12 23 C13.5 21.5, 12.8 20, 12 19Z"
+        fill={color}
+        opacity="0.85"
+      />
+    </svg>
+  );
+}
 
 export function Companion() {
   const niches = ["Coffee Shop", "Bakery", "Behind the Scenes", "Team", "Announcement", "Menu Item"];
@@ -20,8 +74,8 @@ export function Companion() {
         {/* Header */}
         <header className="px-6 pt-12 pb-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[#E8B669] flex items-center justify-center text-white shadow-sm">
-              <PenTool size={16} />
+            <div className="w-8 h-8 rounded-full bg-[#E8B669] flex items-center justify-center shadow-sm">
+              <QuillFeatherIcon size={18} color="white" />
             </div>
             <span style={{ fontFamily: "Outfit, sans-serif" }} className="font-semibold text-xl tracking-tight text-[#3A3129]">Quill</span>
           </div>
@@ -150,9 +204,9 @@ export function Companion() {
 
       {/* Bottom Nav */}
       <div className="absolute bottom-0 left-0 right-0 h-20 bg-white border-t border-[#F0E3D3] px-8 flex justify-between items-center pb-4">
-        <button className="flex flex-col items-center gap-1 text-[#E8B669]">
-          <PenTool size={24} />
-          <span className="text-[10px] font-medium">Create</span>
+        <button className="flex flex-col items-center gap-1">
+          <QuillFeatherIcon size={24} color="#E8B669" />
+          <span className="text-[10px] font-medium text-[#E8B669]">Create</span>
         </button>
         <button className="flex flex-col items-center gap-1 text-[#A6988C]">
           <History size={24} />

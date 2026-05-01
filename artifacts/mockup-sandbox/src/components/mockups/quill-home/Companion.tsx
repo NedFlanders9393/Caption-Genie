@@ -2,6 +2,10 @@ import React from "react";
 import { Hash, History, Sparkles, ChevronRight, Zap, Coffee } from "lucide-react";
 
 function QuillFeatherIcon({ size = 20, color = "white" }: { size?: number; color?: string }) {
+  // Tilted quill: feather tip upper-right (17,2), nib lower-left (5,22)
+  // Right vane sweeps dramatically wide (like reference image)
+  // Left vane stays very close to shaft
+  // Calamus = long bare shaft below vane base — the unmistakable quill element
   return (
     <svg
       width={size}
@@ -10,58 +14,61 @@ function QuillFeatherIcon({ size = 20, color = "white" }: { size?: number; color
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Feather vane fill — asymmetric: right side billows wide, left stays narrow */}
+      {/* Filled vane silhouette — right side billows far out, left hugs shaft */}
       <path
-        d="M12 2 C18 4 22 10 19 16 C17.5 18.5 15 19.5 13 19.5 L12 19.5 L11 19.5 C9.5 19.5 8 18 8 15.5 C7.5 10 9.5 4 12 2Z"
+        d="M17 2 C22 7 22 13 10 15 C13 9 15 5 17 2Z"
         fill={color}
-        fillOpacity="0.18"
+        fillOpacity="0.22"
       />
-      {/* Right vane edge — sweeps out wide (dominant side) */}
+      {/* Right vane outer edge — the big dominant sweep */}
       <path
-        d="M12 2 C18 4 22 10 19 16 C17.5 18.5 15 19.5 13 19.5"
+        d="M17 2 C22 7 22 13 10 15"
         stroke={color}
         strokeWidth="1.4"
         strokeLinecap="round"
         fill="none"
       />
-      {/* Left vane edge — stays close to shaft (narrow side, key asymmetry) */}
+      {/* Left vane — narrow, close to shaft */}
       <path
-        d="M12 2 C9.5 4 8 8 8 12 C8 15.5 9.5 18.5 11 19.5"
+        d="M17 2 C15 5 13 9 10 15"
         stroke={color}
-        strokeWidth="1.1"
+        strokeWidth="1.0"
         strokeLinecap="round"
         fill="none"
-        opacity="0.75"
+        opacity="0.65"
       />
-      {/* Central rachis — the spine running through the whole feather */}
+      {/* Rachis — central shaft through the vane */}
       <path
-        d="M12 2 L12 19.5"
+        d="M17 2 L10 15"
+        stroke={color}
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+      {/* Barbs — fanning out from shaft toward the right vane */}
+      <path d="M16 4 L19.5 6.5"  stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.6" />
+      <path d="M15 6.5 L20 9"    stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.6" />
+      <path d="M14 9 L19.5 11.5" stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.6" />
+      <path d="M12.5 11.5 L17 14" stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.6" />
+      {/* Left side barbs — much shorter, barely off the shaft */}
+      <path d="M16 5 L14.5 6.5"  stroke={color} strokeWidth="0.75" strokeLinecap="round" opacity="0.4" />
+      <path d="M15 8 L13.5 9.5"  stroke={color} strokeWidth="0.75" strokeLinecap="round" opacity="0.4" />
+      <path d="M13.5 11 L12 12.5" stroke={color} strokeWidth="0.75" strokeLinecap="round" opacity="0.4" />
+      {/* CALAMUS — the long bare shaft, the single feature that makes this unmistakably a quill */}
+      <path
+        d="M10 15 L5.5 22"
         stroke={color}
         strokeWidth="1.4"
         strokeLinecap="round"
       />
-      {/* Right barbs — diagonal, going down-right from shaft */}
-      <path d="M12 5 L16.5 7.5"  stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.6" />
-      <path d="M12 8 L17.5 10.5" stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.6" />
-      <path d="M12 11 L17 13.5" stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.6" />
-      <path d="M12 14 L15.5 16"  stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.6" />
-      {/* Left barbs — shorter, going down-left (asymmetric to right) */}
-      <path d="M12 6 L9.5 8"   stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.45" />
-      <path d="M12 9 L9 11.5"  stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.45" />
-      <path d="M12 12 L9.5 14" stroke={color} strokeWidth="0.85" strokeLinecap="round" opacity="0.45" />
-      {/* Calamus — the bare hollow tube below the vane, tapering to a sharp nib */}
-      {/* This narrow base is the single feature that makes a quill unambiguous */}
+      {/* Nib — sharp angled tip at the bottom */}
       <path
-        d="M11 19.5 L10.5 21.5 L12 23.5 L13.5 21.5 L13 19.5"
+        d="M5.5 22 L4 23 L5 21"
         stroke={color}
-        strokeWidth="1.1"
+        strokeWidth="1.0"
         strokeLinecap="round"
         strokeLinejoin="round"
-      />
-      <path
-        d="M11 19.5 L10.5 21.5 L12 23.5 L13.5 21.5 L13 19.5 Z"
         fill={color}
-        fillOpacity="0.6"
+        fillOpacity="0.7"
       />
     </svg>
   );

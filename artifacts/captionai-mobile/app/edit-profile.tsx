@@ -152,7 +152,7 @@ export default function EditProfileScreen() {
               onPress={handlePickImage}
               disabled={isUploadingImage}
             >
-              {imageUrl ? (
+              {user?.hasImage && imageUrl ? (
                 <Image source={{ uri: imageUrl }} style={styles.avatar} />
               ) : (
                 <View style={[styles.avatar, styles.avatarFallback]}>

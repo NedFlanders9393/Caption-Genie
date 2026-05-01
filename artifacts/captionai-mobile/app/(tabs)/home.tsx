@@ -81,7 +81,7 @@ export default function HomeScreen() {
             </View>
             <Text style={styles.logoText}>Quill</Text>
           </View>
-          {avatarUrl ? (
+          {user?.hasImage && avatarUrl ? (
             <Image source={{ uri: avatarUrl }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.avatarFallback]}>

@@ -491,4 +491,82 @@ captionsRouter.post("/captions/hashtags", async (req, res) => {
   }
 });
 
+captionsRouter.post("/captions/remix", async (req, res) => {
+  const { caption, direction, platform } = req.body as {
+    caption?: string;
+    direction?: string;
+    platform?: string;
+  };
+
+  if (!caption || typeof caption !== "string" || !direction || typeof direction !== "string") {
+    res.status(400).json({ error: "caption and direction are required" });
+    return;
+  }
+
+  const directionGuide: Record<string, string> = {
+    "Make it shorter": "Compress to the punchiest possible version — keep only the highest-impact words. Target under 100 characters for the caption body.",
+    "Make it longer": "Expand with a compelling story arc, more sensory detail, and a stronger hook. Use line breaks for rhythm. Aim for 400-600 characters.",
+    "Make it funnier": "Add wit, wordplay, or a self-aware humorous angle. Should make someone smile or laugh while still selling. Never forced or cringe.",
+    "More professional": "Elevate the language — polished, authoritative, confident. Remove slang. Every word signals expertise. Suitable for LinkedIn.",
+    "More casual": "Rewrite so it sounds like a real human texted it to a friend. Contractions, relaxed phrasing, conversational flow.",
+    "Add urgency": "Inject time pressure and FOMO throughout — 'limited time', 'today only', 'before it's gone', countdown language. Make inaction feel costly.",
+    "More emotional": "Dial up the feeling — connect to real human desires, fears, or joys. Should resonate in the gut, not just the head.",
+    "Change the hook": "Keep the core message but write a completely different opening line — different hook type, angle, and energy.",
+  };
+
+  const guidance = directionGuide[direction] ?? `Rewrite this caption to be: ${direction}. Keep the core message but change the style, tone, or structure to match.`;
+  const platformHint = platform ? ` Optimized for ${platform}.` : "";
+
+  const prompt = `You are the world's best social media copywriter. Remix this caption in one specific direction.
+
+ORIGINAL CAPTION:
+${caption}
+
+REMIX DIRECTION: ${direction}
+INSTRUCTION: ${guidance}${platformHint}
+
+Rules:
+- Keep the same core message and purpose as the original
+- Apply the direction change fully — don't be timid about it
+- The result must feel complete and publish-ready
+- Keep platform-appropriate hashtags (update them if needed to match the new tone)
+- Respond with valid JSON only
+
+RESPOND IN THIS EXACT JSON FORMAT:
+{
+  "caption": "The remixed caption text here — no hashtags",
+  "hashtags": "#hashtag1 #hashtag2 #hashtag3"
+}`;
+
+  try {
+    const message = await anthropic.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 2048,
+      system: "You are the world's best social media copywriter. Always respond with valid JSON only — no markdown fences, no code blocks, no extra commentary.",
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const block = message.content[0];
+    if (block.type !== "text") {
+      res.status(500).json({ error: "Unexpected response type from AI" });
+      return;
+    }
+
+    let rawText = block.text.trim();
+    const jsonMatch = rawText.match(/```json\n?([\s\S]*?)\n?```/) || rawText.match(/```\n?([\s\S]*?)\n?```/);
+    if (jsonMatch) rawText = jsonMatch[1].trim();
+
+    const parsed_response = JSON.parse(rawText) as { caption: string; hashtags: string };
+    if (!parsed_response.caption) {
+      res.status(500).json({ error: "Invalid AI response format" });
+      return;
+    }
+
+    res.json(parsed_response);
+  } catch (err) {
+    req.log.error({ err }, "Caption remix failed");
+    res.status(500).json({ error: "Failed to remix caption" });
+  }
+});
+
 export default captionsRouter;

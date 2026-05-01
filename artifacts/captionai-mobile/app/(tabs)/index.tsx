@@ -33,6 +33,7 @@ import TonePicker from "@/components/TonePicker";
 import CaptionCard from "@/components/CaptionCard";
 import OptionPicker from "@/components/OptionPicker";
 import Paywall from "@/components/Paywall";
+import BestTimeCard from "@/components/BestTimeCard";
 
 const NICHES = [
   "Real Estate", "Fitness Coach", "Restaurant", "Boutique/Shop",
@@ -392,6 +393,7 @@ export default function GenerateScreen() {
         {!multiPlatform && captions.length > 0 && (
           <View style={styles.results}>
             <Text style={[styles.resultsLabel, { color: colors.foreground }]}>Your Captions</Text>
+            <BestTimeCard platform={platform} />
             {captions.map((c, i) => (
               <CaptionCard
                 key={i}
@@ -409,6 +411,7 @@ export default function GenerateScreen() {
         {multiPlatform && multiResults.length > 0 && (
           <View style={styles.results}>
             <Text style={[styles.resultsLabel, { color: colors.foreground }]}>All Platforms</Text>
+            <BestTimeCard platform={platform} multiPlatforms={MULTI_PLATFORMS} />
             {/* Platform tabs */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.platformTabs}>
               {MULTI_PLATFORMS.map((p) => {

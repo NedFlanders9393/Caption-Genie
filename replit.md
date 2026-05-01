@@ -26,6 +26,8 @@ AI-powered social media caption generator for small business owners, targeting A
   - 22 industry niches, 21 post types, 12 multi-select tones (up to 3)
   - Platform-aware captions (Instagram, Facebook, LinkedIn, TikTok, Twitter/X)
   - Caption history stored in AsyncStorage (up to 100 entries)
+  - Caption Remix: 8 remix directions inline in History (shorter, longer, funnier, professional, etc.)
+  - Best Time to Post: collapsible card shown after generation (single and multi-platform)
   - Hashtag tool with 3 grouped categories (niche, trending, broad)
   - RevenueCat integration ready (skipped for now — see below)
   - 10 free generations/month tracked in AsyncStorage

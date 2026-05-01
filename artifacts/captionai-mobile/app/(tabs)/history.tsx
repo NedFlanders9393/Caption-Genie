@@ -8,13 +8,16 @@ import {
   TouchableOpacity,
   Platform,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
+import { useAuth } from "@clerk/expo";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
+import { remixCaption } from "@/lib/api";
 import type { HistoryEntry } from "@/lib/storage";
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -25,14 +28,32 @@ const PLATFORM_COLORS: Record<string, string> = {
   "Twitter/X": "#000000",
 };
 
+const REMIX_DIRECTIONS = [
+  "Make it shorter",
+  "Make it longer",
+  "Make it funnier",
+  "More professional",
+  "More casual",
+  "Add urgency",
+  "More emotional",
+  "Change the hook",
+];
+
 function CaptionList({
   captions,
+  platform,
   colors,
 }: {
   captions: { caption: string; hashtags: string }[];
+  platform?: string;
   colors: any;
 }) {
+  const { getToken } = useAuth();
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [remixOpenIdx, setRemixOpenIdx] = useState<number | null>(null);
+  const [remixLoadingIdx, setRemixLoadingIdx] = useState<number | null>(null);
+  const [remixResults, setRemixResults] = useState<Record<number, { caption: string; hashtags: string } | null>>({});
+  const [copiedRemixIdx, setCopiedRemixIdx] = useState<number | null>(null);
 
   const handleCopy = async (caption: string, hashtags: string, idx: number) => {
     const text = hashtags ? `${caption}\n\n${hashtags}` : caption;
@@ -40,6 +61,34 @@ function CaptionList({
     if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setCopiedIdx(idx);
     setTimeout(() => setCopiedIdx(null), 2000);
+  };
+
+  const handleCopyRemix = async (caption: string, hashtags: string, idx: number) => {
+    const text = hashtags ? `${caption}\n\n${hashtags}` : caption;
+    await Clipboard.setStringAsync(text);
+    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setCopiedRemixIdx(idx);
+    setTimeout(() => setCopiedRemixIdx(null), 2000);
+  };
+
+  const handleRemix = async (idx: number, direction: string) => {
+    const original = captions[idx];
+    if (!original) return;
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setRemixLoadingIdx(idx);
+    setRemixOpenIdx(null);
+    try {
+      const token = await getToken();
+      const result = await remixCaption(
+        { caption: original.caption, direction, platform: platform ?? undefined },
+        token
+      );
+      setRemixResults((prev) => ({ ...prev, [idx]: result }));
+    } catch {
+      setRemixResults((prev) => ({ ...prev, [idx]: null }));
+    } finally {
+      setRemixLoadingIdx(null);
+    }
   };
 
   return (
@@ -53,20 +102,98 @@ function CaptionList({
           {c.hashtags ? (
             <Text style={[styles.hashtagText, { color: colors.primary }]}>{c.hashtags}</Text>
           ) : null}
-          <TouchableOpacity
-            onPress={() => handleCopy(c.caption, c.hashtags, i)}
-            style={styles.copyRow}
-            activeOpacity={0.7}
-          >
-            <Feather
-              name={copiedIdx === i ? "check" : "copy"}
-              size={14}
-              color={copiedIdx === i ? colors.primary : colors.mutedForeground}
-            />
-            <Text style={[styles.copyText, { color: copiedIdx === i ? colors.primary : colors.mutedForeground }]}>
-              {copiedIdx === i ? "Copied" : "Copy"}
-            </Text>
-          </TouchableOpacity>
+
+          <View style={styles.actionRow}>
+            <TouchableOpacity
+              onPress={() => handleCopy(c.caption, c.hashtags, i)}
+              style={styles.actionBtn}
+              activeOpacity={0.7}
+            >
+              <Feather
+                name={copiedIdx === i ? "check" : "copy"}
+                size={13}
+                color={copiedIdx === i ? colors.primary : colors.mutedForeground}
+              />
+              <Text style={[styles.actionText, { color: copiedIdx === i ? colors.primary : colors.mutedForeground }]}>
+                {copiedIdx === i ? "Copied" : "Copy"}
+              </Text>
+            </TouchableOpacity>
+
+            {remixLoadingIdx === i ? (
+              <View style={styles.actionBtn}>
+                <ActivityIndicator size={13} color={colors.primary} />
+                <Text style={[styles.actionText, { color: colors.primary }]}>Remixing…</Text>
+              </View>
+            ) : (
+              <TouchableOpacity
+                onPress={() => setRemixOpenIdx(remixOpenIdx === i ? null : i)}
+                style={styles.actionBtn}
+                activeOpacity={0.7}
+              >
+                <Feather
+                  name="shuffle"
+                  size={13}
+                  color={remixOpenIdx === i ? colors.primary : colors.mutedForeground}
+                />
+                <Text style={[styles.actionText, { color: remixOpenIdx === i ? colors.primary : colors.mutedForeground }]}>
+                  Remix
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Remix direction chips */}
+          {remixOpenIdx === i && (
+            <View style={[styles.remixChips, { borderTopColor: colors.border }]}>
+              <Text style={[styles.remixLabel, { color: colors.mutedForeground }]}>Choose a direction</Text>
+              <View style={styles.chipGrid}>
+                {REMIX_DIRECTIONS.map((dir) => (
+                  <TouchableOpacity
+                    key={dir}
+                    onPress={() => handleRemix(i, dir)}
+                    style={[styles.chip, { backgroundColor: colors.secondary, borderColor: colors.border }]}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.chipText, { color: colors.foreground }]}>{dir}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* Remixed result */}
+          {remixResults[i] !== undefined && remixResults[i] !== null && (
+            <View style={[styles.remixResult, { backgroundColor: "#F5F3FF", borderColor: "#DDD6FE" }]}>
+              <View style={styles.remixResultHeader}>
+                <Feather name="shuffle" size={12} color="#7C3AED" />
+                <Text style={styles.remixResultLabel}>Remixed</Text>
+                <TouchableOpacity
+                  onPress={() => setRemixResults((prev) => ({ ...prev, [i]: undefined as any }))}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Feather name="x" size={12} color="#7C3AED" />
+                </TouchableOpacity>
+              </View>
+              <Text style={[styles.captionText, { color: "#3B0764" }]}>{remixResults[i]!.caption}</Text>
+              {remixResults[i]!.hashtags ? (
+                <Text style={[styles.hashtagText, { color: "#7C3AED" }]}>{remixResults[i]!.hashtags}</Text>
+              ) : null}
+              <TouchableOpacity
+                onPress={() => handleCopyRemix(remixResults[i]!.caption, remixResults[i]!.hashtags, i)}
+                style={styles.actionBtn}
+                activeOpacity={0.7}
+              >
+                <Feather
+                  name={copiedRemixIdx === i ? "check" : "copy"}
+                  size={13}
+                  color={copiedRemixIdx === i ? "#7C3AED" : "#6D28D9"}
+                />
+                <Text style={[styles.actionText, { color: copiedRemixIdx === i ? "#7C3AED" : "#6D28D9" }]}>
+                  {copiedRemixIdx === i ? "Copied" : "Copy remix"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       ))}
     </View>
@@ -111,6 +238,8 @@ function HistoryItem({
   const activeMultiCaptions = isMulti
     ? (item.multiPlatformResults!.find((r) => r.platform === activeTab)?.captions ?? item.captions)
     : item.captions;
+
+  const activePlatform = isMulti ? activeTab : item.params.platform;
 
   const previewCaption = isMulti
     ? item.multiPlatformResults![0]?.captions[0]?.caption
@@ -183,7 +312,7 @@ function HistoryItem({
               })}
             </ScrollView>
           )}
-          <CaptionList captions={activeMultiCaptions} colors={colors} />
+          <CaptionList captions={activeMultiCaptions} platform={activePlatform} colors={colors} />
         </>
       )}
     </View>
@@ -295,8 +424,55 @@ const styles = StyleSheet.create({
   captionItem: { paddingTop: 12, gap: 6 },
   captionText: { fontSize: 14, lineHeight: 21, fontFamily: "Inter_400Regular" },
   hashtagText: { fontSize: 12, fontFamily: "Inter_500Medium", lineHeight: 18 },
-  copyRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  copyText: { fontSize: 13, fontFamily: "Inter_500Medium" },
+  actionRow: { flexDirection: "row", alignItems: "center", gap: 16 },
+  actionBtn: { flexDirection: "row", alignItems: "center", gap: 5 },
+  actionText: { fontSize: 13, fontFamily: "Inter_500Medium" },
+  remixChips: {
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: 8,
+  },
+  remixLabel: {
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+  },
+  chipGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  chip: {
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1.5,
+  },
+  chipText: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+  },
+  remixResult: {
+    borderWidth: 1.5,
+    borderRadius: 8,
+    padding: 12,
+    gap: 6,
+  },
+  remixResultHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginBottom: 2,
+  },
+  remixResultLabel: {
+    flex: 1,
+    fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
+    color: "#7C3AED",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+  },
   empty: { alignItems: "center", justifyContent: "center", paddingTop: 80, gap: 12 },
   emptyTitle: { fontSize: 18, fontFamily: "Inter_600SemiBold" },
   emptyText: { fontSize: 14, fontFamily: "Inter_400Regular", textAlign: "center" },

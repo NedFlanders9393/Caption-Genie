@@ -93,6 +93,22 @@ export async function regenerateOneCaption(
   return res.json();
 }
 
+export async function remixCaption(
+  params: { caption: string; direction: string; platform?: string },
+  token: string | null = null
+): Promise<CaptionItem> {
+  const res = await fetch(`${BASE}/api/captions/remix`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as any).error ?? "Failed to remix caption");
+  }
+  return res.json();
+}
+
 export async function generateHashtags(
   params: HashtagParams,
   token: string | null = null

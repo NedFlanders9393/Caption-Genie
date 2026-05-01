@@ -5,16 +5,25 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import Paywall from "@/components/Paywall";
 import { useSubscription } from "@/lib/revenuecat";
+
+const BASE_URL = process.env.EXPO_PUBLIC_DOMAIN
+  ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
+  : "";
 
 const PRIMARY = "#E8B669";
 const BG = "#FFFDF9";
@@ -46,6 +55,11 @@ export default function ProfileScreen() {
   const { usageCount: generationCount, freeLimit: FREE_LIMIT } = useApp();
   const { isSubscribed } = useSubscription();
   const [paywallVisible, setPaywallVisible] = useState(false);
+  const [bugModalVisible, setBugModalVisible] = useState(false);
+  const [bugDescription, setBugDescription] = useState("");
+  const [bugExpected, setBugExpected] = useState("");
+  const [bugSubmitting, setBugSubmitting] = useState(false);
+  const [bugSubmitted, setBugSubmitted] = useState(false);
 
   const meta = (user?.unsafeMetadata ?? {}) as UserMeta;
 
@@ -78,6 +92,45 @@ export default function ProfileScreen() {
 
   const usagePercent = Math.min((generationCount / FREE_LIMIT) * 100, 100);
   const remaining = Math.max(FREE_LIMIT - generationCount, 0);
+
+  const handleSubmitBug = async () => {
+    if (bugDescription.trim().length < 5) {
+      Alert.alert("Too short", "Please describe the bug in a bit more detail.");
+      return;
+    }
+    setBugSubmitting(true);
+    try {
+      const token = await user?.getToken?.();
+      await fetch(`${BASE_URL}/api/bugs`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          description: bugDescription.trim(),
+          expectedBehavior: bugExpected.trim() || undefined,
+          platform: Platform.OS,
+          appVersion: "1.0.0",
+          userEmail: email,
+        }),
+      });
+      setBugSubmitted(true);
+      setBugDescription("");
+      setBugExpected("");
+    } catch {
+      Alert.alert("Error", "Could not submit your report. Please try again.");
+    } finally {
+      setBugSubmitting(false);
+    }
+  };
+
+  const handleCloseBugModal = () => {
+    setBugModalVisible(false);
+    setBugSubmitted(false);
+    setBugDescription("");
+    setBugExpected("");
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -222,6 +275,21 @@ export default function ProfileScreen() {
           </Pressable>
         )}
 
+        {/* Help & Support */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Help & Support</Text>
+          <Pressable
+            style={({ pressed }) => [styles.helpRow, pressed && styles.helpRowPressed]}
+            onPress={() => setBugModalVisible(true)}
+          >
+            <View style={styles.helpIcon}>
+              <Feather name="alert-circle" size={16} color={PRIMARY} />
+            </View>
+            <Text style={styles.helpText}>Report a Bug</Text>
+            <Feather name="chevron-right" size={16} color={MUTED} />
+          </Pressable>
+        </View>
+
         {/* Sign out */}
         <Pressable
           style={({ pressed }) => [styles.signOutButton, pressed && styles.signOutPressed]}
@@ -233,6 +301,104 @@ export default function ProfileScreen() {
       </ScrollView>
 
       <Paywall visible={paywallVisible} onClose={() => setPaywallVisible(false)} />
+
+      {/* Bug Report Modal */}
+      <Modal
+        visible={bugModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={handleCloseBugModal}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalRoot}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <View style={styles.modalHeader}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalTitleRow}>
+              <Text style={styles.modalTitle}>Report a Bug</Text>
+              <TouchableOpacity onPress={handleCloseBugModal} hitSlop={12}>
+                <Feather name="x" size={22} color={MUTED} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <ScrollView
+            style={styles.modalScroll}
+            contentContainerStyle={styles.modalContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            {bugSubmitted ? (
+              <View style={styles.successContainer}>
+                <View style={styles.successIcon}>
+                  <Feather name="check-circle" size={48} color={PRIMARY} />
+                </View>
+                <Text style={styles.successTitle}>Thanks for letting us know!</Text>
+                <Text style={styles.successSub}>
+                  Your report has been received. We review every submission and fix issues as quickly as possible.
+                </Text>
+                <TouchableOpacity style={styles.doneBtn} onPress={handleCloseBugModal}>
+                  <Text style={styles.doneBtnText}>Done</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <>
+                <Text style={styles.modalSubtitle}>
+                  Describe what happened and we'll investigate it right away.
+                </Text>
+
+                <View style={styles.modalField}>
+                  <Text style={styles.modalFieldLabel}>What went wrong?</Text>
+                  <TextInput
+                    style={[styles.modalInput, styles.modalTextarea]}
+                    placeholder="e.g. The app crashed when I tapped Generate, the caption didn't copy, the platform selector stopped working..."
+                    placeholderTextColor={MUTED}
+                    value={bugDescription}
+                    onChangeText={setBugDescription}
+                    multiline
+                    numberOfLines={5}
+                    textAlignVertical="top"
+                    autoFocus
+                  />
+                </View>
+
+                <View style={styles.modalField}>
+                  <Text style={styles.modalFieldLabel}>What did you expect to happen? <Text style={styles.optional}>(optional)</Text></Text>
+                  <TextInput
+                    style={[styles.modalInput, styles.modalTextareaSmall]}
+                    placeholder="e.g. The caption should have copied to my clipboard"
+                    placeholderTextColor={MUTED}
+                    value={bugExpected}
+                    onChangeText={setBugExpected}
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={[
+                    styles.submitBtn,
+                    (bugSubmitting || bugDescription.trim().length < 5) && styles.submitBtnDisabled,
+                  ]}
+                  onPress={handleSubmitBug}
+                  disabled={bugSubmitting || bugDescription.trim().length < 5}
+                  activeOpacity={0.85}
+                >
+                  {bugSubmitting ? (
+                    <Text style={styles.submitBtnText}>Submitting...</Text>
+                  ) : (
+                    <>
+                      <Feather name="send" size={16} color="#fff" />
+                      <Text style={styles.submitBtnText}>Submit Report</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -532,5 +698,153 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#8C7A6B",
     fontFamily: "Inter_400Regular",
+  },
+  helpRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 4,
+  },
+  helpRowPressed: { opacity: 0.7 },
+  helpIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#F8EFE4",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  helpText: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: "Inter_500Medium",
+    color: FOREGROUND,
+  },
+  modalRoot: {
+    flex: 1,
+    backgroundColor: BG,
+  },
+  modalHeader: {
+    padding: 20,
+    paddingTop: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: CARD_BORDER,
+    gap: 12,
+  },
+  modalHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: CARD_BORDER,
+    alignSelf: "center",
+  },
+  modalTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: "Inter_700Bold",
+    color: FOREGROUND,
+  },
+  modalScroll: { flex: 1 },
+  modalContent: {
+    padding: 20,
+    gap: 20,
+    paddingBottom: 40,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    color: MUTED,
+    lineHeight: 20,
+  },
+  modalField: { gap: 8 },
+  modalFieldLabel: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    color: FOREGROUND,
+  },
+  optional: {
+    fontFamily: "Inter_400Regular",
+    color: MUTED,
+    fontSize: 13,
+  },
+  modalInput: {
+    borderWidth: 1.5,
+    borderColor: CARD_BORDER,
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 15,
+    fontFamily: "Inter_400Regular",
+    color: FOREGROUND,
+    backgroundColor: "#FFFFFF",
+  },
+  modalTextarea: {
+    minHeight: 130,
+    lineHeight: 22,
+  },
+  modalTextareaSmall: {
+    minHeight: 80,
+    lineHeight: 22,
+  },
+  submitBtn: {
+    height: 52,
+    backgroundColor: PRIMARY,
+    borderRadius: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  submitBtnDisabled: {
+    backgroundColor: "#D1D5DB",
+  },
+  submitBtnText: {
+    fontSize: 16,
+    fontFamily: "Inter_600SemiBold",
+    color: "#FFFFFF",
+  },
+  successContainer: {
+    alignItems: "center",
+    gap: 16,
+    paddingTop: 40,
+  },
+  successIcon: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: "#F8EFE4",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  successTitle: {
+    fontSize: 22,
+    fontFamily: "Inter_700Bold",
+    color: FOREGROUND,
+    textAlign: "center",
+  },
+  successSub: {
+    fontSize: 15,
+    fontFamily: "Inter_400Regular",
+    color: MUTED,
+    textAlign: "center",
+    lineHeight: 22,
+    paddingHorizontal: 16,
+  },
+  doneBtn: {
+    marginTop: 8,
+    height: 52,
+    backgroundColor: PRIMARY,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 48,
+  },
+  doneBtnText: {
+    fontSize: 16,
+    fontFamily: "Inter_600SemiBold",
+    color: "#FFFFFF",
   },
 });

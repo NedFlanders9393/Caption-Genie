@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as StoreReview from "expo-store-review";
+import { requestNotificationPermissions, scheduleDailyStreakReminder } from "@/lib/notifications";
 import { useUser, useAuth } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
@@ -91,7 +92,7 @@ export default function GenerateScreen() {
   const router = useRouter();
   const { user } = useUser();
   const { getToken } = useAuth();
-  const { addToHistory, consumeGeneration, isOverLimit, history } = useApp();
+  const { addToHistory, consumeGeneration, isOverLimit, history, streak } = useApp();
   const { isSubscribed } = useSubscription();
 
   const [platforms, setPlatforms] = useState<string[]>(["Instagram"]);
@@ -141,7 +142,8 @@ export default function GenerateScreen() {
     setLoading(true);
     setError(null);
 
-    // Capture history length before generation — used to trigger review on 3rd caption
+    // Capture history length before generation
+    const isSecondGeneration = history.length === 1;
     const isThirdGeneration = history.length === 2;
 
     try {
@@ -174,6 +176,12 @@ export default function GenerateScreen() {
       }
 
       if (!isSubscribed) await consumeGeneration();
+
+      // On the 2nd caption: ask for notification permission (user has seen value, low friction)
+      if (isSecondGeneration && Platform.OS !== "web") {
+        const granted = await requestNotificationPermissions();
+        if (granted) scheduleDailyStreakReminder(streak);
+      }
 
       // Ask for a review on the 3rd successful caption — best moment in the user journey
       if (isThirdGeneration) {

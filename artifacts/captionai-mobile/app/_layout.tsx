@@ -8,9 +8,10 @@ import {
 import { ClerkLoaded, ClerkProvider, useUser } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect } from "react";
+import * as Notifications from "expo-notifications";
+import React, { useEffect, useRef } from "react";
 import { Alert } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -78,6 +79,8 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
   });
+  const router = useRouter();
+  const notifListenerRef = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
@@ -91,6 +94,23 @@ export default function RootLayout() {
     } catch (err: any) {
       Alert.alert("RevenueCat Unavailable", err?.message ?? "Unknown error");
     }
+  }, []);
+
+  // Handle tapping a notification — route the user to the relevant screen
+  useEffect(() => {
+    notifListenerRef.current = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        const type = response.notification.request.content.data?.type;
+        if (type === "streak_reminder") {
+          router.push("/(tabs)/generate");
+        } else if (type === "low_usage") {
+          router.push("/(tabs)/profile");
+        }
+      }
+    );
+    return () => {
+      notifListenerRef.current?.remove();
+    };
   }, []);
 
   if (!fontsLoaded && !fontError) return null;

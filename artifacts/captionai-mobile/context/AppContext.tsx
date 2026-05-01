@@ -12,6 +12,11 @@ import {
   FREE_LIMIT,
   type HistoryEntry,
 } from "@/lib/storage";
+import {
+  scheduleDailyStreakReminder,
+  scheduleLowUsageWarning,
+  notificationsEnabled,
+} from "@/lib/notifications";
 
 const BETA_TESTERS = [
   "atlanta@imcmanagement.net",
@@ -75,15 +80,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const consumeGeneration = useCallback(async (): Promise<boolean> => {
     if (isBetaTester) {
-      // Still track streak for beta testers
       const s = await updateStreak();
       setStreak(s);
+      // Schedule streak reminder if notifications are on
+      notificationsEnabled().then((ok) => {
+        if (ok) scheduleDailyStreakReminder(s);
+      });
       return true;
     }
     if (usageCount >= FREE_LIMIT) return false;
     const [next, s] = await Promise.all([incrementUsage(), updateStreak()]);
     setUsageCount(next);
     setStreak(s);
+    // Schedule streak reminder (fire-and-forget)
+    notificationsEnabled().then((ok) => {
+      if (ok) scheduleDailyStreakReminder(s);
+    });
+    // Warn when 3 captions or 1 caption remain on the free plan
+    const remaining = FREE_LIMIT - next;
+    if (remaining === 3 || remaining === 1) {
+      notificationsEnabled().then((ok) => {
+        if (ok) scheduleLowUsageWarning(remaining);
+      });
+    }
     return true;
   }, [usageCount, isBetaTester]);
 

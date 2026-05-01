@@ -237,6 +237,7 @@ export default function EditProfileScreen() {
                 onChangeText={setLocation}
                 placeholder="City, State"
                 placeholderTextColor={MUTED}
+                autoCapitalize="words"
               />
             </View>
             <View style={styles.divider} />

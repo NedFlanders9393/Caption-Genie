@@ -118,8 +118,9 @@ export default function EditProfileScreen() {
 
   const handleSave = async () => {
     setIsSaving(true);
+    let nameUpdateFailed = false;
     try {
-      // Try to update name — may fail for OAuth users (Google/Apple controls it)
+      // Try to update first/last name — may be read-only for OAuth users
       const nameChanged =
         firstName.trim() !== (user?.firstName ?? "") ||
         lastName.trim() !== (user?.lastName ?? "");
@@ -130,7 +131,7 @@ export default function EditProfileScreen() {
             lastName: lastName.trim() || undefined,
           });
         } catch {
-          // Name is read-only for this account type — silently skip
+          nameUpdateFailed = true;
         }
       }
 
@@ -144,7 +145,15 @@ export default function EditProfileScreen() {
         },
       });
 
-      router.back();
+      if (nameUpdateFailed) {
+        Alert.alert(
+          "Almost saved",
+          "Your profile details were saved, but your first and last name couldn't be updated. If you signed in with Google or Apple, your name is managed by that provider.",
+          [{ text: "OK", onPress: () => router.back() }]
+        );
+      } else {
+        router.back();
+      }
     } catch (err: any) {
       Alert.alert(
         "Save failed",

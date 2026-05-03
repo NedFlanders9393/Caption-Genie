@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Share,
   Platform,
+  Alert,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
@@ -36,6 +37,7 @@ export default function CaptionCard({
 }: Props) {
   const colors = useColors();
   const [copied, setCopied] = useState(false);
+  const [shareReady, setShareReady] = useState(false);
 
   const fullText = hashtags ? `${caption}\n\n${hashtags}` : caption;
 
@@ -51,9 +53,41 @@ export default function CaptionCard({
       await Clipboard.setStringAsync(fullText);
       return;
     }
+    // Always copy to clipboard first — Facebook and some other apps block
+    // pre-filled text from the share sheet by design, so clipboard is the
+    // reliable fallback. The user can paste immediately after tapping their app.
+    await Clipboard.setStringAsync(fullText);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShareReady(true);
+    setTimeout(() => setShareReady(false), 3000);
     try {
-      await Share.share({ message: fullText });
-    } catch {}
+      const result = await Share.share(
+        {
+          message: fullText,
+          // Providing a title helps apps like Facebook show a prompt
+          title: "Caption from Inkwell",
+        },
+        {
+          // iOS: show the subject field so apps that support it get the title
+          subject: "Caption from Inkwell",
+          // iOS: exclude AirDrop/files since this is text-only
+          excludedActivityTypes: [],
+        }
+      );
+      // If the user dismissed without sharing, nothing extra needed.
+      // If they shared to Facebook (or any app that strips text), the
+      // clipboard already has the caption — no further action required.
+      void result;
+    } catch (err: any) {
+      // User cancelled — ignore. Any other error: let them know clipboard is ready.
+      if (err?.message && !err.message.includes("cancel")) {
+        Alert.alert(
+          "Caption copied",
+          "The share sheet couldn't open, but your caption is already copied — just paste it anywhere.",
+          [{ text: "OK" }]
+        );
+      }
+    }
   };
 
   const handleFavorite = () => {
@@ -102,7 +136,11 @@ export default function CaptionCard({
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={handleShare} style={styles.iconBtn} activeOpacity={0.7}>
-            <Feather name="share-2" size={16} color={colors.mutedForeground} />
+            <Feather
+              name={shareReady ? "check" : "share-2"}
+              size={16}
+              color={shareReady ? colors.primary : colors.mutedForeground}
+            />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleCopy} style={styles.iconBtn} activeOpacity={0.7}>
             <Feather

@@ -3,6 +3,7 @@ import {
   Nunito_500Medium,
   Nunito_600SemiBold,
   Nunito_700Bold,
+  Nunito_800ExtraBold,
   useFonts,
 } from "@expo-google-fonts/nunito";
 import { ClerkLoaded, ClerkProvider, useUser } from "@clerk/expo";
@@ -83,6 +84,7 @@ export default function RootLayout() {
     Nunito_500Medium,
     Nunito_600SemiBold,
     Nunito_700Bold,
+    Nunito_800ExtraBold,
   });
   const router = useRouter();
   const notifListenerRef = useRef<Notifications.EventSubscription | null>(null);

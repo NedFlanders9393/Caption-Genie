@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   },
   logoText: {
     fontSize: 20,
-    fontWeight: "700",
+    fontFamily: "Nunito_700Bold",
     color: C.textPrimary,
     letterSpacing: -0.5,
   },
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
   },
   avatarInitial: {
     fontSize: 15,
-    fontWeight: "600",
+    fontFamily: "Nunito_600SemiBold",
     color: C.textSecondary,
   },
 
@@ -326,13 +326,13 @@ const styles = StyleSheet.create({
   },
   greetingLabel: {
     fontSize: 18,
-    fontWeight: "600",
+    fontFamily: "Nunito_600SemiBold",
     color: C.textPrimary,
     marginBottom: 6,
   },
   greetingHeadline: {
     fontSize: 30,
-    fontWeight: "800",
+    fontFamily: "Nunito_800ExtraBold",
     color: C.textPrimary,
     lineHeight: 36,
     letterSpacing: -0.8,
@@ -350,13 +350,13 @@ const styles = StyleSheet.create({
   },
   streakNumber: {
     fontSize: 16,
-    fontWeight: "800",
+    fontFamily: "Nunito_800ExtraBold",
     color: C.textPrimary,
     lineHeight: 18,
   },
   streakLabel: {
     fontSize: 9,
-    fontWeight: "500",
+    fontFamily: "Nunito_500Medium",
     color: C.textMuted,
     lineHeight: 11,
   },
@@ -411,13 +411,13 @@ const styles = StyleSheet.create({
   },
   tileLabelLight: {
     fontSize: 14,
-    fontWeight: "700",
+    fontFamily: "Nunito_700Bold",
     color: "#FFFFFF",
     lineHeight: 19,
   },
   tileLabelDark: {
     fontSize: 14,
-    fontWeight: "700",
+    fontFamily: "Nunito_700Bold",
     color: C.textPrimary,
     lineHeight: 19,
   },
@@ -441,11 +441,12 @@ const styles = StyleSheet.create({
   tipText: {
     flex: 1,
     fontSize: 12,
+    fontFamily: "Nunito_400Regular",
     color: C.textSecondary,
     lineHeight: 18,
   },
   tipBold: {
-    fontWeight: "700",
+    fontFamily: "Nunito_700Bold",
     color: C.textPrimary,
   },
 
@@ -458,12 +459,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: "700",
+    fontFamily: "Nunito_700Bold",
     color: C.textPrimary,
   },
   seeAll: {
     fontSize: 12,
-    fontWeight: "500",
+    fontFamily: "Nunito_500Medium",
     color: C.textMuted,
   },
 
@@ -479,6 +480,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 13,
+    fontFamily: "Nunito_400Regular",
     color: C.textMuted,
     textAlign: "center",
   },
@@ -491,7 +493,7 @@ const styles = StyleSheet.create({
   },
   emptyBtnText: {
     fontSize: 13,
-    fontWeight: "600",
+    fontFamily: "Nunito_600SemiBold",
     color: "#FFFFFF",
   },
 
@@ -532,17 +534,18 @@ const styles = StyleSheet.create({
   },
   nicheTagText: {
     fontSize: 10,
-    fontWeight: "700",
+    fontFamily: "Nunito_700Bold",
     color: C.amber,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   platformLabel: {
     fontSize: 10,
-    fontWeight: "600",
+    fontFamily: "Nunito_600SemiBold",
   },
   captionText: {
     fontSize: 13,
+    fontFamily: "Nunito_400Regular",
     color: C.textSecondary,
     lineHeight: 19,
     marginBottom: 10,
@@ -554,13 +557,14 @@ const styles = StyleSheet.create({
   },
   hashtagsText: {
     fontSize: 11,
+    fontFamily: "Nunito_400Regular",
     color: C.textFaint,
     flex: 1,
     marginRight: 8,
   },
   timeAgo: {
     fontSize: 10,
+    fontFamily: "Nunito_500Medium",
     color: C.textFaint,
-    fontWeight: "500",
   },
 });

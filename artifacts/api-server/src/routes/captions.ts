@@ -1,5 +1,5 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { requireAuth } from "@clerk/express";
+import { requireAuth, getAuth } from "@clerk/express";
 import rateLimit from "express-rate-limit";
 import { anthropic } from "@workspace/integrations-anthropic-ai";
 import { GenerateCaptionsBody, RegenerateOneCaptionBody, GenerateHashtagsBody } from "@workspace/api-zod";
@@ -70,7 +70,7 @@ const captionsRouter: IRouter = Router();
 const captionRateLimit = rateLimit({
   windowMs: 10 * 60 * 1000,
   limit: 30,
-  keyGenerator: (req) => (req as any).auth?.userId ?? "anonymous",
+  keyGenerator: (req) => getAuth(req).userId ?? "anonymous",
   validate: { xForwardedForHeader: false },
   standardHeaders: "draft-8",
   legacyHeaders: false,
@@ -455,7 +455,7 @@ captionsRouter.post("/captions/generate", async (req, res) => {
     return;
   }
 
-  const userId = (req as any).auth?.userId as string;
+  const userId = getAuth(req).userId ?? "";
   const allowed = await enforceUsageLimit(userId, req, res);
   if (!allowed) return;
 
@@ -516,7 +516,7 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
     return;
   }
 
-  const userId = (req as any).auth?.userId as string;
+  const userId = getAuth(req).userId ?? "";
   const allowed = await enforceUsageLimit(userId, req, res);
   if (!allowed) return;
 
@@ -578,7 +578,7 @@ captionsRouter.post("/captions/hashtags", async (req, res) => {
     return;
   }
 
-  const userId = (req as any).auth?.userId as string;
+  const userId = getAuth(req).userId ?? "";
   const allowed = await enforceUsageLimit(userId, req, res);
   if (!allowed) return;
 

@@ -1,10 +1,48 @@
 const BASE = process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : "";
 
+const AI_TIMEOUT_MS = 30_000;
+
 function authHeaders(token: string | null): HeadersInit {
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
+}
+
+function isNetworkError(err: unknown): boolean {
+  if (err instanceof TypeError) {
+    const msg = (err.message ?? "").toLowerCase();
+    return (
+      msg.includes("network") ||
+      msg.includes("failed to fetch") ||
+      msg.includes("load failed") ||
+      msg.includes("network request failed")
+    );
+  }
+  return false;
+}
+
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeoutMs = AI_TIMEOUT_MS
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    return res;
+  } catch (err) {
+    if ((err as any)?.name === "AbortError") {
+      throw new Error("Request timed out — the server is taking too long. Please try again.");
+    }
+    if (isNetworkError(err)) {
+      throw new Error("No internet connection. Please check your network and try again.");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export interface BrandVoice {
@@ -53,7 +91,7 @@ export interface HashtagGroups {
 }
 
 export async function generateCaptions(params: CaptionParams, token: string | null = null): Promise<CaptionItem[]> {
-  const res = await fetch(`${BASE}/api/captions/generate`, {
+  const res = await fetchWithTimeout(`${BASE}/api/captions/generate`, {
     method: "POST",
     headers: authHeaders(token),
     body: JSON.stringify(params),
@@ -84,7 +122,7 @@ export async function regenerateOneCaption(
   params: CaptionParams & { existingCaptions: string[] },
   token: string | null = null
 ): Promise<CaptionItem> {
-  const res = await fetch(`${BASE}/api/captions/regenerate-one`, {
+  const res = await fetchWithTimeout(`${BASE}/api/captions/regenerate-one`, {
     method: "POST",
     headers: authHeaders(token),
     body: JSON.stringify(params),
@@ -100,7 +138,7 @@ export async function remixCaption(
   params: { caption: string; direction: string; platform?: string },
   token: string | null = null
 ): Promise<CaptionItem> {
-  const res = await fetch(`${BASE}/api/captions/remix`, {
+  const res = await fetchWithTimeout(`${BASE}/api/captions/remix`, {
     method: "POST",
     headers: authHeaders(token),
     body: JSON.stringify(params),
@@ -116,11 +154,12 @@ export async function generateHashtags(
   params: HashtagParams,
   token: string | null = null
 ): Promise<{ hashtags: string[]; grouped: HashtagGroups }> {
-  const res = await fetch(`${BASE}/api/captions/hashtags`, {
+  const res = await fetchWithTimeout(`${BASE}/api/captions/hashtags`, {
     method: "POST",
     headers: authHeaders(token),
     body: JSON.stringify(params),
-  });
+    // Hashtags are faster, but still give a reasonable window
+  }, 20_000);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error((err as any).error ?? "Failed to generate hashtags");

@@ -9,6 +9,9 @@ import { sql } from "drizzle-orm";
 const FREE_MONTHLY_LIMIT = 10;
 const PRO_MONTHLY_LIMIT = 500;
 
+const FREE_MODEL = "claude-haiku-4-5";
+const PRO_MODEL = "claude-sonnet-4-6";
+
 function getYearMonth(): string {
   const now = new Date();
   return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
@@ -32,7 +35,7 @@ async function isRevenueCatPro(userId: string): Promise<boolean> {
   }
 }
 
-async function enforceUsageLimit(userId: string, req: Request, res: Response): Promise<boolean> {
+async function enforceUsageLimit(userId: string, req: Request, res: Response): Promise<{ allowed: boolean; isPro: boolean }> {
   const yearMonth = getYearMonth();
   const isPro = await isRevenueCatPro(userId);
   const limit = isPro ? PRO_MONTHLY_LIMIT : FREE_MONTHLY_LIMIT;
@@ -58,10 +61,10 @@ async function enforceUsageLimit(userId: string, req: Request, res: Response): P
       limit,
       isPro,
     });
-    return false;
+    return { allowed: false, isPro };
   }
 
-  return true;
+  return { allowed: true, isPro };
 }
 
 const captionsRouter: IRouter = Router();
@@ -456,7 +459,7 @@ captionsRouter.post("/captions/generate", async (req, res) => {
   }
 
   const userId = getAuth(req).userId ?? "";
-  const allowed = await enforceUsageLimit(userId, req, res);
+  const { allowed, isPro } = await enforceUsageLimit(userId, req, res);
   if (!allowed) return;
 
   const { niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType } = parsed.data;
@@ -464,7 +467,7 @@ captionsRouter.post("/captions/generate", async (req, res) => {
 
   try {
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
+      model: isPro ? PRO_MODEL : FREE_MODEL,
       max_tokens: 8192,
       system: SYSTEM_PROMPT,
       messages: [
@@ -517,7 +520,7 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
   }
 
   const userId = getAuth(req).userId ?? "";
-  const allowed = await enforceUsageLimit(userId, req, res);
+  const { allowed, isPro } = await enforceUsageLimit(userId, req, res);
   if (!allowed) return;
 
   const { niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType, existingCaptions } = parsed.data;
@@ -525,8 +528,8 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
 
   try {
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 4096,
+      model: isPro ? PRO_MODEL : FREE_MODEL,
+      max_tokens: 8192,
       system: SYSTEM_PROMPT,
       messages: [
         {
@@ -579,15 +582,15 @@ captionsRouter.post("/captions/hashtags", async (req, res) => {
   }
 
   const userId = getAuth(req).userId ?? "";
-  const allowed = await enforceUsageLimit(userId, req, res);
+  const { allowed, isPro } = await enforceUsageLimit(userId, req, res);
   if (!allowed) return;
 
   const { niche, topic, platform } = parsed.data;
 
   try {
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 2048,
+      model: isPro ? PRO_MODEL : FREE_MODEL,
+      max_tokens: 8192,
       system: "You are the world's best social media strategist specializing in hashtag research and audience discovery. You know exactly which hashtags drive real reach vs vanity metrics. Always respond with valid JSON only — no markdown, no code blocks.",
       messages: [
         {
@@ -631,6 +634,9 @@ captionsRouter.post("/captions/remix", async (req, res) => {
     return;
   }
 
+  const userId = getAuth(req).userId ?? "";
+  const isPro = await isRevenueCatPro(userId);
+
   const directionGuide: Record<string, string> = {
     "Make it shorter": "Compress to the punchiest possible version — keep only the highest-impact words. Target under 100 characters for the caption body.",
     "Make it longer": "Expand with a compelling story arc, more sensory detail, and a stronger hook. Use line breaks for rhythm. Aim for 400-600 characters.",
@@ -668,8 +674,8 @@ RESPOND IN THIS EXACT JSON FORMAT:
 
   try {
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 2048,
+      model: isPro ? PRO_MODEL : FREE_MODEL,
+      max_tokens: 8192,
       system: "You are the world's best social media copywriter. Always respond with valid JSON only — no markdown fences, no code blocks, no extra commentary.",
       messages: [{ role: "user", content: prompt }],
     });

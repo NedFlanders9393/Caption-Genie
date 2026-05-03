@@ -30,8 +30,8 @@ const FEATURES = [
   "All 22 business niches",
   "12 tone combinations",
   "Hashtag tool — unlimited",
-  "Priority generation speed",
-  "Early access to new features",
+  "Claude Sonnet AI — smarter, higher-quality captions",
+  "Caption remix & regeneration tool",
 ];
 
 export default function Paywall({ visible, onClose }: Props) {

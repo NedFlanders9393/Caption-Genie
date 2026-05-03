@@ -58,3 +58,4 @@ EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY = "goog_NwHnbSyoMlRaHXOypLAhkYpIRMN"
 
 [nix]
 channel = "stable-25_05"
+packages = ["eas-cli"]

@@ -79,7 +79,9 @@ export default function HomeScreen() {
             <View style={styles.logoCircle}>
               <Feather name="feather" size={16} color="#FFFFFF" />
             </View>
-            <Text style={styles.logoText}>Inkwell</Text>
+            <Text style={styles.logoText}>
+              <Text style={styles.logoFancyC}>𝒞</Text>aptura
+            </Text>
           </View>
           {user?.hasImage && avatarUrl ? (
             <Image source={{ uri: avatarUrl }} style={styles.avatar} />
@@ -293,6 +295,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: C.textPrimary,
     letterSpacing: -0.5,
+  },
+  logoFancyC: {
+    fontSize: 24,
+    fontWeight: "400",
+    color: C.amber,
+    fontStyle: "italic",
   },
   avatar: {
     width: 38,

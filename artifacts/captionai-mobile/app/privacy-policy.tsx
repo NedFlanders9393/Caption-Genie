@@ -43,7 +43,7 @@ export default function PrivacyPolicyScreen() {
         <Text style={styles.updated}>Last updated: {LAST_UPDATED}</Text>
 
         <Section title="Who We Are">
-          Inkwell ("we," "us," or "our") is an AI-powered social media caption generator for small business owners and content creators. This Privacy Policy explains how we collect, use, and protect your information when you use our app.
+          Captura ("we," "us," or "our") is an AI-powered social media caption generator for small business owners and content creators. This Privacy Policy explains how we collect, use, and protect your information when you use our app.
         </Section>
 
         <Section title="Information We Collect">
@@ -66,7 +66,7 @@ export default function PrivacyPolicyScreen() {
 
         <Section title="How We Use Your Information">
           We use your information to:
-          {"\n\n"}• Provide and personalize the Inkwell service{"\n"}
+          {"\n\n"}• Provide and personalize the Captura service{"\n"}
           • Enforce free and Pro plan usage limits{"\n"}
           • Send owner notifications when you submit a bug report{"\n"}
           • Improve our AI prompts and app experience{"\n"}
@@ -74,7 +74,7 @@ export default function PrivacyPolicyScreen() {
         </Section>
 
         <Section title="Third-Party Services">
-          We work with trusted third parties to deliver Inkwell:
+          We work with trusted third parties to deliver Captura:
           {"\n\n"}
           <BulletItem label="Clerk">Handles account creation, login, and authentication. Privacy policy: clerk.com/privacy.</BulletItem>
           <BulletItem label="RevenueCat">Manages your Pro subscription through Apple's In-App Purchase system. RevenueCat does not store your payment information. Privacy policy: revenuecat.com/privacy.</BulletItem>
@@ -96,7 +96,7 @@ export default function PrivacyPolicyScreen() {
         </Section>
 
         <Section title="Children's Privacy">
-          Inkwell is not directed at children under 13. We do not knowingly collect personal information from children under 13. If you believe a child has provided us information, please contact us and we will delete it promptly.
+          Captura is not directed at children under 13. We do not knowingly collect personal information from children under 13. If you believe a child has provided us information, please contact us and we will delete it promptly.
         </Section>
 
         <Section title="Security">

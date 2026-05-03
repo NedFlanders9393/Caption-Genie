@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Inkwell",
+    "name": "Captura",
     "slug": "captionai-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,8 +17,8 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.captionai.app",
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "Inkwell uses your photo library to let you set a profile picture.",
-        "NSUserNotificationsUsageDescription": "Inkwell sends optional reminders to help you maintain your writing streak."
+        "NSPhotoLibraryUsageDescription": "Captura uses your photo library to let you set a profile picture.",
+        "NSUserNotificationsUsageDescription": "Captura sends optional reminders to help you maintain your writing streak."
       }
     },
     "android": {
@@ -39,7 +39,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Inkwell uses your photo library to let you set a profile picture."
+          "photosPermission": "Captura uses your photo library to let you set a profile picture."
         }
       ],
       [

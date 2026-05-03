@@ -43,7 +43,7 @@ const SLIDES: Slide[] = [
     icon: "feather",
     iconBg: C.darkTile,
     iconColor: C.amber,
-    title: "Welcome to Inkwell",
+    title: "Welcome to Captura",
     subtitle: "AI-powered captions crafted for your brand — in seconds.",
     bullets: [
       { icon: "zap", text: "Generate captions for any platform" },

@@ -19,7 +19,9 @@ import { useRouter } from "expo-router";
 import { useAuth } from "@clerk/expo";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
+import { useSubscription } from "@/lib/revenuecat";
 import { remixCaption } from "@/lib/api";
+import Paywall from "@/components/Paywall";
 import type { HistoryEntry, FavoriteEntry } from "@/lib/storage";
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -56,11 +58,13 @@ function CaptionList({
 }) {
   const { getToken } = useAuth();
   const { toggleFavorite, isFavorited } = useApp();
+  const { isSubscribed } = useSubscription();
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [remixOpenIdx, setRemixOpenIdx] = useState<number | null>(null);
   const [remixLoadingIdx, setRemixLoadingIdx] = useState<number | null>(null);
   const [remixResults, setRemixResults] = useState<Record<number, { caption: string; hashtags: string } | null>>({});
   const [copiedRemixIdx, setCopiedRemixIdx] = useState<number | null>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const handleCopy = async (caption: string, hashtags: string, idx: number) => {
     const text = hashtags ? `${caption}\n\n${hashtags}` : caption;
@@ -79,6 +83,10 @@ function CaptionList({
   };
 
   const handleShare = async (caption: string, hashtags: string) => {
+    if (!isSubscribed) {
+      setShowPaywall(true);
+      return;
+    }
     const text = hashtags ? `${caption}\n\n${hashtags}` : caption;
     if (Platform.OS === "web") {
       await Clipboard.setStringAsync(text);
@@ -110,6 +118,8 @@ function CaptionList({
   };
 
   return (
+    <>
+    <Paywall visible={showPaywall} onClose={() => setShowPaywall(false)} />
     <View style={styles.captionList}>
       {captions.map((c, i) => (
         <View
@@ -173,7 +183,10 @@ function CaptionList({
               </View>
             ) : (
               <TouchableOpacity
-                onPress={() => setRemixOpenIdx(remixOpenIdx === i ? null : i)}
+                onPress={() => {
+                  if (!isSubscribed) { setShowPaywall(true); return; }
+                  setRemixOpenIdx(remixOpenIdx === i ? null : i);
+                }}
                 style={styles.actionBtn}
                 activeOpacity={0.7}
               >
@@ -254,6 +267,7 @@ function CaptionList({
         </View>
       ))}
     </View>
+    </>
   );
 }
 
@@ -324,9 +338,6 @@ function HistoryItem({
             </Text>
           </View>
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={handleDelete} style={styles.iconBtn} activeOpacity={0.7}>
-              <Feather name="trash-2" size={16} color={colors.mutedForeground} />
-            </TouchableOpacity>
             <Feather
               name={expanded ? "chevron-up" : "chevron-down"}
               size={18}
@@ -345,6 +356,7 @@ function HistoryItem({
         <>
           {isMulti && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.platformTabs}>
+
               {item.multiPlatformResults!.map((r) => {
                 const active = activeTab === r.platform;
                 const accent = PLATFORM_COLORS[r.platform] ?? colors.primary;
@@ -376,6 +388,10 @@ function HistoryItem({
             entryId={item.id}
             niche={item.params.niche}
           />
+          <TouchableOpacity onPress={handleDelete} style={styles.deleteEntryBtn} activeOpacity={0.7}>
+            <Feather name="trash-2" size={12} color={colors.mutedForeground} />
+            <Text style={[styles.deleteEntryText, { color: colors.mutedForeground }]}>Delete entry</Text>
+          </TouchableOpacity>
         </>
       )}
     </View>
@@ -385,8 +401,10 @@ function HistoryItem({
 // ── Favorites list ────────────────────────────────────────────────────────────
 function FavoritesList({ colors, bottomPad }: { colors: any; bottomPad: number }) {
   const { favorites, toggleFavorite } = useApp();
+  const { isSubscribed } = useSubscription();
   const router = useRouter();
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const handleCopy = async (entry: FavoriteEntry) => {
     const text = entry.hashtags ? `${entry.caption}\n\n${entry.hashtags}` : entry.caption;
@@ -397,6 +415,7 @@ function FavoritesList({ colors, bottomPad }: { colors: any; bottomPad: number }
   };
 
   const handleShare = async (entry: FavoriteEntry) => {
+    if (!isSubscribed) { setShowPaywall(true); return; }
     const text = entry.hashtags ? `${entry.caption}\n\n${entry.hashtags}` : entry.caption;
     if (Platform.OS === "web") { await Clipboard.setStringAsync(text); return; }
     try { await Share.share({ message: text }); } catch {}
@@ -404,6 +423,8 @@ function FavoritesList({ colors, bottomPad }: { colors: any; bottomPad: number }
 
   if (favorites.length === 0) {
     return (
+      <>
+      <Paywall visible={showPaywall} onClose={() => setShowPaywall(false)} />
       <View style={[styles.empty, { paddingBottom: bottomPad }]}>
         <View style={styles.emptyIconCircle}>
           <Feather name="bookmark" size={26} color="#E8B669" />
@@ -421,10 +442,13 @@ function FavoritesList({ colors, bottomPad }: { colors: any; bottomPad: number }
           <Text style={styles.emptyCtaText}>Write a caption</Text>
         </TouchableOpacity>
       </View>
+      </>
     );
   }
 
   return (
+    <>
+    <Paywall visible={showPaywall} onClose={() => setShowPaywall(false)} />
     <FlatList
       data={favorites}
       keyExtractor={(item) => item.id}
@@ -489,6 +513,7 @@ function FavoritesList({ colors, bottomPad }: { colors: any; bottomPad: number }
         </View>
       )}
     />
+    </>
   );
 }
 
@@ -708,6 +733,19 @@ const styles = StyleSheet.create({
     color: "#E8B669",
     textTransform: "uppercase",
     letterSpacing: 0.4,
+  },
+  deleteEntryBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    alignSelf: "flex-end",
+    paddingTop: 10,
+    paddingBottom: 2,
+    opacity: 0.55,
+  },
+  deleteEntryText: {
+    fontSize: 12,
+    fontFamily: "Nunito_400Regular",
   },
   empty: { alignItems: "center", justifyContent: "center", paddingTop: 64, paddingHorizontal: 32, gap: 12 },
   emptyTitle: { fontSize: 18, fontFamily: "Nunito_600SemiBold", textAlign: "center" },

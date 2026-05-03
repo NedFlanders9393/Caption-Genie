@@ -159,7 +159,7 @@ export default function HashtagsScreen() {
 
   const handleGenerate = async () => {
     if (!canGenerate) return;
-    if (!isSubscribed && isOverLimit) {
+    if (!isSubscribed) {
       setShowPaywall(true);
       return;
     }
@@ -228,6 +228,15 @@ export default function HashtagsScreen() {
             3 strategic groups + smart mix — tap any tag to select
           </Text>
         </View>
+
+        {!isSubscribed && (
+          <View style={[styles.proBanner, { backgroundColor: "#FDF3E3", borderColor: "#F0E3D3" }]}>
+            <Feather name="lock" size={14} color="#E8B669" />
+            <Text style={[styles.proBannerText, { color: "#8C7A6B" }]}>
+              Hashtag Intelligence is a Pro feature — upgrade to generate unlimited hashtag sets
+            </Text>
+          </View>
+        )}
 
         <View style={styles.fields}>
           <OptionPicker label="Industry" value={niche} options={NICHES} onSelect={setNiche} />
@@ -364,6 +373,21 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, gap: 20 },
   title: { fontSize: 26, fontFamily: "Nunito_700Bold", letterSpacing: -0.5 },
   subtitle: { fontSize: 14, fontFamily: "Nunito_400Regular", marginTop: 2 },
+  proBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  proBannerText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: "Nunito_500Medium",
+    lineHeight: 18,
+  },
   fields: { gap: 14 },
   fieldGroup: { gap: 6 },
   fieldLabel: {

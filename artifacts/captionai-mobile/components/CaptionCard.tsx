@@ -13,6 +13,8 @@ import { Feather } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
+import { useSubscription } from "@/lib/revenuecat";
+import Paywall from "@/components/Paywall";
 
 interface Props {
   index: number;
@@ -36,8 +38,10 @@ export default function CaptionCard({
   isRegenerating,
 }: Props) {
   const colors = useColors();
+  const { isSubscribed } = useSubscription();
   const [copied, setCopied] = useState(false);
   const [shareReady, setShareReady] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const fullText = hashtags ? `${caption}\n\n${hashtags}` : caption;
 
@@ -49,6 +53,10 @@ export default function CaptionCard({
   };
 
   const handleShare = async () => {
+    if (!isSubscribed) {
+      setShowPaywall(true);
+      return;
+    }
     if (Platform.OS === "web") {
       await Clipboard.setStringAsync(fullText);
       return;
@@ -101,6 +109,8 @@ export default function CaptionCard({
   };
 
   return (
+    <>
+    <Paywall visible={showPaywall} onClose={() => setShowPaywall(false)} />
     <View
       style={[
         styles.card,
@@ -168,6 +178,7 @@ export default function CaptionCard({
         <Text style={[styles.hashtags, { color: colors.primary }]}>{hashtags}</Text>
       ) : null}
     </View>
+    </>
   );
 }
 

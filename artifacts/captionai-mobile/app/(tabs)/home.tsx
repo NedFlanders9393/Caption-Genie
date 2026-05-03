@@ -188,7 +188,12 @@ export default function HomeScreen() {
             const timeAgo = formatTimeAgo(entry.createdAt);
 
             return (
-              <View key={entry.id} style={styles.captionCard}>
+              <TouchableOpacity
+                key={entry.id}
+                style={styles.captionCard}
+                onPress={() => router.navigate("/(tabs)/history")}
+                activeOpacity={0.75}
+              >
                 {/* Card header */}
                 <View style={styles.captionCardHeader}>
                   <View style={styles.captionMeta}>
@@ -228,7 +233,7 @@ export default function HomeScreen() {
                   )}
                   <Text style={styles.timeAgo}>{timeAgo}</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             );
           })
         )}

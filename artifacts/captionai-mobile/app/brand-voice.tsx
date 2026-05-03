@@ -1,4 +1,6 @@
 import { useUser } from "@clerk/expo";
+import { useSubscription } from "@/lib/revenuecat";
+import Paywall from "@/components/Paywall";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -68,6 +70,8 @@ export default function BrandVoiceScreen() {
   const [neverSay, setNeverSay] = useState(saved.neverSay ?? "");
   const [sampleCaption, setSampleCaption] = useState(saved.sampleCaption ?? "");
   const [saving, setSaving] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const { isSubscribed } = useSubscription();
 
   const togglePersonality = (p: string) => {
     setPersonality((prev) =>
@@ -82,6 +86,10 @@ export default function BrandVoiceScreen() {
   };
 
   const handleSave = async () => {
+    if (!isSubscribed) {
+      setShowPaywall(true);
+      return;
+    }
     setSaving(true);
     try {
       await user?.update({
@@ -119,12 +127,21 @@ export default function BrandVoiceScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
+      <Paywall visible={showPaywall} onClose={() => setShowPaywall(false)} />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Pro banner */}
+        {!isSubscribed && (
+          <View style={styles.proBanner}>
+            <Feather name="lock" size={14} color={PRIMARY} />
+            <Text style={styles.proBannerText}>Brand Voice is a Pro feature — upgrade to save your style</Text>
+          </View>
+        )}
+
         {/* Header */}
         <View style={styles.heroCard}>
           <View style={styles.heroIcon}>
@@ -321,6 +338,25 @@ const styles = StyleSheet.create({
     gap: 10,
     borderWidth: 1,
     borderColor: "#F0E3D3",
+  },
+  proBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#FDF3E3",
+    borderWidth: 1,
+    borderColor: "#F0E3D3",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 4,
+  },
+  proBannerText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: "Nunito_500Medium",
+    color: "#8C7A6B",
+    lineHeight: 18,
   },
   heroIcon: {
     width: 56,

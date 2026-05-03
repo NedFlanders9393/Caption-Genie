@@ -27,11 +27,11 @@ const AMBER_LIGHT = "#F8EFE4";
 
 const FEATURES = [
   "Unlimited caption generation",
-  "All 22 business niches",
-  "12 tone combinations",
-  "Hashtag tool — unlimited",
+  "All niches, tones & platforms",
+  "Hashtag Intelligence tool",
+  "Brand Voice presets",
   "Priority AI generation",
-  "Caption remix & regeneration tool",
+  "Remix, share & social tools",
 ];
 
 export default function Paywall({ visible, onClose }: Props) {

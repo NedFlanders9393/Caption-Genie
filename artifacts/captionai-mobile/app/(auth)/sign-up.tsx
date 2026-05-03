@@ -3,6 +3,7 @@ import { Feather } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -103,9 +104,10 @@ export default function SignUpPage() {
         >
           <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
             <View style={styles.header}>
-              <View style={styles.logo}>
-                <Feather name="feather" size={28} color="#FFFFFF" />
-              </View>
+              <Image
+                source={require("../../assets/images/icon.png")}
+                style={styles.logo}
+              />
               <Text style={styles.title}>Check your email</Text>
               <Text style={styles.subtitle}>
                 We sent a 6-digit code to{"\n"}
@@ -179,9 +181,10 @@ export default function SignUpPage() {
       >
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
-            <View style={styles.logo}>
-              <Feather name="feather" size={28} color="#FFFFFF" />
-            </View>
+            <Image
+              source={require("../../assets/images/icon.png")}
+              style={styles.logo}
+            />
             <Text style={styles.title}>Create account</Text>
             <Text style={styles.subtitle}>
               Start generating captions that actually convert
@@ -284,18 +287,15 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logo: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    backgroundColor: PRIMARY,
-    alignItems: "center",
-    justifyContent: "center",
+    width: 72,
+    height: 72,
+    borderRadius: 18,
     marginBottom: 20,
-    shadowColor: PRIMARY,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
-    elevation: 8,
+    elevation: 6,
   },
   logoText: {
     fontSize: 28,

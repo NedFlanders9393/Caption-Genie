@@ -22,7 +22,9 @@
       }
     },
     "android": {
-      "permissions": []
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/images/icon.png"
@@ -55,6 +57,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "6c28fa7a-2bc9-43b6-8d67-9f57b5e748fe"
+      }
+    },
+    "owner": "nedflanders01"
   }
 }

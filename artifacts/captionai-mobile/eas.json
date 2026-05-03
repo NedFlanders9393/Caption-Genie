@@ -19,6 +19,9 @@
     },
     "production": {
       "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "captura.replit.app"
+      },
       "ios": {
         "buildConfiguration": "Release"
       }

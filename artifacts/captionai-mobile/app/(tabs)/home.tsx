@@ -56,7 +56,8 @@ export default function HomeScreen() {
   const { user } = useUser();
   const { history, streak } = useApp();
 
-  const firstName = user?.firstName ?? user?.username ?? "there";
+  const meta = (user?.unsafeMetadata ?? {}) as { firstName?: string };
+  const firstName = meta.firstName || user?.firstName || user?.username || "there";
   const avatarUrl = user?.imageUrl;
   const tip = useMemo(() => getTodaysTip(), []);
   const recentItems = history.slice(0, 2);

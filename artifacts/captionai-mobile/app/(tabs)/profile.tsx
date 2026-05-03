@@ -43,6 +43,8 @@ type BrandVoice = {
 };
 
 type UserMeta = {
+  firstName?: string;
+  lastName?: string;
   username?: string;
   location?: string;
   age?: string;
@@ -64,14 +66,17 @@ export default function ProfileScreen() {
 
   const meta = (user?.unsafeMetadata ?? {}) as UserMeta;
 
-  const initials = user?.firstName && user?.lastName
-    ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
-    : user?.firstName
-    ? user.firstName[0].toUpperCase()
+  const resolvedFirst = meta.firstName || user?.firstName || "";
+  const resolvedLast = meta.lastName || user?.lastName || "";
+
+  const initials = resolvedFirst && resolvedLast
+    ? `${resolvedFirst[0]}${resolvedLast[0]}`.toUpperCase()
+    : resolvedFirst
+    ? resolvedFirst[0].toUpperCase()
     : user?.emailAddresses[0]?.emailAddress?.[0]?.toUpperCase() ?? "?";
 
-  const displayName = user?.firstName
-    ? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ""}`
+  const displayName = resolvedFirst
+    ? `${resolvedFirst}${resolvedLast ? ` ${resolvedLast}` : ""}`
     : user?.emailAddresses[0]?.emailAddress ?? "User";
 
   const email = user?.emailAddresses[0]?.emailAddress ?? "";

@@ -26,6 +26,8 @@ const CARD_BG = "#FFFFFF";
 const CARD_BORDER = "#F0E3D3";
 
 type UserMeta = {
+  firstName?: string;
+  lastName?: string;
   username?: string;
   location?: string;
   age?: string;
@@ -37,8 +39,8 @@ export default function EditProfileScreen() {
 
   const meta = (user?.unsafeMetadata ?? {}) as UserMeta;
 
-  const [firstName, setFirstName] = useState(user?.firstName ?? "");
-  const [lastName, setLastName] = useState(user?.lastName ?? "");
+  const [firstName, setFirstName] = useState(meta.firstName ?? user?.firstName ?? "");
+  const [lastName, setLastName] = useState(meta.lastName ?? user?.lastName ?? "");
   const [username, setUsername] = useState(meta.username ?? "");
   const [location, setLocation] = useState(meta.location ?? "");
   const [age, setAge] = useState(meta.age ?? "");
@@ -118,42 +120,31 @@ export default function EditProfileScreen() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    let nameUpdateFailed = false;
     try {
-      // Try to update first/last name — may be read-only for OAuth users
-      const nameChanged =
-        firstName.trim() !== (user?.firstName ?? "") ||
-        lastName.trim() !== (user?.lastName ?? "");
-      if (nameChanged) {
-        try {
-          await user?.update({
-            firstName: firstName.trim() || undefined,
-            lastName: lastName.trim() || undefined,
-          });
-        } catch {
-          nameUpdateFailed = true;
-        }
-      }
-
-      // Always save metadata (username, location, age)
+      // Save everything to metadata — always works regardless of sign-in provider
       await user?.update({
         unsafeMetadata: {
           ...meta,
-          username: username.trim(),
-          location: location.trim(),
-          age: age.trim(),
+          firstName: firstName.trim() || undefined,
+          lastName: lastName.trim() || undefined,
+          username: username.trim() || undefined,
+          location: location.trim() || undefined,
+          age: age.trim() || undefined,
         },
       });
 
-      if (nameUpdateFailed) {
-        Alert.alert(
-          "Almost saved",
-          "Your profile details were saved, but your first and last name couldn't be updated. If you signed in with Google or Apple, your name is managed by that provider.",
-          [{ text: "OK", onPress: () => router.back() }]
-        );
-      } else {
-        router.back();
+      // Also try to sync to Clerk's native fields — works for email accounts,
+      // silently skipped for Google/Apple where the provider controls the name.
+      try {
+        await user?.update({
+          firstName: firstName.trim() || undefined,
+          lastName: lastName.trim() || undefined,
+        });
+      } catch {
+        // OAuth provider owns the name — metadata copy above is the source of truth
       }
+
+      router.back();
     } catch (err: any) {
       Alert.alert(
         "Save failed",

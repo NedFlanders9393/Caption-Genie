@@ -30,7 +30,7 @@ const FEATURES = [
   "All 22 business niches",
   "12 tone combinations",
   "Hashtag tool — unlimited",
-  "Claude Sonnet AI — smarter, higher-quality captions",
+  "Priority AI generation",
   "Caption remix & regeneration tool",
 ];
 

@@ -1,0 +1,165 @@
+Review my entire mobile app and prepare it for App Store release.
+
+IMPORTANT RULES:
+
+* DO NOT remove or break existing working features
+* DO NOT rewrite large sections unnecessarily
+* ONLY refactor when required to fix bugs or improve security/performance
+* Preserve all app functionality exactly as it currently behaves
+
+---
+
+## CORE FUNCTIONALITY
+
+* Ensure all core features work exactly as intended
+* Fix broken buttons, links, or unresponsive UI elements ONLY if found
+* Handle edge cases (no internet, empty inputs, invalid data)
+* Add loading states where missing for async actions
+* Prevent crashes from unexpected inputs
+* Ensure game/app flow remains identical after fixes
+
+---
+
+## BUG TESTING & STABILITY
+
+* Scan codebase for errors and warnings
+* Fix only confirmed bugs (do not refactor working systems unnecessarily)
+* Add safe global error handling where appropriate
+* Log errors for debugging (do not expose sensitive data)
+* Test across screen sizes and devices
+* Fix memory leaks or performance issues only if verified
+
+---
+
+## SECURITY
+
+* Identify API keys and secrets in frontend code
+
+* Move them to secure environment variables or backend ONLY if needed
+
+* If any feature depends on these keys:
+
+  * Refactor so frontend calls a backend endpoint instead
+  * Backend must securely handle API calls
+  * Ensure ALL existing features continue working exactly the same
+  * Do NOT remove or disable any feature during this process
+
+* Validate and sanitize all user inputs
+
+* Use HTTPS for all network requests
+
+* Never expose sensitive data in logs or frontend
+
+---
+
+## PERFORMANCE OPTIMIZATION
+
+* Optimize images/assets (compress where possible without quality loss)
+* Reduce unnecessary API calls only if safe
+* Remove unused code ONLY if it does not affect functionality
+* Improve startup time if possible without changing behavior
+* Avoid aggressive rewrites of working logic
+
+---
+
+## UI/UX POLISH
+
+* Maintain current design style and layout
+* Improve consistency only (fonts, spacing, alignment)
+* Ensure all buttons are mobile-friendly
+* Add or improve:
+
+  * Loading states
+  * Error messages
+  * Empty states
+* Do NOT redesign UI unless necessary for usability or bug fixes
+* Preserve user experience flow exactly
+
+---
+
+## MOBILE OPTIMIZATION
+
+* Ensure layout works on different screen sizes
+* Support safe areas (notches, screen edges)
+* Improve touch responsiveness if needed
+* Do NOT change core UI structure unless required for compatibility
+
+---
+
+## APP STORE REQUIREMENTS
+
+* Prepare or verify:
+
+  * App name
+  * App icon (1024x1024)
+  * Splash screen
+  * App description
+  * Keywords
+  * Privacy Policy URL
+  * Terms of Service (if needed)
+
+* Only request permissions that are actually used
+
+* Ensure permission prompts clearly explain why they are needed
+
+---
+
+## ANALYTICS & MONITORING
+
+* Add analytics only if it does not break or slow the app
+* Track:
+
+  * Screen views
+  * Basic user actions
+  * Errors/crashes
+* Do NOT collect sensitive personal data
+
+---
+
+## BACKEND / API (IF APPLICABLE)
+
+* Ensure APIs return proper error handling
+* Add retry logic only where safe
+* Add timeout handling for slow requests
+* Validate backend responses before using them
+* Do NOT change API structure unless required for security fixes
+
+---
+
+## OFFLINE HANDLING
+
+* Detect when user is offline
+* Show clear offline message
+* Prevent app crashes when no internet
+* Cache minimal necessary data if already supported
+
+---
+
+## FINAL PRE-LAUNCH CHECK
+
+* Test all features end-to-end
+* Simulate real user behavior
+* Fix UI glitches only if confirmed
+* Remove debug logs (keep error logging safe)
+* Ensure production build runs without errors
+
+---
+
+## BUILD & DEPLOYMENT
+
+* Create production-ready build
+* Ensure environment variables are correctly set
+* Confirm app runs correctly in production mode
+* Prepare for App Store submission (iOS/Android)
+* Do NOT introduce breaking changes during build process
+
+---
+
+## FINAL REPORT
+
+Provide:
+
+* List of bugs fixed
+* List of improvements made
+* Any remaining risks
+* Steps required to publish to App Store

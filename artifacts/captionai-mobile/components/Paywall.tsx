@@ -255,13 +255,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 30,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: FOREGROUND,
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 15,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: MUTED,
     textAlign: "center",
     lineHeight: 22,
@@ -289,14 +289,14 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: 15,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
     color: FOREGROUND,
   },
   planLabel: {
     fontSize: 13,
     fontWeight: "600",
     color: MUTED,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   },
   planName: {
     fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     color: FOREGROUND,
   },
   planNameSelected: {
@@ -361,19 +361,19 @@ const styles = StyleSheet.create({
   },
   bestValueText: {
     fontSize: 10,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: PRIMARY,
     letterSpacing: 0.5,
   },
   planSub: {
     fontSize: 12,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: MUTED,
     marginTop: 2,
   },
   planPrice: {
     fontSize: 16,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: FOREGROUND,
   },
   planPriceSelected: {
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
   },
   ctaText: {
     fontSize: 16,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     color: "#FFFFFF",
   },
   restoreBtn: {
@@ -408,13 +408,13 @@ const styles = StyleSheet.create({
   },
   restoreText: {
     fontSize: 14,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: MUTED,
     textDecorationLine: "underline",
   },
   disclaimer: {
     fontSize: 12,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: MUTED,
     textAlign: "center",
     lineHeight: 18,

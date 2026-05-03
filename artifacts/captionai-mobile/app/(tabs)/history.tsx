@@ -537,7 +537,7 @@ export default function HistoryScreen() {
             style={[
               styles.filterText,
               { color: activeFilter === f ? "#3A3129" : colors.mutedForeground },
-              activeFilter === f && { fontFamily: "Inter_600SemiBold" },
+              activeFilter === f && { fontFamily: "Nunito_600SemiBold" },
             ]}
           >
             {f === "all" ? "All" : `Saved${favorites.length > 0 ? ` (${favorites.length})` : ""}`}
@@ -624,12 +624,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Nunito_700Bold",
     letterSpacing: -0.5,
   },
   clearText: {
     fontSize: 14,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
   },
   card: {
     borderWidth: 1.5,
@@ -643,11 +643,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   cardMeta: { flex: 1, gap: 2 },
-  cardNiche: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
-  cardSub: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  cardNiche: { fontSize: 15, fontFamily: "Nunito_600SemiBold" },
+  cardSub: { fontSize: 12, fontFamily: "Nunito_400Regular" },
   cardActions: { flexDirection: "row", alignItems: "center", gap: 4 },
   iconBtn: { padding: 4 },
-  preview: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 19 },
+  preview: { fontSize: 13, fontFamily: "Nunito_400Regular", lineHeight: 19 },
   platformTabs: { flexDirection: "row", gap: 8, paddingVertical: 8 },
   platformTab: {
     paddingHorizontal: 14,
@@ -655,14 +655,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1.5,
   },
-  platformTabText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  platformTabText: { fontSize: 12, fontFamily: "Nunito_600SemiBold" },
   captionList: { gap: 0 },
   captionItem: { paddingTop: 12, gap: 6 },
-  captionText: { fontSize: 14, lineHeight: 21, fontFamily: "Inter_400Regular" },
-  hashtagText: { fontSize: 12, fontFamily: "Inter_500Medium", lineHeight: 18 },
+  captionText: { fontSize: 14, lineHeight: 21, fontFamily: "Nunito_400Regular" },
+  hashtagText: { fontSize: 12, fontFamily: "Nunito_500Medium", lineHeight: 18 },
   actionRow: { flexDirection: "row", alignItems: "center", gap: 16 },
   actionBtn: { flexDirection: "row", alignItems: "center", gap: 5 },
-  actionText: { fontSize: 13, fontFamily: "Inter_500Medium" },
+  actionText: { fontSize: 13, fontFamily: "Nunito_500Medium" },
   remixChips: {
     paddingTop: 10,
     borderTopWidth: StyleSheet.hairlineWidth,
@@ -670,7 +670,7 @@ const styles = StyleSheet.create({
   },
   remixLabel: {
     fontSize: 11,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
     textTransform: "uppercase",
     letterSpacing: 0.4,
   },
@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: 12,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
   },
   remixResult: {
     borderWidth: 1.5,
@@ -704,14 +704,14 @@ const styles = StyleSheet.create({
   remixResultLabel: {
     flex: 1,
     fontSize: 11,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     color: "#E8B669",
     textTransform: "uppercase",
     letterSpacing: 0.4,
   },
   empty: { alignItems: "center", justifyContent: "center", paddingTop: 64, paddingHorizontal: 32, gap: 12 },
-  emptyTitle: { fontSize: 18, fontFamily: "Inter_600SemiBold", textAlign: "center" },
-  emptyText: { fontSize: 14, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 20 },
+  emptyTitle: { fontSize: 18, fontFamily: "Nunito_600SemiBold", textAlign: "center" },
+  emptyText: { fontSize: 14, fontFamily: "Nunito_400Regular", textAlign: "center", lineHeight: 20 },
   emptyIconCircle: {
     width: 64,
     height: 64,
@@ -735,7 +735,7 @@ const styles = StyleSheet.create({
   },
   emptyCtaText: {
     fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     color: "#FFFFFF",
   },
 
@@ -756,7 +756,7 @@ const styles = StyleSheet.create({
   },
   filterText: {
     fontSize: 13,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
   },
 
   // Favorites card header
@@ -773,10 +773,10 @@ const styles = StyleSheet.create({
   },
   favPlatform: {
     fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
   favNiche: {
     fontSize: 11,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
   },
 });

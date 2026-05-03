@@ -332,13 +332,13 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     fontSize: 20,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: PRIMARY,
     letterSpacing: -0.3,
   },
   heroDesc: {
     fontSize: 14,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: MUTED,
     textAlign: "center",
     lineHeight: 20,
@@ -363,12 +363,12 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     color: FOREGROUND,
   },
   subLabel: {
     fontSize: 12,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: MUTED,
     marginTop: -4,
   },
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 12,
     fontSize: 15,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: FOREGROUND,
     backgroundColor: "#FFFDF9",
   },
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 12,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: MUTED,
   },
   chips: {
@@ -417,12 +417,12 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: 13,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
     color: MUTED,
   },
   chipTextSelected: {
     color: PRIMARY,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
   saveBtn: {
     height: 52,
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   },
   saveBtnText: {
     fontSize: 16,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     color: "#FFFFFF",
   },
 });

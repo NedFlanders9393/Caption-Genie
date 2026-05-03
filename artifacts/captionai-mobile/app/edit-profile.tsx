@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "700",
     color: "#FFFFFF",
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Nunito_700Bold",
   },
   cameraOverlay: {
     position: "absolute",
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   changePhotoText: {
     fontSize: 13,
     color: MUTED,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
   },
   card: {
     backgroundColor: CARD_BG,
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     color: MUTED,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: 2,
@@ -370,12 +370,12 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 12,
     color: MUTED,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
   },
   input: {
     fontSize: 15,
     color: FOREGROUND,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     paddingVertical: 6,
     borderBottomWidth: 1,
     borderBottomColor: CARD_BORDER,
@@ -408,6 +408,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#FFFFFF",
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
 });

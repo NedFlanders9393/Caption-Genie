@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 12,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   },
   triggerText: {
     fontSize: 15,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     flex: 1,
   },
   overlay: {
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   },
   sheetTitle: {
     fontSize: 16,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     padding: 16,
     paddingBottom: 8,
   },
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 15,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     flex: 1,
   },
 });

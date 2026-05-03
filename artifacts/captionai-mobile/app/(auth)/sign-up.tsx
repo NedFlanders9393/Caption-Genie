@@ -109,7 +109,7 @@ export default function SignUpPage() {
               <Text style={styles.title}>Check your email</Text>
               <Text style={styles.subtitle}>
                 We sent a 6-digit code to{"\n"}
-                <Text style={{ color: PRIMARY, fontFamily: "Inter_600SemiBold" }}>
+                <Text style={{ color: PRIMARY, fontFamily: "Nunito_600SemiBold" }}>
                   {emailAddress}
                 </Text>
               </Text>
@@ -305,14 +305,14 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "700",
     color: FOREGROUND,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Nunito_700Bold",
     marginBottom: 8,
     textAlign: "center",
   },
   subtitle: {
     fontSize: 15,
     color: MUTED,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     textAlign: "center",
     lineHeight: 22,
   },
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
   errorBoxText: {
     fontSize: 14,
     color: ERROR_COLOR,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     lineHeight: 20,
   },
   field: {
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     color: FOREGROUND,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
   },
   input: {
     height: 52,
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 15,
     color: FOREGROUND,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
   },
   inputFocused: {
     borderColor: INPUT_BORDER_FOCUS,
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
   fieldError: {
     fontSize: 13,
     color: ERROR_COLOR,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     marginTop: 2,
   },
   button: {
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
   textButton: {
     alignItems: "center",
@@ -401,12 +401,12 @@ const styles = StyleSheet.create({
   textButtonText: {
     color: PRIMARY,
     fontSize: 14,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
   },
   terms: {
     fontSize: 12,
     color: MUTED,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     textAlign: "center",
     lineHeight: 18,
     marginTop: 4,
@@ -420,12 +420,12 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 14,
     color: MUTED,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
   },
   link: {
     fontSize: 14,
     color: PRIMARY,
     fontWeight: "600",
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
 });

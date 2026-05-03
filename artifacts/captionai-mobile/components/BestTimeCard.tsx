@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     color: TEXT_PRIMARY,
   },
   body: {
@@ -159,12 +159,12 @@ const styles = StyleSheet.create({
   },
   pillText: {
     fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     color: TEXT_PRIMARY,
   },
   tip: {
     fontSize: 12,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: TEXT_MUTED,
     lineHeight: 17,
   },
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   },
   multiPlatformLabel: {
     fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     color: TEXT_PRIMARY,
     flex: 1,
   },
@@ -187,12 +187,12 @@ const styles = StyleSheet.create({
   },
   multiDays: {
     fontSize: 12,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
     color: TEXT_PRIMARY,
   },
   multiTimes: {
     fontSize: 11,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: TEXT_MUTED,
   },
 });

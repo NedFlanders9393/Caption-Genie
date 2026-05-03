@@ -362,13 +362,13 @@ export default function HashtagsScreen() {
 const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16, gap: 20 },
-  title: { fontSize: 26, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
-  subtitle: { fontSize: 14, fontFamily: "Inter_400Regular", marginTop: 2 },
+  title: { fontSize: 26, fontFamily: "Nunito_700Bold", letterSpacing: -0.5 },
+  subtitle: { fontSize: 14, fontFamily: "Nunito_400Regular", marginTop: 2 },
   fields: { gap: 14 },
   fieldGroup: { gap: 6 },
   fieldLabel: {
     fontSize: 12,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     padding: 14,
     fontSize: 15,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     minHeight: 80,
     lineHeight: 22,
   },
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderWidth: 1,
   },
-  errorText: { fontSize: 14, fontFamily: "Inter_400Regular", flex: 1 },
+  errorText: { fontSize: 14, fontFamily: "Nunito_400Regular", flex: 1 },
   generateBtn: {
     height: 52,
     flexDirection: "row",
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
   },
-  generateText: { fontSize: 16, fontFamily: "Inter_600SemiBold" },
+  generateText: { fontSize: 16, fontFamily: "Nunito_600SemiBold" },
   results: { gap: 14 },
   smartMixCard: {
     padding: 16,
@@ -405,13 +405,13 @@ const styles = StyleSheet.create({
   smartMixTitleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   smartMixTitle: {
     fontSize: 16,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: "#FFFDF9",
     letterSpacing: -0.2,
   },
   smartMixSub: {
     fontSize: 12,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: "#B0A090",
   },
   smartMixTags: { flexDirection: "row", gap: 8, paddingBottom: 2 },
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
   },
   smartMixTagText: {
     fontSize: 13,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
     color: "#F8EFE4",
   },
   smartMixCopyBtn: {
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   },
   smartMixCopyText: {
     fontSize: 13,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
   },
   selectionBar: {
     flexDirection: "row",
@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
   },
   selectionCount: {
     fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
   copySelectedBtn: {
     flexDirection: "row",
@@ -460,19 +460,19 @@ const styles = StyleSheet.create({
   },
   copySelectedText: {
     fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     color: "#fff",
   },
   groupCard: { borderWidth: 1.5, padding: 14, gap: 10 },
   groupHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   groupBadge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 5 },
-  groupBadgeText: { fontSize: 12, fontFamily: "Inter_600SemiBold", textTransform: "uppercase", letterSpacing: 0.5 },
-  groupDesc: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 17 },
+  groupBadgeText: { fontSize: 12, fontFamily: "Nunito_600SemiBold", textTransform: "uppercase", letterSpacing: 0.5 },
+  groupDesc: { fontSize: 12, fontFamily: "Nunito_400Regular", lineHeight: 17 },
   copyBtn: { flexDirection: "row", alignItems: "center", gap: 5 },
-  copyText: { fontSize: 13, fontFamily: "Inter_500Medium" },
+  copyText: { fontSize: 13, fontFamily: "Nunito_500Medium" },
   tags: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   tag: { paddingHorizontal: 10, paddingVertical: 5 },
-  tagText: { fontSize: 13, fontFamily: "Inter_500Medium" },
+  tagText: { fontSize: 13, fontFamily: "Nunito_500Medium" },
 
   // Pre-results hint (shown before first generation)
   preResultsHint: {
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
   },
   preResultsPillText: {
     fontSize: 12,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
     color: "#8C7A6B",
   },
   preResultsPillTextLight: {
@@ -508,13 +508,13 @@ const styles = StyleSheet.create({
   },
   preResultsTitle: {
     fontSize: 17,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Nunito_700Bold",
     textAlign: "center",
     letterSpacing: -0.3,
   },
   preResultsBody: {
     fontSize: 13,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     textAlign: "center",
     lineHeight: 19,
     paddingHorizontal: 8,

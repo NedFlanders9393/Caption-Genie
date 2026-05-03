@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "700",
     color: FOREGROUND,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Nunito_700Bold",
   },
   editButton: {
     flexDirection: "row",
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: PRIMARY,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
   avatarCard: {
     backgroundColor: CARD_BG,
@@ -531,25 +531,25 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "700",
     color: "#FFFFFF",
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Nunito_700Bold",
   },
   displayName: {
     fontSize: 20,
     fontWeight: "700",
     color: FOREGROUND,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Nunito_700Bold",
     textAlign: "center",
   },
   username: {
     fontSize: 14,
     color: PRIMARY,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
     textAlign: "center",
   },
   email: {
     fontSize: 14,
     color: MUTED,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     textAlign: "center",
   },
   metaRow: {
@@ -565,7 +565,7 @@ const styles = StyleSheet.create({
   metaText: {
     fontSize: 13,
     color: MUTED,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
   },
   card: {
     backgroundColor: CARD_BG,
@@ -579,7 +579,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     color: MUTED,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: 4,
@@ -592,13 +592,13 @@ const styles = StyleSheet.create({
   usageLabel: {
     fontSize: 14,
     color: FOREGROUND,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
   },
   usageCount: {
     fontSize: 14,
     fontWeight: "600",
     color: PRIMARY,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
   progressTrack: {
     height: 8,
@@ -614,7 +614,7 @@ const styles = StyleSheet.create({
   usageSub: {
     fontSize: 13,
     color: MUTED,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
   },
   infoRow: {
     flexDirection: "row",
@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 15,
     color: FOREGROUND,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
   },
   divider: {
     height: 1,
@@ -649,12 +649,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     color: DANGER,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
   flex1: { flex: 1 },
   proText: {
     color: "#16A34A",
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
   brandVoiceCard: {
     gap: 12,
@@ -677,18 +677,18 @@ const styles = StyleSheet.create({
   },
   brandVoiceTitle: {
     fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     color: FOREGROUND,
   },
   brandVoiceSub: {
     fontSize: 13,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: MUTED,
     marginTop: 1,
   },
   brandVoiceEmpty: {
     fontSize: 13,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: PRIMARY,
     marginTop: 1,
   },
@@ -705,7 +705,7 @@ const styles = StyleSheet.create({
   },
   personalityChipText: {
     fontSize: 12,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
     color: PRIMARY,
   },
   restoreRow: {
@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
   restoreText: {
     fontSize: 15,
     color: PRIMARY,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
   },
   upgradePill: {
     marginLeft: "auto",
@@ -736,7 +736,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     color: PRIMARY,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
   upgradeCard: {
     backgroundColor: "#F8EFE4",
@@ -767,12 +767,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     color: "#3A3129",
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
   upgradeSub: {
     fontSize: 12,
     color: "#8C7A6B",
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
   },
   helpRow: {
     flexDirection: "row",
@@ -792,7 +792,7 @@ const styles = StyleSheet.create({
   helpText: {
     flex: 1,
     fontSize: 15,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
     color: FOREGROUND,
   },
   helpDivider: {
@@ -825,7 +825,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: FOREGROUND,
   },
   modalScroll: { flex: 1 },
@@ -836,18 +836,18 @@ const styles = StyleSheet.create({
   },
   modalSubtitle: {
     fontSize: 14,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: MUTED,
     lineHeight: 20,
   },
   modalField: { gap: 8 },
   modalFieldLabel: {
     fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     color: FOREGROUND,
   },
   optional: {
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: MUTED,
     fontSize: 13,
   },
@@ -857,7 +857,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     fontSize: 15,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: FOREGROUND,
     backgroundColor: "#FFFFFF",
   },
@@ -883,7 +883,7 @@ const styles = StyleSheet.create({
   },
   submitBtnText: {
     fontSize: 16,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     color: "#FFFFFF",
   },
   successContainer: {
@@ -901,13 +901,13 @@ const styles = StyleSheet.create({
   },
   successTitle: {
     fontSize: 22,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Nunito_700Bold",
     color: FOREGROUND,
     textAlign: "center",
   },
   successSub: {
     fontSize: 15,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     color: MUTED,
     textAlign: "center",
     lineHeight: 22,
@@ -924,7 +924,7 @@ const styles = StyleSheet.create({
   },
   doneBtnText: {
     fontSize: 16,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     color: "#FFFFFF",
   },
 });

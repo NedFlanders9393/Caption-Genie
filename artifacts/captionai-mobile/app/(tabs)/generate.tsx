@@ -316,7 +316,7 @@ export default function GenerateScreen() {
         {/* Platform */}
         <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>
-            Platform <Text style={{ fontFamily: "Inter_400Regular" }}>(pick up to 7)</Text>
+            Platform <Text style={{ fontFamily: "Nunito_400Regular" }}>(pick up to 7)</Text>
           </Text>
           <PlatformPicker selected={platforms} onToggle={togglePlatform} />
         </View>
@@ -334,7 +334,7 @@ export default function GenerateScreen() {
 
         <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>
-            Tone <Text style={{ fontFamily: "Inter_400Regular" }}>(pick up to 3)</Text>
+            Tone <Text style={{ fontFamily: "Nunito_400Regular" }}>(pick up to 3)</Text>
           </Text>
           <TonePicker selected={tones} onToggle={toggleTone} />
         </View>
@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Nunito_700Bold",
     letterSpacing: -0.5,
   },
   proChip: {
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
   },
   proChipText: {
     fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
   brandVoiceBadge: {
     flexDirection: "row",
@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
   brandVoiceBadgeText: {
     flex: 1,
     fontSize: 13,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
   },
   brandVoiceSetup: {
     flexDirection: "row",
@@ -557,12 +557,12 @@ const styles = StyleSheet.create({
   brandVoiceSetupText: {
     flex: 1,
     fontSize: 13,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
   },
   section: { gap: 8 },
   sectionLabel: {
     fontSize: 12,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     padding: 14,
     fontSize: 15,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     minHeight: 100,
     lineHeight: 22,
   },
@@ -590,7 +590,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 14,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
     flex: 1,
   },
   generateBtn: {
@@ -602,12 +602,12 @@ const styles = StyleSheet.create({
   },
   generateText: {
     fontSize: 16,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
   results: { gap: 12 },
   resultsLabel: {
     fontSize: 18,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
     marginBottom: 4,
   },
   platformTabs: {
@@ -623,6 +623,6 @@ const styles = StyleSheet.create({
   },
   platformTabText: {
     fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
 });

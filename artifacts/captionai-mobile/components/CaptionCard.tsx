@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Nunito_600SemiBold",
   },
   actions: {
     flexDirection: "row",
@@ -207,11 +207,11 @@ const styles = StyleSheet.create({
   caption: {
     fontSize: 15,
     lineHeight: 22,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Nunito_400Regular",
   },
   hashtags: {
     fontSize: 13,
     lineHeight: 20,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Nunito_500Medium",
   },
 });

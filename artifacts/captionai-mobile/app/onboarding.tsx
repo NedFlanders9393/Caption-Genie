@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   skipText: {
     fontSize: 15,
     color: C.muted,
-    fontWeight: "500",
+    fontFamily: "Nunito_500Medium",
   },
   flatList: {
     flex: 1,
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: "700",
+    fontFamily: "Nunito_700Bold",
     color: C.text,
     textAlign: "center",
     marginBottom: 12,
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     color: C.text,
-    fontWeight: "500",
+    fontFamily: "Nunito_500Medium",
   },
   footer: {
     paddingHorizontal: 24,
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
   },
   ctaText: {
     fontSize: 17,
-    fontWeight: "700",
+    fontFamily: "Nunito_700Bold",
     color: C.darkTile,
     letterSpacing: -0.2,
   },

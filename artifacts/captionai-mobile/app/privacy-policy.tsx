@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: "600",
+    fontFamily: "Nunito_600SemiBold",
     color: C.text,
     letterSpacing: -0.3,
   },
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 15,
-    fontWeight: "700",
+    fontFamily: "Nunito_700Bold",
     color: C.text,
     marginBottom: 10,
   },
@@ -188,11 +188,11 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   bulletLabel: {
-    fontWeight: "600",
+    fontFamily: "Nunito_600SemiBold",
     color: C.text,
   },
   contactEmail: {
     color: C.amber,
-    fontWeight: "600",
+    fontFamily: "Nunito_600SemiBold",
   },
 });

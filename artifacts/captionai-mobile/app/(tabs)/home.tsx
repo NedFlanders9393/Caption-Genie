@@ -80,7 +80,7 @@ export default function HomeScreen() {
             <View style={styles.logoCircle}>
               <Feather name="feather" size={16} color="#FFFFFF" />
             </View>
-            <Text style={styles.logoText}>Captura</Text>
+            <Text style={styles.logoText}>Captura AI</Text>
           </View>
           {user?.hasImage && avatarUrl ? (
             <Image source={{ uri: avatarUrl }} style={styles.avatar} />

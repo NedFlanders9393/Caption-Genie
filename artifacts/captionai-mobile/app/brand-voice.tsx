@@ -86,10 +86,6 @@ export default function BrandVoiceScreen() {
   };
 
   const handleSave = async () => {
-    if (!isSubscribed) {
-      setShowPaywall(true);
-      return;
-    }
     setSaving(true);
     try {
       await user?.update({
@@ -134,14 +130,6 @@ export default function BrandVoiceScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Pro banner */}
-        {!isSubscribed && (
-          <View style={styles.proBanner}>
-            <Feather name="lock" size={14} color={PRIMARY} />
-            <Text style={styles.proBannerText}>Brand Voice is a Pro feature — upgrade to save your style</Text>
-          </View>
-        )}
-
         {/* Header */}
         <View style={styles.heroCard}>
           <View style={styles.heroIcon}>
@@ -339,23 +327,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#F0E3D3",
   },
-  proBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: "#FDF3E3",
-    borderWidth: 1,
-    borderColor: "#F0E3D3",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 4,
-  },
-  proBannerText: {
-    flex: 1,
-    fontSize: 13,
-    fontFamily: "Nunito_500Medium",
-    color: "#8C7A6B",
+  _unused: {
     lineHeight: 18,
   },
   heroIcon: {

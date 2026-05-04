@@ -53,10 +53,6 @@ export default function CaptionCard({
   };
 
   const handleShare = async () => {
-    if (!isSubscribed) {
-      setShowPaywall(true);
-      return;
-    }
     if (Platform.OS === "web") {
       await Clipboard.setStringAsync(fullText);
       return;

@@ -83,10 +83,6 @@ function CaptionList({
   };
 
   const handleShare = async (caption: string, hashtags: string) => {
-    if (!isSubscribed) {
-      setShowPaywall(true);
-      return;
-    }
     const text = hashtags ? `${caption}\n\n${hashtags}` : caption;
     if (Platform.OS === "web") {
       await Clipboard.setStringAsync(text);

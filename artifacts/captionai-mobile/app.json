@@ -59,8 +59,7 @@
           "sounds": [],
           "iosDisplayInForeground": true
         }
-      ],
-      "./plugins/withShareExtension"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

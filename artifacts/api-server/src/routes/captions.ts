@@ -318,6 +318,8 @@ interface BrandVoice {
   alwaysInclude?: string;
   neverSay?: string;
   sampleCaption?: string;
+  sampleCaptions?: string[];
+  voiceDescription?: string;
 }
 
 function buildCaptionPrompt(params: {
@@ -389,17 +391,50 @@ function buildCaptionPrompt(params: {
     Pinterest: "Include 2-5 hashtags at the end. Highly descriptive and keyword-rich — think what someone would search to find this pin.",
   }[platform] ?? "Include 6-10 relevant hashtags.";
 
-  const brandVoiceSection = brandVoice && (brandVoice.brandName || brandVoice.tagline || brandVoice.personality?.length || brandVoice.targetAudience || brandVoice.captionStyle?.length || brandVoice.alwaysInclude || brandVoice.neverSay || brandVoice.sampleCaption)
-    ? `\n━━━ BRAND VOICE (CRITICAL — follow this exactly) ━━━
-${brandVoice.brandName ? `Brand name: ${brandVoice.brandName}` : ""}
-${brandVoice.tagline ? `Brand tagline / slogan: "${brandVoice.tagline}" — mirror the energy, rhythm, and style of this phrase` : ""}
-${brandVoice.personality?.length ? `Brand personality: ${brandVoice.personality.join(", ")} — every caption MUST sound like this brand` : ""}
-${brandVoice.targetAudience ? `Their exact audience: ${brandVoice.targetAudience} — write directly to this person` : ""}
-${brandVoice.captionStyle?.length ? `Writing style rules (MUST follow): ${brandVoice.captionStyle.join(", ")}` : ""}
-${brandVoice.alwaysInclude ? `Always weave in (naturally, not forced): ${brandVoice.alwaysInclude}` : ""}
-${brandVoice.neverSay ? `NEVER use these words, phrases, or themes: ${brandVoice.neverSay}` : ""}
-${brandVoice.sampleCaption ? `\nSAMPLE CAPTION (study this carefully — match its exact voice, rhythm, length, punctuation style, line structure, and tone):\n---\n${brandVoice.sampleCaption}\n---\nYour captions MUST feel like they were written by the same person who wrote the sample above.` : ""}
-This brand voice overrides generic niche advice — make it personal and specific to THIS brand.\n`
+  // Collect all sample captions — prefer the new array, fall back to legacy single field
+  const allSamples = (() => {
+    const arr = (brandVoice?.sampleCaptions ?? []).filter(Boolean);
+    if (arr.length > 0) return arr;
+    if (brandVoice?.sampleCaption) return [brandVoice.sampleCaption];
+    return [];
+  })();
+
+  const hasBrandVoice = brandVoice && (
+    brandVoice.brandName || brandVoice.tagline || brandVoice.personality?.length ||
+    brandVoice.targetAudience || brandVoice.captionStyle?.length ||
+    brandVoice.alwaysInclude || brandVoice.neverSay ||
+    brandVoice.voiceDescription || allSamples.length > 0
+  );
+
+  const brandVoiceSection = hasBrandVoice
+    ? `
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GHOST-WRITING BRIEF — READ THIS BEFORE ANYTHING ELSE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+You are NOT an AI writing a caption for a client. You ARE ${brandVoice?.brandName ?? "this person"}, writing in your own voice and posting this yourself. The caption must sound like it came directly from your head — raw, human, and unmistakably you.
+${brandVoice?.voiceDescription ? `\nIn their own words, this is how they describe their voice:\n"${brandVoice.voiceDescription}"\nUse this self-description as your primary voice guide.\n` : ""}${allSamples.length > 0 ? `
+REAL CAPTIONS WRITTEN BY THIS PERSON (your voice blueprint):
+${allSamples.map((s, i) => `--- Example ${i + 1} ---\n${s}`).join("\n\n")}
+--- End of examples ---
+
+VOICE FINGERPRINT ANALYSIS — Before writing a single word, extract these patterns from the examples above:
+• Sentence length: Are they short fragments? Long flowing sentences? Mixed?
+• Punctuation habits: Do they use em-dashes (—)? Ellipsis (...)? Exclamation marks? Mostly periods?
+• Capitalization: Do they capitalize for emphasis? All lowercase aesthetic? Normal title case?
+• Emoji use: How many per caption? Where placed — inline or end only? Which emotional register?
+• Opening pattern: Do they start with a question? A bold statement? "I" personal voice? A scene?
+• Closing pattern: Question at the end? Direct command? Soft invite? Just trailing off?
+• Vocabulary register: Street-level casual? Polished professional? Industry-specific jargon?
+• Line break rhythm: Dense paragraphs? One thought per line? Punchy single-word lines?
+• What they NEVER do — any patterns conspicuously absent from their writing?
+
+NOW: Replicate these patterns exactly — not approximately, exactly. The output must pass this test: if their followers read it, they should have zero doubt this person wrote it themselves.
+` : ""}${brandVoice?.brandName ? `\nBrand: ${brandVoice.brandName}` : ""}${brandVoice?.tagline ? `\nTagline: "${brandVoice.tagline}" — absorb the rhythm and energy of this phrase` : ""}${brandVoice?.personality?.length ? `\nPersonality: ${brandVoice.personality.join(" + ")} — this is not a suggestion, it is the voice` : ""}${brandVoice?.targetAudience ? `\nWriting to: ${brandVoice.targetAudience} — speak as if writing directly to this specific person` : ""}${brandVoice?.captionStyle?.length ? `\nStructural rules (non-negotiable): ${brandVoice.captionStyle.join(", ")}` : ""}${brandVoice?.alwaysInclude ? `\nAlways weave in naturally: ${brandVoice.alwaysInclude}` : ""}${brandVoice?.neverSay ? `\nABSOLUTELY NEVER use: ${brandVoice.neverSay}` : ""}
+
+This ghost-writing brief overrides all generic advice below. When in doubt, ask: "Would THIS person actually post these exact words?"
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`
     : "";
 
   return `TASK: Write ${count} exceptional, publish-ready social media caption(s) for this ${niche} business. These will go directly onto a real business's social media — they must be the best captions this business has ever posted.
@@ -409,7 +444,7 @@ What this post is about: ${postDescription}
 ${postType ? `Post type: ${postType}` : ""}
 
 ━━━ KNOW YOUR AUDIENCE ━━━
-${nicheProfile}${brandVoiceSection}
+${brandVoiceSection}${nicheProfile}
 
 ━━━ PLATFORM MASTERY ━━━
 ${platformGuide}

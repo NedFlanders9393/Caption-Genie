@@ -53,6 +53,8 @@ export interface BrandVoice {
   alwaysInclude?: string;
   neverSay?: string;
   sampleCaption?: string;
+  sampleCaptions?: string[];
+  voiceDescription?: string;
 }
 
 export default function BrandVoiceScreen() {
@@ -68,10 +70,33 @@ export default function BrandVoiceScreen() {
   const [captionStyle, setCaptionStyle] = useState<string[]>(saved.captionStyle ?? []);
   const [alwaysInclude, setAlwaysInclude] = useState(saved.alwaysInclude ?? "");
   const [neverSay, setNeverSay] = useState(saved.neverSay ?? "");
-  const [sampleCaption, setSampleCaption] = useState(saved.sampleCaption ?? "");
+  // Multiple sample captions — prefer sampleCaptions array, fall back to legacy sampleCaption
+  const savedSamples = saved.sampleCaptions?.length
+    ? saved.sampleCaptions
+    : saved.sampleCaption
+    ? [saved.sampleCaption]
+    : [""];
+  const [sampleCaptions, setSampleCaptions] = useState<string[]>(savedSamples);
+  const [voiceDescription, setVoiceDescription] = useState(saved.voiceDescription ?? "");
   const [saving, setSaving] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const { isSubscribed } = useSubscription();
+
+  const updateSample = (index: number, value: string) => {
+    setSampleCaptions((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  };
+
+  const addSample = () => {
+    if (sampleCaptions.length < 3) setSampleCaptions((prev) => [...prev, ""]);
+  };
+
+  const removeSample = (index: number) => {
+    setSampleCaptions((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const togglePersonality = (p: string) => {
     setPersonality((prev) =>
@@ -99,7 +124,9 @@ export default function BrandVoiceScreen() {
             captionStyle: captionStyle.length > 0 ? captionStyle : undefined,
             alwaysInclude: alwaysInclude.trim() || undefined,
             neverSay: neverSay.trim() || undefined,
-            sampleCaption: sampleCaption.trim() || undefined,
+            sampleCaptions: sampleCaptions.map((s) => s.trim()).filter(Boolean),
+            sampleCaption: sampleCaptions[0]?.trim() || undefined,
+            voiceDescription: voiceDescription.trim() || undefined,
           } satisfies BrandVoice,
         },
       });
@@ -119,7 +146,8 @@ export default function BrandVoiceScreen() {
     JSON.stringify(captionStyle) !== JSON.stringify(saved.captionStyle ?? []) ||
     alwaysInclude !== (saved.alwaysInclude ?? "") ||
     neverSay !== (saved.neverSay ?? "") ||
-    sampleCaption !== (saved.sampleCaption ?? "");
+    JSON.stringify(sampleCaptions) !== JSON.stringify(savedSamples) ||
+    voiceDescription !== (saved.voiceDescription ?? "");
 
   return (
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
@@ -271,23 +299,67 @@ export default function BrandVoiceScreen() {
           <Text style={styles.hint}>Words or phrases that don't fit your brand</Text>
         </View>
 
-        {/* Sample Caption */}
+        {/* Voice Description */}
+        <View style={styles.card}>
+          <View style={styles.sampleHeader}>
+            <Feather name="mic" size={14} color={PRIMARY} />
+            <Text style={styles.fieldLabel}>How Do You Sound?</Text>
+          </View>
+          <TextInput
+            style={[styles.input, styles.textarea]}
+            placeholder={"Describe your voice like you're telling a friend. e.g. \"I'm direct and a little sarcastic, I never use fluff, I swear occasionally, and I always end with a question.\""}
+            placeholderTextColor={MUTED}
+            value={voiceDescription}
+            onChangeText={setVoiceDescription}
+            multiline
+            numberOfLines={3}
+            textAlignVertical="top"
+          />
+          <Text style={styles.hint}>Your own words beat any checkbox — be honest and specific</Text>
+        </View>
+
+        {/* Sample Captions */}
         <View style={styles.card}>
           <View style={styles.sampleHeader}>
             <Feather name="star" size={14} color={PRIMARY} />
-            <Text style={styles.fieldLabel}>Sample Caption</Text>
+            <Text style={styles.fieldLabel}>Caption Examples</Text>
           </View>
-          <TextInput
-            style={[styles.input, styles.textareaLarge]}
-            placeholder={"Paste one of your best-performing captions here.\n\nThe AI will study its rhythm, length, punctuation, and style — then write like you, not like a generic AI."}
-            placeholderTextColor={MUTED}
-            value={sampleCaption}
-            onChangeText={setSampleCaption}
-            multiline
-            numberOfLines={5}
-            textAlignVertical="top"
-          />
-          <Text style={styles.hint}>This is the single most powerful way to clone your voice</Text>
+          <Text style={styles.subLabel}>
+            Paste real captions you've written. The more examples you give, the more accurately the AI clones your voice.
+          </Text>
+          {sampleCaptions.map((sample, index) => (
+            <View key={index} style={index > 0 ? styles.sampleEntry : undefined}>
+              <View style={styles.sampleLabelRow}>
+                <Text style={styles.sampleIndexLabel}>Example {index + 1}</Text>
+                {index > 0 && (
+                  <Pressable onPress={() => removeSample(index)} hitSlop={8}>
+                    <Feather name="x" size={14} color={MUTED} />
+                  </Pressable>
+                )}
+              </View>
+              <TextInput
+                style={[styles.input, styles.textareaLarge]}
+                placeholder={
+                  index === 0
+                    ? "Paste your best caption here — include hashtags if you use them.\n\nThe AI will study every pattern: sentence length, punctuation, emojis, how you open, how you close."
+                    : "Another caption you've written — different post type is even better."
+                }
+                placeholderTextColor={MUTED}
+                value={sample}
+                onChangeText={(v) => updateSample(index, v)}
+                multiline
+                numberOfLines={5}
+                textAlignVertical="top"
+              />
+            </View>
+          ))}
+          {sampleCaptions.length < 3 && (
+            <Pressable style={styles.addSampleBtn} onPress={addSample}>
+              <Feather name="plus" size={14} color={PRIMARY} />
+              <Text style={styles.addSampleText}>Add another example</Text>
+            </Pressable>
+          )}
+          <Text style={styles.hint}>3 examples = near-perfect voice cloning</Text>
         </View>
 
         {/* Save Button */}
@@ -431,6 +503,37 @@ const styles = StyleSheet.create({
   chipTextSelected: {
     color: PRIMARY,
     fontFamily: "Nunito_600SemiBold",
+  },
+  sampleEntry: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: CARD_BORDER,
+  },
+  sampleLabelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  sampleIndexLabel: {
+    fontSize: 12,
+    fontFamily: "Nunito_600SemiBold",
+    color: MUTED,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  addSampleBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 2,
+  },
+  addSampleText: {
+    fontSize: 13,
+    fontFamily: "Nunito_600SemiBold",
+    color: PRIMARY,
   },
   saveBtn: {
     height: 52,

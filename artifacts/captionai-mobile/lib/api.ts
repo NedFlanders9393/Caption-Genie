@@ -54,6 +54,8 @@ export interface BrandVoice {
   alwaysInclude?: string;
   neverSay?: string;
   sampleCaption?: string;
+  sampleCaptions?: string[];
+  voiceDescription?: string;
 }
 
 export interface CaptionParams {

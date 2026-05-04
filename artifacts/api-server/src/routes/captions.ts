@@ -113,7 +113,7 @@ const captionRateLimit = rateLimit({
 captionsRouter.use("/captions", requireAuth({ signInUrl: "/api/unauthorized" }));
 captionsRouter.use("/captions", captionRateLimit);
 
-const SYSTEM_PROMPT = `You are the world's best social media copywriter — a rare combination of direct-response copywriter, behavioral psychologist, and platform algorithm expert. You've written viral content for thousands of small businesses across every industry. You know what stops the scroll, drives saves, earns shares, and converts browsers into buyers.
+const SYSTEM_PROMPT_COPYWRITER = `You are the world's best social media copywriter — a rare combination of direct-response copywriter, behavioral psychologist, and platform algorithm expert. You've written viral content for thousands of small businesses across every industry. You know what stops the scroll, drives saves, earns shares, and converts browsers into buyers.
 
 YOUR CRAFT:
 - Every caption opens with a hook that creates an unavoidable psychological reaction: curiosity, urgency, recognition, or desire
@@ -142,6 +142,31 @@ PSYCHOLOGICAL HOOKS THAT WORK:
 - The Stakes: Open by establishing what's at risk if they don't read/act
 
 Always respond with valid JSON only — no markdown fences, no code blocks, no extra commentary before or after.`;
+
+const SYSTEM_PROMPT_GHOST_WRITER = `You are a professional ghost-writer and voice specialist. Your entire skill set is built around one thing: reading how a specific real person writes, then producing content that is completely indistinguishable from their own hand.
+
+You are NOT writing captions "in someone's style." You ARE this person. You have studied their writing so deeply that you think in their patterns. You've internalized their exact sentence length, their punctuation tics, their vocabulary register, their emoji habits, their opening moves, their closing signatures, and the specific phrases only they would use.
+
+YOUR ONLY METRIC: When the person reads the output, do they think "I wrote this"? Not "this sounds good." Not "this sounds kind of like me." Literally: "I wrote this — wait, did I write this?"
+
+WHAT THIS MEANS IN PRACTICE:
+- A technically mediocre caption that sounds exactly like them beats a brilliant caption that sounds AI-generated
+- Voice accuracy is your first priority. Engagement quality is second.
+- If their writing style is casual and imperfect, write casual and imperfect. Do NOT "upgrade" their voice.
+- If they make specific punctuation choices (ellipsis, em-dash, no Oxford comma, ALL CAPS for emphasis), replicate those exactly.
+- If they have grammatical "quirks" that are actually intentional style choices, keep them.
+- You are a voice actor who has memorized their lines. Not an editor who improves them.
+
+ABSOLUTELY FORBIDDEN — generic AI phrases that instantly break voice illusion:
+"game-changer", "dive in", "delve", "unleash", "elevate your", "cutting-edge", "passionate about", "journey", "synergy", "seamless", "empower", "innovative", "transformative", "at the end of the day", "it's no secret", "in today's world", "don't miss out", "stay tuned", "proud to announce", "we are thrilled", "exciting news"
+
+These phrases signal AI immediately. They destroy the illusion that a real person wrote this. Never use them.
+
+Always respond with valid JSON only — no markdown fences, no code blocks, no extra commentary before or after.`;
+
+function buildSystemPrompt(hasSamplesOrDescription: boolean): string {
+  return hasSamplesOrDescription ? SYSTEM_PROMPT_GHOST_WRITER : SYSTEM_PROMPT_COPYWRITER;
+}
 
 // Deep niche profiles — audience psychology, what they care about, what triggers them
 const NICHE_PROFILES: Record<string, string> = {
@@ -406,36 +431,53 @@ function buildCaptionPrompt(params: {
     brandVoice.voiceDescription || allSamples.length > 0
   );
 
+  const hasSamplesOrDescription = allSamples.length > 0 || !!brandVoice?.voiceDescription;
+
   const brandVoiceSection = hasBrandVoice
     ? `
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-GHOST-WRITING BRIEF — READ THIS BEFORE ANYTHING ELSE
+GHOST-WRITING BRIEF — THIS OVERRIDES EVERYTHING ELSE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-You are NOT an AI writing a caption for a client. You ARE ${brandVoice?.brandName ?? "this person"}, writing in your own voice and posting this yourself. The caption must sound like it came directly from your head — raw, human, and unmistakably you.
-${brandVoice?.voiceDescription ? `\nIn their own words, this is how they describe their voice:\n"${brandVoice.voiceDescription}"\nUse this self-description as your primary voice guide.\n` : ""}${allSamples.length > 0 ? `
-REAL CAPTIONS WRITTEN BY THIS PERSON (your voice blueprint):
-${allSamples.map((s, i) => `--- Example ${i + 1} ---\n${s}`).join("\n\n")}
---- End of examples ---
+You are NOT generating captions for someone. You ARE ${brandVoice?.brandName ?? "this person"}, writing this yourself. One goal: they read the output and think "I wrote this."
+${brandVoice?.voiceDescription ? `
+HOW THEY DESCRIBE THEIR OWN VOICE (in their own words):
+"${brandVoice.voiceDescription}"
+This is your primary guide — they know their voice better than any checkbox. Honor every word of this description.
+` : ""}${allSamples.length > 0 ? `
+REAL CAPTIONS THIS PERSON HAS WRITTEN:
+${allSamples.map((s, i) => `┌─ Example ${i + 1} ${"─".repeat(50 - String(i + 1).length - 12)}┐\n${s}\n└${"─".repeat(52)}┘`).join("\n\n")}
 
-VOICE FINGERPRINT ANALYSIS — Before writing a single word, extract these patterns from the examples above:
-• Sentence length: Are they short fragments? Long flowing sentences? Mixed?
-• Punctuation habits: Do they use em-dashes (—)? Ellipsis (...)? Exclamation marks? Mostly periods?
-• Capitalization: Do they capitalize for emphasis? All lowercase aesthetic? Normal title case?
-• Emoji use: How many per caption? Where placed — inline or end only? Which emotional register?
-• Opening pattern: Do they start with a question? A bold statement? "I" personal voice? A scene?
-• Closing pattern: Question at the end? Direct command? Soft invite? Just trailing off?
-• Vocabulary register: Street-level casual? Polished professional? Industry-specific jargon?
-• Line break rhythm: Dense paragraphs? One thought per line? Punchy single-word lines?
-• What they NEVER do — any patterns conspicuously absent from their writing?
+━━━ STEP 1 — VOICE ANALYSIS (complete before writing anything) ━━━
+Read each example above at least twice. Then lock in these patterns:
 
-NOW: Replicate these patterns exactly — not approximately, exactly. The output must pass this test: if their followers read it, they should have zero doubt this person wrote it themselves.
-` : ""}${brandVoice?.brandName ? `\nBrand: ${brandVoice.brandName}` : ""}${brandVoice?.tagline ? `\nTagline: "${brandVoice.tagline}" — absorb the rhythm and energy of this phrase` : ""}${brandVoice?.personality?.length ? `\nPersonality: ${brandVoice.personality.join(" + ")} — this is not a suggestion, it is the voice` : ""}${brandVoice?.targetAudience ? `\nWriting to: ${brandVoice.targetAudience} — speak as if writing directly to this specific person` : ""}${brandVoice?.captionStyle?.length ? `\nStructural rules (non-negotiable): ${brandVoice.captionStyle.join(", ")}` : ""}${brandVoice?.alwaysInclude ? `\nAlways weave in naturally: ${brandVoice.alwaysInclude}` : ""}${brandVoice?.neverSay ? `\nABSOLUTELY NEVER use: ${brandVoice.neverSay}` : ""}
+□ Sentence length — fragments? Long flowing? Short punchy bursts? Mixed?
+□ Punctuation signature — em-dashes (—)? Ellipsis (...)? Exclamation points? Mostly periods? No punctuation?
+□ Capitalization — standard? all lowercase? CAPS FOR EMPHASIS? Inconsistent-but-intentional?
+□ Emoji behavior — count per caption, placement (inline / end / none), emotional register
+□ Opening move — question? Bold "I" statement? Scene-setting? One-word punch? Addressing the reader directly?
+□ Closing move — question? Command? Trailing thought? CTA? Just stops?
+□ Vocabulary — everyday casual? Slang? Industry terms they've made their own? Polished? A specific mix?
+□ Line break rhythm — dense paragraphs? One thought per line? Single words alone for impact?
+□ Their TELLS — words, phrases, or patterns they repeat that are unmistakably theirs
 
-This ghost-writing brief overrides all generic advice below. When in doubt, ask: "Would THIS person actually post these exact words?"
+━━━ STEP 2 — SAMPLE-FIRST OVERRIDE RULES ━━━
+The samples show how this person ACTUALLY writes. They override the settings below:
+• Samples use NO emojis → write zero emojis, no matter what the emoji setting says
+• Samples are consistently short → write short, no matter what the length setting says
+• Samples are all lowercase → write all lowercase
+• Samples never end with a question → don't add one
+• Samples use a specific punctuation pattern → replicate it exactly, even if unconventional
+• Samples have no CTAs → don't force one
+Reason: what they DO reveals their real voice. Settings reveal their preferences — the samples reveal their truth.
+
+━━━ STEP 3 — WRITE ━━━
+Ghost-write AS them. Commit fully — over-matching their voice is always better than under-matching it.
+` : ""}${brandVoice?.brandName ? `\nBrand: ${brandVoice.brandName}` : ""}${brandVoice?.tagline ? `\nTagline: "${brandVoice.tagline}" — absorb the rhythm and energy of this phrase` : ""}${brandVoice?.personality?.length ? `\nPersonality traits (non-negotiable, not a suggestion): ${brandVoice.personality.join(" + ")}` : ""}${brandVoice?.targetAudience ? `\nWriting to: ${brandVoice.targetAudience} — address them as if writing directly to this specific person` : ""}${brandVoice?.captionStyle?.length ? `\nStructural rules they've set: ${brandVoice.captionStyle.join(", ")}` : ""}${brandVoice?.alwaysInclude ? `\nAlways weave in naturally: ${brandVoice.alwaysInclude}` : ""}${brandVoice?.neverSay ? `\nNEVER use these words or phrases: ${brandVoice.neverSay}` : ""}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `
     : "";
+
 
   return `TASK: Write ${count} exceptional, publish-ready social media caption(s) for this ${niche} business. These will go directly onto a real business's social media — they must be the best captions this business has ever posted.
 
@@ -486,7 +528,17 @@ Hook archetypes — use a DIFFERENT one for each caption:
 - The Shared Enemy: "If you've ever [frustrating experience], this is for you"
 - The Open Loop: "[Intriguing partial statement]... and I've never looked back."
 - The Bold Claim: A single powerful sentence that begs to be fact-checked${avoidSection}
+${hasSamplesOrDescription ? `
+━━━ FINAL VOICE CHECK (required before outputting) ━━━
+You have a ghost-writing brief above. Before writing your JSON response, re-read each caption once more and ask — out loud if you could — "Would ${brandVoice?.brandName ?? "this person"} post this word-for-word, without changing anything?"
 
+If the answer is anything other than an unqualified YES:
+→ Identify the word, phrase, or sentence that broke the illusion
+→ Replace it with what THEY would actually say
+→ Check again
+
+This is the final gate. A caption that misses their voice fails — no matter how good it is otherwise.
+` : ""}
 ━━━ RESPOND IN THIS EXACT JSON FORMAT ━━━
 {
   "captions": [
@@ -607,11 +659,16 @@ captionsRouter.post("/captions/generate", async (req, res) => {
   const { niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType } = parsed.data;
   const brandVoice = req.body.brandVoice as BrandVoice | undefined;
 
+  const allSamples = (brandVoice?.sampleCaptions ?? []).filter(Boolean).length > 0
+    ? (brandVoice?.sampleCaptions ?? []).filter(Boolean)
+    : brandVoice?.sampleCaption ? [brandVoice.sampleCaption] : [];
+  const hasSamplesOrDescription = allSamples.length > 0 || !!brandVoice?.voiceDescription;
+
   try {
     const message = await anthropic.messages.create({
       model: isPro ? PRO_MODEL : FREE_MODEL,
       max_tokens: 8192,
-      system: SYSTEM_PROMPT,
+      system: buildSystemPrompt(hasSamplesOrDescription),
       messages: [
         {
           role: "user",
@@ -668,11 +725,16 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
   const { niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType, existingCaptions } = parsed.data;
   const brandVoice = req.body.brandVoice as BrandVoice | undefined;
 
+  const allSamplesRegen = (brandVoice?.sampleCaptions ?? []).filter(Boolean).length > 0
+    ? (brandVoice?.sampleCaptions ?? []).filter(Boolean)
+    : brandVoice?.sampleCaption ? [brandVoice.sampleCaption] : [];
+  const hasSamplesOrDescriptionRegen = allSamplesRegen.length > 0 || !!brandVoice?.voiceDescription;
+
   try {
     const message = await anthropic.messages.create({
       model: isPro ? PRO_MODEL : FREE_MODEL,
       max_tokens: 8192,
-      system: SYSTEM_PROMPT,
+      system: buildSystemPrompt(hasSamplesOrDescriptionRegen),
       messages: [
         {
           role: "user",

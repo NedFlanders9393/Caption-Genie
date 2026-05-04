@@ -92,6 +92,34 @@ RevenueCat integration was dismissed during setup. To enable subscriptions:
 
 Anthropic integration uses Replit AI Integrations — no user API key needed. Auto-provisioned via `AI_INTEGRATIONS_ANTHROPIC_BASE_URL` and `AI_INTEGRATIONS_ANTHROPIC_API_KEY`.
 
+## iOS Share Extension
+
+Allows users to generate captions without leaving Instagram, TikTok, Facebook, etc.
+
+### Architecture
+- **Two-tier system**: In-extension generation (no app switch) → fallback to deep-link into main app (pre-filled)
+- **App Group**: `group.com.captionai.app` — shared container between main app and extension
+- **Auth**: Main app writes Clerk JWT to shared `UserDefaults` on every sign-in; extension reads it directly
+
+### Files
+- `targets/ShareExtension/ShareViewController.swift` — UIViewController entry point, detects source app (Instagram/TikTok/etc.)
+- `targets/ShareExtension/ShareView.swift` — Full SwiftUI UI (Captly-branded, amber/cream palette)
+- `targets/ShareExtension/Info.plist` — NSExtension config, stores API URL + app scheme
+- `targets/ShareExtension/ShareExtension.entitlements` — App Group capability
+- `targets/main-app/TokenSync.swift` + `TokenSync.m` — Native module that writes JWT to shared UserDefaults
+- `plugins/withShareExtension.js` — Expo Config Plugin that wires the extension into the Xcode project
+- `lib/tokenSync.ts` — JS wrapper for the TokenSync native module
+- `app/_layout.tsx` — `ShareExtensionTokenSyncer` component keeps token synced on sign-in/out
+- `app/(tabs)/generate.tsx` — Reads `shareDescription/shareTone/sharePlatform/autoGenerate` deep-link params
+
+### Deep Link Format (fallback)
+`captionai-mobile:///generate?shareDescription=TEXT&shareTone=Casual&sharePlatform=Instagram&autoGenerate=true`
+
+### EAS Build Requirements
+1. Add App Group `group.com.captionai.app` in Apple Developer portal → Identifiers
+2. Register bundle ID `com.captionai.app.ShareExtension` in Apple Developer portal
+3. Run `eas build --platform ios --profile production` from `artifacts/captionai-mobile`
+
 ## Caption Generation Engine
 
 Deep prompt system in `artifacts/api-server/src/routes/captions.ts`:

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -17,8 +17,9 @@ import * as Haptics from "expo-haptics";
 import * as StoreReview from "expo-store-review";
 import { requestNotificationPermissions, scheduleDailyStreakReminder } from "@/lib/notifications";
 import { useUser, useAuth } from "@clerk/expo";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useColors } from "@/hooks/useColors";
+import { syncNiche } from "@/lib/tokenSync";
 import { useApp } from "@/context/AppContext";
 import { useSubscription } from "@/lib/revenuecat";
 import {
@@ -95,6 +96,19 @@ export default function GenerateScreen() {
   const { addToHistory, consumeGeneration, isOverLimit, history, streak, toggleFavorite, isFavorited } = useApp();
   const { isSubscribed } = useSubscription();
 
+  // Deep-link params sent by the Share Extension fallback
+  const {
+    shareDescription,
+    shareTone,
+    sharePlatform,
+    autoGenerate,
+  } = useLocalSearchParams<{
+    shareDescription?: string;
+    shareTone?: string;
+    sharePlatform?: string;
+    autoGenerate?: string;
+  }>();
+
   const [platforms, setPlatforms] = useState<string[]>(["Instagram"]);
   const [activePlatformTab, setActivePlatformTab] = useState("Instagram");
   const [niche, setNiche] = useState("");
@@ -111,6 +125,40 @@ export default function GenerateScreen() {
   const [regeneratingIdx, setRegeneratingIdx] = useState<number | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
   const [currentGenerationId, setCurrentGenerationId] = useState<string | null>(null);
+
+  // Track whether we already fired the auto-generate to avoid double-trigger
+  const autoGenerateFired = useRef(false);
+
+  // Pre-fill the form when launched from the Share Extension
+  useEffect(() => {
+    if (!shareDescription) return;
+    if (shareDescription) setDescription(shareDescription);
+    if (sharePlatform) {
+      setPlatforms([sharePlatform]);
+      setActivePlatformTab(sharePlatform);
+    }
+    if (shareTone) setTones([shareTone]);
+    // Default to "General Business" for Share Extension launches (niche may not be set yet)
+    if (!niche) setNiche("General Business");
+  // Only run once when params arrive
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shareDescription]);
+
+  // Auto-trigger generation after the form is pre-filled from a Share Extension deep link
+  useEffect(() => {
+    if (autoGenerate !== "true" || autoGenerateFired.current) return;
+    if (!shareDescription || !niche) return;
+    autoGenerateFired.current = true;
+    // Small delay to let state settle before generating
+    const timer = setTimeout(() => { handleGenerate(); }, 300);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoGenerate, shareDescription, niche]);
+
+  // Keep the Share Extension's shared storage up-to-date with the user's niche
+  useEffect(() => {
+    if (niche) syncNiche(niche);
+  }, [niche]);
 
   const brandVoice = user?.unsafeMetadata?.brandVoice as BrandVoice | undefined;
   const hasBrandVoice = !!(brandVoice?.brandName || brandVoice?.tagline || brandVoice?.personality?.length || brandVoice?.targetAudience || brandVoice?.captionStyle?.length || brandVoice?.sampleCaption);

@@ -21,7 +21,8 @@
       },
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Captly uses your photo library to let you set a profile picture.",
-        "NSUserNotificationsUsageDescription": "Captly sends optional reminders to help you maintain your writing streak."
+        "NSUserNotificationsUsageDescription": "Captly sends optional reminders to help you maintain your writing streak.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {

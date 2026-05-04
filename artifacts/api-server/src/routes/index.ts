@@ -5,6 +5,7 @@ import stripeRouter from "./stripe";
 import moderationRouter from "./moderation";
 import bugsRouter from "./bugs";
 import historyRouter from "./history";
+import favoritesRouter from "./favorites";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use(stripeRouter);
 router.use(moderationRouter);
 router.use(bugsRouter);
 router.use(historyRouter);
+router.use(favoritesRouter);
 
 export default router;

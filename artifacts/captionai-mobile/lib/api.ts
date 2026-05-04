@@ -186,6 +186,34 @@ export async function clearHistoryRemote(token: string | null = null): Promise<v
   }, 10_000).catch(() => {});
 }
 
+export async function fetchFavorites(token: string | null = null): Promise<unknown[]> {
+  if (!token || !BASE) return [];
+  const res = await fetchWithTimeout(`${BASE}/api/favorites`, {
+    method: "GET",
+    headers: authHeaders(token),
+  }, 10_000);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.entries ?? [];
+}
+
+export async function saveFavoriteEntry(entry: unknown, token: string | null = null): Promise<void> {
+  if (!token || !BASE) return;
+  await fetchWithTimeout(`${BASE}/api/favorites`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(entry),
+  }, 10_000).catch(() => {});
+}
+
+export async function deleteFavoriteRemote(id: string, token: string | null = null): Promise<void> {
+  if (!token || !BASE) return;
+  await fetchWithTimeout(`${BASE}/api/favorites/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    headers: authHeaders(token),
+  }, 10_000).catch(() => {});
+}
+
 export async function generateHashtags(
   params: HashtagParams,
   token: string | null = null

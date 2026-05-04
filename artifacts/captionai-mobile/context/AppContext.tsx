@@ -21,6 +21,9 @@ import {
   saveHistoryEntry,
   deleteHistoryEntry as deleteHistoryRemote,
   clearHistoryRemote,
+  fetchFavorites,
+  saveFavoriteEntry,
+  deleteFavoriteRemote,
 } from "@/lib/api";
 import {
   scheduleDailyStreakReminder,
@@ -73,24 +76,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const token = session ? await session.getToken().catch(() => null) : null;
     tokenRef.current = token;
 
-    const [localHistory, u, s, f, remoteEntries] = await Promise.all([
+    const [localHistory, u, s, localFavs, remoteEntries, remoteFavs] = await Promise.all([
       getHistory(),
       getUsageCount(),
       getStreak(),
       getFavorites(),
       fetchHistory(token),
+      fetchFavorites(token),
     ]);
 
-    // Merge: remote is source of truth, but keep any local entries not yet synced
+    // Merge caption history: remote is source of truth, upload any local-only entries
     if (remoteEntries.length > 0) {
       const remoteIds = new Set((remoteEntries as HistoryEntry[]).map((e) => e.id));
       const localOnly = localHistory.filter((e) => !remoteIds.has(e.id));
-      // Upload local-only entries to server in background
       localOnly.forEach((e) => saveHistoryEntry(e, token).catch(() => {}));
       const merged = [...(remoteEntries as HistoryEntry[]), ...localOnly]
         .sort((a, b) => b.createdAt - a.createdAt)
         .slice(0, 200);
-      // Persist merged list locally
       await clearHistory();
       for (const entry of merged) await addHistory(entry);
       setHistory(merged);
@@ -98,9 +100,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setHistory(localHistory);
     }
 
+    // Merge favorites: remote is source of truth, upload any local-only favorites
+    if (remoteFavs.length > 0) {
+      const remoteIds = new Set((remoteFavs as FavoriteEntry[]).map((e) => e.id));
+      const localOnly = localFavs.filter((e) => !remoteIds.has(e.id));
+      localOnly.forEach((e) => saveFavoriteEntry(e, token).catch(() => {}));
+      const mergedFavs = [...(remoteFavs as FavoriteEntry[]), ...localOnly]
+        .sort((a, b) => b.savedAt - a.savedAt);
+      setFavorites(mergedFavs);
+    } else {
+      setFavorites(localFavs);
+    }
+
     setUsageCount(u);
     setStreak(s);
-    setFavorites(f);
   }, [session]);
 
   useEffect(() => {
@@ -135,9 +148,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (alreadySaved) {
       await removeFavorite(entry.id);
       setFavorites((prev) => prev.filter((f) => f.id !== entry.id));
+      deleteFavoriteRemote(entry.id, tokenRef.current).catch(() => {});
     } else {
       await addFavorite(entry);
       setFavorites((prev) => [entry, ...prev]);
+      saveFavoriteEntry(entry, tokenRef.current).catch(() => {});
     }
   }, [favorites]);
 

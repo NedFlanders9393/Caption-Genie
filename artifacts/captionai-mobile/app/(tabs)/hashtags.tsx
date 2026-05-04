@@ -18,6 +18,7 @@ import { useColors } from "@/hooks/useColors";
 import { useSubscription } from "@/lib/revenuecat";
 import { useApp } from "@/context/AppContext";
 import { generateHashtags, type HashtagGroups } from "@/lib/api";
+import { addHashtagHistory } from "@/lib/storage";
 import OptionPicker from "@/components/OptionPicker";
 import Paywall from "@/components/Paywall";
 
@@ -172,6 +173,13 @@ export default function HashtagsScreen() {
       const result = await generateHashtags({ niche, topic: topic.trim(), platform }, token);
       setGrouped(result.grouped);
       if (!isSubscribed) await consumeGeneration();
+      // Persist this generation to local hashtag history
+      addHashtagHistory({
+        id: `ht_${Date.now()}`,
+        createdAt: Date.now(),
+        params: { niche, topic: topic.trim(), platform },
+        grouped: result.grouped,
+      }).catch(() => {});
     } catch (e: any) {
       setError(e?.message ?? "Something went wrong.");
     } finally {

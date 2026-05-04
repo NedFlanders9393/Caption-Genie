@@ -119,6 +119,34 @@ export async function incrementUsage(): Promise<number> {
 
 export const FREE_LIMIT = 10;
 
+// ── Hashtag History ───────────────────────────────────────────────────────────
+
+export interface HashtagHistoryEntry {
+  id: string;
+  createdAt: number;
+  params: { niche: string; topic: string; platform: string };
+  grouped: { niche: string[]; popular: string[]; broad: string[] };
+}
+
+const HASHTAG_HISTORY_KEY = "captionai:hashtag_history";
+const HASHTAG_HISTORY_LIMIT = 10;
+
+export async function getHashtagHistory(): Promise<HashtagHistoryEntry[]> {
+  const raw = await AsyncStorage.getItem(HASHTAG_HISTORY_KEY);
+  return raw ? JSON.parse(raw) : [];
+}
+
+export async function addHashtagHistory(entry: HashtagHistoryEntry): Promise<void> {
+  const existing = await getHashtagHistory();
+  const deduped = existing.filter((e) => e.id !== entry.id);
+  const updated = [entry, ...deduped].slice(0, HASHTAG_HISTORY_LIMIT);
+  await AsyncStorage.setItem(HASHTAG_HISTORY_KEY, JSON.stringify(updated));
+}
+
+export async function clearHashtagHistory(): Promise<void> {
+  await AsyncStorage.removeItem(HASHTAG_HISTORY_KEY);
+}
+
 // ── Favorites ─────────────────────────────────────────────────────────────────
 
 export interface FavoriteEntry {

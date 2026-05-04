@@ -43,7 +43,7 @@ const SLIDES: Slide[] = [
     icon: "zap",
     iconBg: C.darkTile,
     iconColor: C.amber,
-    title: "Welcome to OneSpark",
+    title: "Welcome to Captly",
     subtitle: "AI-powered captions crafted for your brand — in seconds.",
     bullets: [
       { icon: "zap", text: "Generate captions for any platform" },

@@ -73,11 +73,11 @@ export default function CaptionCard({
         {
           message: fullText,
           // Providing a title helps apps like Facebook show a prompt
-          title: "Caption from OneSpark",
+          title: "Caption from Captly",
         },
         {
           // iOS: show the subject field so apps that support it get the title
-          subject: "Caption from OneSpark",
+          subject: "Caption from Captly",
           // iOS: exclude AirDrop/files since this is text-only
           excludedActivityTypes: [],
         }

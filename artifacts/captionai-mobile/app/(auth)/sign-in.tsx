@@ -209,7 +209,7 @@ export default function SignInPage() {
               style={styles.logo}
             />
             <Text style={styles.title}>Welcome back</Text>
-            <Text style={styles.subtitle}>Sign in to your OneSpark account</Text>
+            <Text style={styles.subtitle}>Sign in to your Captly account</Text>
           </View>
 
           <View style={styles.form}>

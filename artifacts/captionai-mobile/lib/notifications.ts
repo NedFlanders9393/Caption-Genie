@@ -56,10 +56,10 @@ export async function notificationsEnabled(): Promise<boolean> {
 // ── Streak reminder ───────────────────────────────────────────────────────────
 
 const STREAK_MESSAGES = [
-  { title: "Keep your streak alive 🔥", body: "Open OneSpark and write a caption to keep your momentum going." },
+  { title: "Keep your streak alive 🔥", body: "Open Captly and write a caption to keep your momentum going." },
   { title: "Don't break the chain ✍️", body: "Your streak is waiting. Pop in and generate a caption today." },
   { title: "Your audience is waiting 📲", body: "Take 60 seconds to create a caption. Your streak stays alive." },
-  { title: "Small habits, big results 💡", body: "One caption a day keeps the blank page away. Open OneSpark." },
+  { title: "Small habits, big results 💡", body: "One caption a day keeps the blank page away. Open Captly." },
 ];
 
 /**

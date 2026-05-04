@@ -43,11 +43,11 @@ export default function TermsScreen() {
         <Text style={styles.updated}>Last updated: {LAST_UPDATED}</Text>
 
         <Section title="Agreement to Terms">
-          By downloading, installing, or using OneSpark, you agree to be bound by these Terms of Service. If you do not agree, please do not use the app.
+          By downloading, installing, or using Captly, you agree to be bound by these Terms of Service. If you do not agree, please do not use the app.
         </Section>
 
         <Section title="Description of Service">
-          OneSpark is an AI-powered caption generation tool for social media. We provide free and Pro subscription tiers. The free tier includes up to 10 caption generations per month. The Pro tier provides up to 500 generations per month and is billed through Apple's In-App Purchase system.
+          Captly is an AI-powered caption generation tool for social media. We provide free and Pro subscription tiers. The free tier includes up to 10 caption generations per month. The Pro tier provides up to 500 generations per month and is billed through Apple's In-App Purchase system.
         </Section>
 
         <Section title="Subscriptions & Billing">
@@ -63,16 +63,16 @@ export default function TermsScreen() {
         </Section>
 
         <Section title="Acceptable Use">
-          You agree not to use OneSpark to:{"\n\n"}
+          You agree not to use Captly to:{"\n\n"}
           {"• Generate content that is illegal, harmful, threatening, abusive, or harassing\n"}
           {"• Violate any applicable laws or regulations\n"}
           {"• Attempt to reverse engineer, hack, or disrupt the service\n"}
-          {"• Resell or redistribute access to OneSpark without our written permission\n"}
+          {"• Resell or redistribute access to Captly without our written permission\n"}
           {"• Use the service to generate spam or misleading content at scale"}
         </Section>
 
         <Section title="AI-Generated Content">
-          OneSpark uses Claude AI (Anthropic) to generate captions. You acknowledge that:{"\n\n"}
+          Captly uses Claude AI (Anthropic) to generate captions. You acknowledge that:{"\n\n"}
           {"• AI-generated content may occasionally be inaccurate, incomplete, or unsuitable\n"}
           {"• You are responsible for reviewing all generated content before publishing\n"}
           {"• We do not guarantee the originality or uniqueness of generated captions\n"}
@@ -80,7 +80,7 @@ export default function TermsScreen() {
         </Section>
 
         <Section title="Intellectual Property">
-          The OneSpark app, its design, logo, and underlying technology are owned by us and protected by intellectual property laws. You are granted a limited, non-exclusive, non-transferable license to use the app for personal or business purposes in accordance with these Terms.
+          The Captly app, its design, logo, and underlying technology are owned by us and protected by intellectual property laws. You are granted a limited, non-exclusive, non-transferable license to use the app for personal or business purposes in accordance with these Terms.
         </Section>
 
         <Section title="Account Termination">
@@ -88,11 +88,11 @@ export default function TermsScreen() {
         </Section>
 
         <Section title="Disclaimer of Warranties">
-          OneSpark is provided "as is" without warranties of any kind. We do not warrant that the service will be uninterrupted, error-free, or that AI-generated content will meet your specific requirements.
+          Captly is provided "as is" without warranties of any kind. We do not warrant that the service will be uninterrupted, error-free, or that AI-generated content will meet your specific requirements.
         </Section>
 
         <Section title="Limitation of Liability">
-          To the fullest extent permitted by law, OneSpark and its owners shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the app, including but not limited to loss of revenue or data.
+          To the fullest extent permitted by law, Captly and its owners shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the app, including but not limited to loss of revenue or data.
         </Section>
 
         <Section title="Changes to Terms">

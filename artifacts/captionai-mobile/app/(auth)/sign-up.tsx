@@ -1,5 +1,4 @@
 import { useAuth, useSignUp } from "@clerk/expo";
-import { Feather } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -27,22 +26,23 @@ const ERROR_COLOR = "#DC2626";
 const ERROR_BG = "#FEF2F2";
 const ERROR_BORDER = "#FECACA";
 
+type Step = "credentials" | "verify";
+
 export default function SignUpPage() {
-  const { signUp, errors, fetchStatus } = useSignUp();
+  const { signUp, setActive, isLoaded } = useSignUp();
   const { isSignedIn } = useAuth();
   const router = useRouter();
 
+  const [step, setStep] = useState<Step>("credentials");
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [generalError, setGeneralError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [codeFocused, setCodeFocused] = useState(false);
 
-  const isLoading = fetchStatus === "fetching";
-
-  // Auto-navigate when auth state updates
   useEffect(() => {
     if (isSignedIn) {
       router.replace("/(tabs)/home");
@@ -50,52 +50,55 @@ export default function SignUpPage() {
   }, [isSignedIn]);
 
   const handleSubmit = async () => {
+    if (!isLoaded) return;
     setGeneralError(null);
+    setIsLoading(true);
     try {
-      const { error } = await signUp.password({ emailAddress, password });
-      if (error) {
-        setGeneralError(error.message ?? "Something went wrong. Please try again.");
-        return;
-      }
-      const { error: sendError } = await signUp.verifications.sendEmailCode();
-      if (sendError) {
-        setGeneralError(sendError.message ?? "Failed to send verification code.");
-      }
+      await signUp.create({ emailAddress, password });
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      setStep("verify");
     } catch (err: any) {
-      setGeneralError(err?.message ?? "Something went wrong. Please try again.");
+      const msg = err?.errors?.[0]?.longMessage ?? err?.errors?.[0]?.message ?? err?.message ?? "Something went wrong. Please try again.";
+      setGeneralError(msg);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleVerify = async () => {
+    if (!isLoaded) return;
     setGeneralError(null);
+    setIsLoading(true);
     try {
-      const { error } = await signUp.verifications.verifyEmailCode({ code });
-      if (error) {
-        setGeneralError(error.message ?? "Invalid code. Please try again.");
-        return;
-      }
-      if (signUp.status === "complete") {
-        await signUp.finalize({
-          navigate: () => {
-            router.replace("/(tabs)/home");
-          },
-        });
+      const result = await signUp.attemptEmailAddressVerification({ code });
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        router.replace("/(tabs)/home");
       } else {
         setGeneralError("Verification incomplete. Please try again.");
       }
     } catch (err: any) {
-      setGeneralError(err?.message ?? "Verification failed. Please try again.");
+      const msg = err?.errors?.[0]?.longMessage ?? err?.errors?.[0]?.message ?? err?.message ?? "Verification failed. Please try again.";
+      setGeneralError(msg);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (signUp.status === "complete" || isSignedIn) return null;
+  const handleResend = async () => {
+    if (!isLoaded) return;
+    setGeneralError(null);
+    try {
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+    } catch (err: any) {
+      const msg = err?.errors?.[0]?.message ?? err?.message ?? "Failed to resend. Please try again.";
+      setGeneralError(msg);
+    }
+  };
 
-  // Verification step
-  if (
-    signUp.status === "missing_requirements" &&
-    signUp.unverifiedFields.includes("email_address") &&
-    signUp.missingFields.length === 0
-  ) {
+  if (isSignedIn) return null;
+
+  if (step === "verify") {
     return (
       <SafeAreaView style={styles.safe}>
         <KeyboardAvoidingView
@@ -153,17 +156,19 @@ export default function SignUpPage() {
                 </Text>
               </Pressable>
 
+              <Pressable style={styles.textButton} onPress={handleResend}>
+                <Text style={styles.textButtonText}>Resend code</Text>
+              </Pressable>
+
               <Pressable
                 style={styles.textButton}
-                onPress={async () => {
-                  try {
-                    await signUp.verifications.sendEmailCode();
-                  } catch (err: any) {
-                    setGeneralError(err?.message ?? "Failed to resend. Please try again.");
-                  }
+                onPress={() => {
+                  setStep("credentials");
+                  setCode("");
+                  setGeneralError(null);
                 }}
               >
-                <Text style={styles.textButtonText}>Resend code</Text>
+                <Text style={[styles.textButtonText, { color: MUTED }]}>← Back</Text>
               </Pressable>
             </View>
           </ScrollView>
@@ -172,7 +177,6 @@ export default function SignUpPage() {
     );
   }
 
-  // Sign-up form
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
@@ -213,9 +217,6 @@ export default function SignUpPage() {
                 onFocus={() => setEmailFocused(true)}
                 onBlur={() => setEmailFocused(false)}
               />
-              {errors.fields.emailAddress && (
-                <Text style={styles.fieldError}>{errors.fields.emailAddress.message}</Text>
-              )}
             </View>
 
             <View style={styles.field}>
@@ -232,9 +233,6 @@ export default function SignUpPage() {
                 onFocus={() => setPasswordFocused(true)}
                 onBlur={() => setPasswordFocused(false)}
               />
-              {errors.fields.password && (
-                <Text style={styles.fieldError}>{errors.fields.password.message}</Text>
-              )}
             </View>
 
             <Pressable
@@ -267,7 +265,6 @@ export default function SignUpPage() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Required for Clerk bot protection */}
       <View nativeID="clerk-captcha" />
     </SafeAreaView>
   );
@@ -291,15 +288,6 @@ const styles = StyleSheet.create({
     height: 72,
     borderRadius: 18,
     marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  logoText: {
-    fontSize: 28,
-    color: "#FFFFFF",
   },
   title: {
     fontSize: 28,
@@ -354,17 +342,6 @@ const styles = StyleSheet.create({
   },
   inputFocused: {
     borderColor: INPUT_BORDER_FOCUS,
-    shadowColor: PRIMARY,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  fieldError: {
-    fontSize: 13,
-    color: ERROR_COLOR,
-    fontFamily: "Nunito_400Regular",
-    marginTop: 2,
   },
   button: {
     height: 52,
@@ -373,16 +350,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: 8,
-    shadowColor: PRIMARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
   },
   buttonDisabled: {
     opacity: 0.5,
-    shadowOpacity: 0,
-    elevation: 0,
   },
   buttonPressed: {
     backgroundColor: PRIMARY_DARK,

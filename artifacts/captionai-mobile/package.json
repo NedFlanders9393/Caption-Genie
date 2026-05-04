@@ -64,6 +64,6 @@
     "expo-clipboard": "^8.0.8",
     "expo-notifications": "^0.32.17",
     "expo-store-review": "^9.0.9",
-    "react-native-purchases": "8.3.0"
+    "react-native-purchases": "8.12.0"
   }
 }

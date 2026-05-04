@@ -6,7 +6,7 @@ import {
   Nunito_800ExtraBold,
   useFonts,
 } from "@expo-google-fonts/nunito";
-import { ClerkLoaded, ClerkProvider, useAuth, useUser } from "@clerk/expo";
+import { ClerkLoaded, ClerkProvider, useUser } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
@@ -22,8 +22,6 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppProvider } from "@/context/AppContext";
 import { SubscriptionProvider, initializeRevenueCat, linkRevenueCatIdentity } from "@/lib/revenuecat";
 import { initGlobalCrashHandler, flushPendingCrashes, reportCrash } from "@/lib/crashReporter";
-import { syncAuthToken, clearAuthToken } from "@/lib/tokenSync";
-
 function RevenueCatIdentityLinker() {
   const { user } = useUser();
   useEffect(() => {
@@ -34,27 +32,6 @@ function RevenueCatIdentityLinker() {
   return null;
 }
 
-/** Keeps the Share Extension's shared App Group in sync with the current Clerk session token. */
-function ShareExtensionTokenSyncer() {
-  const { getToken, isSignedIn } = useAuth();
-  useEffect(() => {
-    if (!isSignedIn) {
-      clearAuthToken();
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        const token = await getToken();
-        if (token && !cancelled) syncAuthToken(token);
-      } catch {}
-    })();
-    return () => { cancelled = true; };
-  // Re-sync every time sign-in state changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSignedIn]);
-  return null;
-}
 
 SplashScreen.preventAutoHideAsync();
 
@@ -158,7 +135,6 @@ export default function RootLayout() {
     >
       <ClerkLoaded>
         <RevenueCatIdentityLinker />
-        <ShareExtensionTokenSyncer />
         <SafeAreaProvider>
           <ErrorBoundary onError={(error, stack) => reportCrash(error, "ErrorBoundary").catch(() => {})}>
             <QueryClientProvider client={queryClient}>

@@ -113,17 +113,33 @@ const captionRateLimit = rateLimit({
 captionsRouter.use("/captions", requireAuth({ signInUrl: "/api/unauthorized" }));
 captionsRouter.use("/captions", captionRateLimit);
 
-const SYSTEM_PROMPT = `You are the world's best social media copywriter — you've written viral content for thousands of small businesses across every industry. You understand platform algorithms, consumer psychology, and what actually makes people stop scrolling, engage, and buy.
+const SYSTEM_PROMPT = `You are the world's best social media copywriter — a rare combination of direct-response copywriter, behavioral psychologist, and platform algorithm expert. You've written viral content for thousands of small businesses across every industry. You know what stops the scroll, drives saves, earns shares, and converts browsers into buyers.
 
-Your captions have these qualities:
-- Magnetic first lines that interrupt the scroll (hooks that create curiosity, urgency, or instant relatability)
-- Specific, concrete language — never vague or generic buzzwords
-- Authentic voice that sounds human, not corporate
-- Emotional resonance — you connect to real feelings, real problems, real desires
-- Strategic structure: hook → value/story → CTA → hashtags
-- Every word earns its place — no filler, no fluff
+YOUR CRAFT:
+- Every caption opens with a hook that creates an unavoidable psychological reaction: curiosity, urgency, recognition, or desire
+- You write for the customer's inner monologue — you know what they want, what they fear, what they're embarrassed to admit, and what they dream about at 2am
+- Specific and concrete always beats vague and inspirational ("Lost 14 lbs in 6 weeks" beats "transform your life")
+- Your captions sound like the smartest, most interesting person the reader knows — never like marketing copy
+- You apply proven psychological principles: curiosity gaps, social proof, scarcity, identity signaling, the fear of missing out, and the desire to belong
+- Structure is invisible — readers feel pulled forward without knowing why
+- Every word earns its place. Cut anything that doesn't hook, inform, or move.
 
-You know that the #1 mistake most businesses make is writing captions ABOUT themselves. Great captions are always ABOUT the customer — their desires, their problems, their transformation.
+THE #1 RULE: Great captions are never about the business. They are about the customer — their desires, their transformation, their identity, their problems. The business is just the vehicle.
+
+ABSOLUTELY FORBIDDEN — these phrases are AI tells that destroy credibility and engagement. NEVER use:
+"game-changer", "dive in", "dive deep", "delve", "in a world where", "unleash", "elevate your", "take your X to the next level", "cutting-edge", "state-of-the-art", "passionate about", "we're excited to announce", "journey", "leverage", "synergy", "holistic", "seamless", "empower", "innovative solution", "transformative experience", "at the end of the day", "it's no secret that", "in today's fast-paced world", "look no further", "don't miss out", "stay tuned", "exciting news", "proud to announce", "we are thrilled"
+
+These phrases make every business sound identical. Banned permanently.
+
+PSYCHOLOGICAL HOOKS THAT WORK:
+- The Curiosity Gap: "The one thing most [niche] owners get wrong about [topic]..."
+- The Contrarian: "Unpopular opinion: [widely-held belief] is actually killing your [desired outcome]"
+- The Specific Number: "I gained 847 followers in 3 days without posting a single Reel. Here's what I did instead."
+- The Pattern Interrupt: Start with something completely unexpected — a question the reader didn't expect, a confession, an admission
+- The Shared Enemy: "If you've ever [frustrating experience], you're not alone — and it's not your fault"
+- The Before/After Tease: "Six months ago I was [relatable low point]. Today [specific impressive result]. The only thing that changed:"
+- The Insider Secret: "What [experts/pros] know that most [audience] don't..."
+- The Stakes: Open by establishing what's at risk if they don't read/act
 
 Always respond with valid JSON only — no markdown fences, no code blocks, no extra commentary before or after.`;
 
@@ -386,7 +402,7 @@ ${brandVoice.sampleCaption ? `\nSAMPLE CAPTION (study this carefully — match i
 This brand voice overrides generic niche advice — make it personal and specific to THIS brand.\n`
     : "";
 
-  return `TASK: Write ${count} exceptional, distinct social media caption(s) for this ${niche} business.
+  return `TASK: Write ${count} exceptional, publish-ready social media caption(s) for this ${niche} business. These will go directly onto a real business's social media — they must be the best captions this business has ever posted.
 
 ━━━ THE POST ━━━
 What this post is about: ${postDescription}
@@ -406,21 +422,35 @@ ${ctaInstruction}
 Hashtags: ${hashtagGuide}
 ${postTypeFormula}
 
+━━━ PSYCHOLOGICAL REQUIREMENTS ━━━
+Every caption must trigger at least ONE of these proven psychological responses:
+- CURIOSITY: Reader must know what comes next. Open a loop the body closes.
+- IDENTITY: Reader thinks "this is about me / this describes me exactly"
+- SOCIAL PROOF: Numbers, results, or "everyone is doing this" signals
+- URGENCY/SCARCITY: Time pressure or limited availability that makes inaction feel costly
+- ASPIRATION: Vivid picture of the life/result the reader wants
+- VALIDATION: "You're not crazy for thinking/feeling/wanting this"
+
 ━━━ QUALITY STANDARDS ━━━
 Each caption MUST:
-1. Open with a hook that stops the scroll — test: would YOU stop scrolling for this?
-2. Speak to the CUSTOMER'S desire or pain, not about the business
-3. Include at least one specific, concrete detail (not vague generalities)
-4. Sound like a real human wrote it — not AI, not marketing copy
-5. Be structurally different from the other captions (different hook type, different angle, different structure)
-6. Feel complete and publish-ready — nothing generic, nothing that could apply to any business
+1. Open with a hook that stops the scroll — ask yourself: "Would I actually stop for this?" If not, rewrite it.
+2. Contain at least ONE specific, concrete detail — a number, a name, a time, a price, a result. Vague = invisible.
+3. Sound like a smart, real human — not a marketing department, not a chatbot, not a press release
+4. Speak to the CUSTOMER'S world — their desires, fears, frustrations, or dreams. The business is mentioned only as the solution.
+5. Use a completely different hook type and structure from the other captions in this set
+6. Be platform-perfect — correct length, right energy, right hashtag count for ${platform ?? "Instagram"}
+7. Pass the "so what?" test — after reading it, the customer must feel compelled to act, comment, save, or share
 
-Hook type variety to use across the ${count} caption(s):
-- Provocative question or bold statement
-- Specific number or surprising fact
-- Relatable 'you know that feeling when...' scenario
-- Story opening ('Last week...' / 'A customer told us...')
-- Contrarian or unexpected take${avoidSection}
+FORBIDDEN PHRASES (if any of these appear, rewrite that section):
+"game-changer", "dive in", "delve", "unleash", "elevate your", "cutting-edge", "passionate about", "we're excited", "journey", "synergy", "seamless", "holistic", "empower", "innovative", "transformative", "at the end of the day", "it's no secret", "in today's world", "look no further", "don't miss out", "stay tuned", "proud to announce", "we are thrilled", "game changing"
+
+Hook archetypes — use a DIFFERENT one for each caption:
+- The Confession: "I used to [embarrassing/relatable thing] until [turning point]"
+- The Contrarian: "Unpopular opinion: [something counterintuitive about this niche]"
+- The Specific Result: "[Exact number] [result] in [timeframe]. Here's how."
+- The Shared Enemy: "If you've ever [frustrating experience], this is for you"
+- The Open Loop: "[Intriguing partial statement]... and I've never looked back."
+- The Bold Claim: A single powerful sentence that begs to be fact-checked${avoidSection}
 
 ━━━ RESPOND IN THIS EXACT JSON FORMAT ━━━
 {
@@ -442,42 +472,84 @@ function buildHashtagPrompt(params: { niche: string; topic: string; platform?: s
   const dateContext = `Today is ${monthName} ${now.getDate()}, ${year}. Factor in the current season, any major upcoming holidays or events in the next 30 days, and month-specific trends when choosing hashtags.`;
 
   const platformHashtagGuide = {
-    Instagram: "Instagram hashtag strategy: mix low-competition (10K-100K posts) for discoverability + medium (100K-1M) for reach + broad (1M+) for max exposure. Sweet spot is mostly medium-competition.",
-    Facebook: "Facebook hashtags: less important than Instagram. Focus on highly specific, community-relevant tags.",
-    LinkedIn: "LinkedIn hashtags: professional, industry-specific. People follow hashtags on LinkedIn. Choose ones your target audience actually follows.",
-    TikTok: "TikTok hashtags: mix niche + trending sounds. Include at least 2-3 currently trending tags in this category.",
-    "Twitter/X": "Twitter/X hashtags: conversations cluster around 1-2 hashtags. Choose the ones where your audience actually spends time.",
-  }[platform] ?? "Mix niche-specific with broader reach hashtags.";
+    Instagram: `Instagram hashtag strategy (post-2023 algorithm):
+- The sweet spot is 5-10 highly targeted hashtags, NOT 30 generic ones
+- Ideal mix: 3-4 niche-specific (10K-500K posts) + 2-3 topic-specific (500K-2M) + 1-2 broad (2M+)
+- Niche tags get you discovered by the RIGHT people; broad tags get you buried
+- Avoid: #love #instagood #photooftheday #likeforlike #follow — Instagram deprioritizes these
+- Include at least 1-2 community hashtags that real people in this niche actively follow
+- Hashtags with high save-rates in the niche perform better than raw follower counts`,
+    Facebook: `Facebook hashtag strategy:
+- Hashtags matter far less on Facebook than other platforms — quality over quantity
+- Use 2-3 highly specific, community-based tags maximum
+- Focus on hashtags tied to Facebook Groups or local communities
+- Avoid generic tags — Facebook's search is topic-based, not hashtag-driven
+- Best use: 1 broad topic tag + 1 location or community tag + 1 seasonal/event tag if relevant`,
+    LinkedIn: `LinkedIn hashtag strategy:
+- LinkedIn users actively FOLLOW hashtags — choose ones your ideal client follows, not just uses
+- 3-5 hashtags perform best; more than 5 looks spammy
+- Mix: 1 broad industry tag (followed by millions) + 2 specific professional topic tags + 1-2 audience-specific tags
+- LinkedIn hashtags that work: #[Industry], #[Skill], #[Role] (e.g. #Marketing, #ContentStrategy, #SmallBusiness)
+- Avoid: overly niche tags under 5K followers — not enough reach on LinkedIn`,
+    TikTok: `TikTok hashtag strategy:
+- TikTok's algorithm uses hashtags as content signals, not just discovery tools
+- 5-8 hashtags is optimal — don't spam 20+
+- Always include #fyp or #foryou as a broad signal (despite debate, they still appear in top-performing content)
+- Mix: 2-3 niche-specific community tags + 2 trending topic tags for this category + 1-2 broad reach tags
+- Check what's trending RIGHT NOW in this niche category — include at least 1-2 currently active trends
+- Lowercase, single-word hashtags often outperform multi-word on TikTok`,
+    "Twitter/X": `Twitter/X hashtag strategy:
+- 1-2 hashtags MAXIMUM — more than 2 actively hurts reach on X
+- Choose hashtags where real conversations are happening right now (check trending topics)
+- Weave naturally into the text when possible rather than appending at the end
+- Focus on the single most relevant community tag for this niche
+- Avoid branded or obscure hashtags — X users follow conversations, not niches`,
+  }[platform] ?? "Mix niche-specific with broader reach hashtags. Prioritize discoverability over volume.";
 
-  return `TASK: Generate the most effective hashtag set for a ${niche} business.
+  return `TASK: Generate the 30 highest-performing hashtags for a ${niche} business posting about: "${topic}"
 
-Post topic: ${topic}
 Platform: ${platform}
-Timing: ${dateContext}
+Current date context: ${dateContext}
 
-AUDIENCE CONTEXT: ${nicheProfile}
+AUDIENCE: ${nicheProfile}
 
-PLATFORM STRATEGY: ${platformHashtagGuide}
+PLATFORM STRATEGY:
+${platformHashtagGuide}
 
-Generate 30 strategically chosen hashtags in 3 groups:
+━━━ THE 3 GROUPS ━━━
 
-NICHE (10 tags): Highly specific to this exact niche and topic. These reach the exact right audience — people already interested in ${niche}. Include hashtags your ideal customer actually searches and follows. Mix of ${niche}-specific industry terms + location-agnostic niche tags. If the timing context is relevant (e.g. a seasonal event or holiday is approaching), include 1-2 niche tags that tie into that moment.
+NICHE (10 tags) — Your precision targeting layer:
+These reach people who are ALREADY interested in exactly this content. Think: what hashtags does your ideal customer scroll through on a Tuesday night? Include:
+- Hashtags specific to the ${niche} industry and this exact topic
+- Community hashtags that real ${niche} enthusiasts follow (not just post)
+- Micro-niche variations that signal deep relevance to the algorithm
+- 1-2 seasonal/timely tags if the current date makes them relevant (${monthName} ${year})
+- NO generic business tags here — these should feel hyper-specific
 
-POPULAR (10 tags): Well-established hashtags with consistently high engagement in this category. These extend reach beyond existing followers. Include topic-specific popular tags and any seasonal or event-based tags that apply given the current date.
+POPULAR (10 tags) — Your reach extension layer:
+Well-established hashtags with proven engagement in this category. These push content beyond your existing followers to interested discovery audiences. Include:
+- Category-level tags that are actively used but not oversaturated
+- Topic-specific popular tags that have consistent engagement (not just post volume)
+- 1-2 event or seasonal tags if currently relevant given today's date
+- Tags that appear in the "Related hashtags" for this niche's content
 
-BROAD (10 tags): High-volume discovery hashtags (millions of posts). These cast the widest net. Include universally relevant small business, entrepreneurship, and lifestyle tags that still fit this content.
+BROAD (10 tags) — Your maximum discovery layer:
+High-volume hashtags that cast the widest net while still being contextually relevant. Include:
+- Universal small business and entrepreneurship tags
+- Broad lifestyle or interest tags that this audience also cares about
+- Platform-specific popular discovery tags
 
-QUALITY RULES:
-- Every hashtag must be actually usable and discoverable (no nonsense or too-obscure tags)
-- Mix singular/plural variations thoughtfully
-- Avoid hashtags that are banned, shadowbanned, or spammy
-- Avoid mega-generic filler: #love #instagood #photooftheday #follow #like4like — these are over-saturated and hurt reach
-- Make them specific enough that the right audience finds them
-- Factor in the current month/season — seasonally relevant hashtags consistently outperform generic evergreen ones
+━━━ QUALITY RULES ━━━
+✓ Every tag must be real, searchable, and currently active
+✓ Vary between singular/plural where both exist (#FitnessCoach and #FitnessCoaching)
+✓ Seasonally relevant tags should reflect the current month (${monthName} ${year})
+✗ BANNED — never include these: #love #instagood #photooftheday #follow #like4like #likeforlike #f4f #followforfollow — these are engagement-bait that destroys reach
+✗ No hashtags with under 1,000 posts (too obscure to help)
+✗ No hashtags flagged for shadowbanning (overly sexual, spam-adjacent, or previously banned terms)
 
-Respond ONLY with valid JSON:
+Respond ONLY with valid JSON — no explanation, no markdown:
 {
-  "hashtags": ["#all30", "#combined", "#in", "#one", "#array"],
+  "hashtags": ["#all30hashtags", "#combined", "#into", "#one", "#flat", "#array"],
   "grouped": {
     "niche": ["#niche1", "#niche2", "#niche3", "#niche4", "#niche5", "#niche6", "#niche7", "#niche8", "#niche9", "#niche10"],
     "popular": ["#popular1", "#popular2", "#popular3", "#popular4", "#popular5", "#popular6", "#popular7", "#popular8", "#popular9", "#popular10"],
@@ -626,7 +698,22 @@ captionsRouter.post("/captions/hashtags", async (req, res) => {
     const message = await anthropic.messages.create({
       model: isPro ? PRO_MODEL : FREE_MODEL,
       max_tokens: 8192,
-      system: "You are the world's best social media strategist specializing in hashtag research and audience discovery. You know exactly which hashtags drive real reach vs vanity metrics. Always respond with valid JSON only — no markdown, no code blocks.",
+      system: `You are the world's leading social media hashtag strategist — part data scientist, part cultural analyst. You've studied millions of posts across every major platform and know exactly which hashtags drive real discoverability vs. which ones burn reach on over-saturated, algorithm-penalized tags.
+
+Your hashtag sets are used by real businesses to grow their audiences. You understand:
+- The difference between a hashtag with high post volume vs. high engagement rate
+- Which tags the algorithm actively promotes vs. which it suppresses
+- How to build a hashtag "funnel" — niche precision + mid-range reach + broad discovery
+- Seasonal and moment-based hashtag opportunities that most businesses miss
+- Platform-specific hashtag behavior (Instagram rewards relevance, TikTok rewards trending signals, LinkedIn rewards professional specificity)
+
+You NEVER recommend:
+- Engagement-bait tags (#like4like #follow #instagood #love #photooftheday) — these actively hurt reach
+- Shadowbanned or spam-adjacent hashtags
+- Tags with under 1,000 posts (too obscure) or so oversaturated they bury content instantly
+- Generic filler that applies to any business in any industry
+
+Always respond with valid JSON only — no markdown, no code blocks, no explanation.`,
       messages: [
         {
           role: "user",
@@ -686,7 +773,7 @@ captionsRouter.post("/captions/remix", async (req, res) => {
   const guidance = directionGuide[direction] ?? `Rewrite this caption to be: ${direction}. Keep the core message but change the style, tone, or structure to match.`;
   const platformHint = platform ? ` Optimized for ${platform}.` : "";
 
-  const prompt = `You are the world's best social media copywriter. Remix this caption in one specific direction.
+  const prompt = `You are the world's best social media copywriter. Your job: take this existing caption and remix it in ONE specific direction — fully committed, no half-measures.
 
 ORIGINAL CAPTION:
 ${caption}
@@ -694,12 +781,17 @@ ${caption}
 REMIX DIRECTION: ${direction}
 INSTRUCTION: ${guidance}${platformHint}
 
-Rules:
+RULES:
 - Keep the same core message and purpose as the original
-- Apply the direction change fully — don't be timid about it
-- The result must feel complete and publish-ready
-- Keep platform-appropriate hashtags (update them if needed to match the new tone)
+- Apply the direction change FULLY — commit to it completely, don't be timid
+- The result must be better than the original, not just different
+- The remixed caption must pass the scroll-stop test: would someone actually pause for this?
+- Keep at least ONE specific, concrete detail (number, result, name, time) — vague remixes fail
+- Update hashtags to match the new tone and direction
 - Respond with valid JSON only
+
+FORBIDDEN PHRASES — do not use any of these in the remix:
+"game-changer", "dive in", "delve", "unleash", "elevate your", "cutting-edge", "passionate about", "we're excited", "journey", "synergy", "seamless", "holistic", "empower", "innovative", "transformative", "look no further", "don't miss out", "stay tuned", "proud to announce"
 
 RESPOND IN THIS EXACT JSON FORMAT:
 {

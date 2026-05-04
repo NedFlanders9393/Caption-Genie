@@ -40,8 +40,8 @@ const OFFERING_IDENTIFIER = "default";
 const OFFERING_DISPLAY_NAME = "Default Offering";
 
 // Monthly plan — $9.99/month
-const MONTHLY_PRODUCT_ID = "captionai_pro_monthly";
-const MONTHLY_PLAY_STORE_ID = "captionai_pro_monthly:monthly";
+const MONTHLY_PRODUCT_ID = "com.captionai.app.pro.monthly";
+const MONTHLY_PLAY_STORE_ID = "com.captionai.app.pro.monthly:monthly";
 const MONTHLY_DISPLAY_NAME = "CaptionAI Pro Monthly";
 const MONTHLY_TITLE = "CaptionAI Pro Monthly";
 const MONTHLY_DURATION = "P1M";
@@ -53,8 +53,8 @@ const MONTHLY_PRICES = [
 ];
 
 // Annual plan — $49.99/year
-const ANNUAL_PRODUCT_ID = "captionai_pro_annual";
-const ANNUAL_PLAY_STORE_ID = "captionai_pro_annual:annual";
+const ANNUAL_PRODUCT_ID = "com.captionai.app.pro.yearly";
+const ANNUAL_PLAY_STORE_ID = "com.captionai.app.pro.yearly:annual";
 const ANNUAL_DISPLAY_NAME = "CaptionAI Pro Annual";
 const ANNUAL_TITLE = "CaptionAI Pro Annual";
 const ANNUAL_DURATION = "P1Y";

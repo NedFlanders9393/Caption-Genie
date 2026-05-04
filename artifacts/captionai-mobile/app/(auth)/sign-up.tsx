@@ -29,7 +29,8 @@ const ERROR_BORDER = "#FECACA";
 type Step = "credentials" | "verify";
 
 export default function SignUpPage() {
-  const { signUp, setActive, isLoaded } = useSignUp();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { signUp, setActive, isLoaded } = useSignUp() as any;
   const { isSignedIn } = useAuth();
   const router = useRouter();
 

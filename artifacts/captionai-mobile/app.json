@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Captura AI",
+    "name": "OneSpark",
     "slug": "captionai-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,8 +17,8 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.captionai.app",
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "Captura uses your photo library to let you set a profile picture.",
-        "NSUserNotificationsUsageDescription": "Captura sends optional reminders to help you maintain your writing streak."
+        "NSPhotoLibraryUsageDescription": "OneSpark uses your photo library to let you set a profile picture.",
+        "NSUserNotificationsUsageDescription": "OneSpark sends optional reminders to help you maintain your writing streak."
       }
     },
     "android": {
@@ -41,7 +41,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Captura uses your photo library to let you set a profile picture."
+          "photosPermission": "OneSpark uses your photo library to let you set a profile picture."
         }
       ],
       [

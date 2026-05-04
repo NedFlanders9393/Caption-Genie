@@ -40,10 +40,10 @@ type Slide = {
 const SLIDES: Slide[] = [
   {
     id: "welcome",
-    icon: "feather",
+    icon: "zap",
     iconBg: C.darkTile,
     iconColor: C.amber,
-    title: "Welcome to Captura",
+    title: "Welcome to OneSpark",
     subtitle: "AI-powered captions crafted for your brand — in seconds.",
     bullets: [
       { icon: "zap", text: "Generate captions for any platform" },

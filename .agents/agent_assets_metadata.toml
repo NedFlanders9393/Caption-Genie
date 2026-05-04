@@ -4,7 +4,7 @@ uploads = []
 id = "NK4YPovVEUGLfxzFAcM3I"
 uri = "file://artifacts/captionai-mobile/assets/images/icon.png"
 type = "image"
-title = "captionai app icon"
+title = "generated_image"
 
 [[outputs]]
 id = "E-GdJpUgbOg8Hg4cdEGw4"

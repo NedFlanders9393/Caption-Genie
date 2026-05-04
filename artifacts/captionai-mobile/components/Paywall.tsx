@@ -52,12 +52,12 @@ export default function Paywall({ visible, onClose }: Props) {
 
   const selectedPkg = selected === "monthly" ? monthlyPkg : annualPkg;
   const monthlyPrice = monthlyPkg?.product?.priceString ?? "$9.99";
-  const annualPrice = annualPkg?.product?.priceString ?? "$99.99";
+  const annualPrice = annualPkg?.product?.priceString ?? "$49.99";
 
   // Calculate per-month cost for annual to show savings
   const annualMonthly = annualPkg?.product?.price
     ? `$${(annualPkg.product.price / 12).toFixed(2)}/mo`
-    : "$8.33/mo";
+    : "$4.17/mo";
 
   const handlePurchase = async () => {
     if (!selectedPkg) return;

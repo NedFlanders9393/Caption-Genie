@@ -52,17 +52,17 @@ const MONTHLY_PRICES = [
   { amount_micros: 8990000, currency: "EUR" },
 ];
 
-// Annual plan — $99.99/year (≈ $100)
+// Annual plan — $49.99/year
 const ANNUAL_PRODUCT_ID = "captionai_pro_annual";
 const ANNUAL_PLAY_STORE_ID = "captionai_pro_annual:annual";
 const ANNUAL_DISPLAY_NAME = "CaptionAI Pro Annual";
 const ANNUAL_TITLE = "CaptionAI Pro Annual";
 const ANNUAL_DURATION = "P1Y";
 const ANNUAL_PACKAGE_ID = "$rc_annual";
-const ANNUAL_PACKAGE_NAME = "Annual – $99.99";
+const ANNUAL_PACKAGE_NAME = "Annual – $49.99";
 const ANNUAL_PRICES = [
-  { amount_micros: 99990000, currency: "USD" },
-  { amount_micros: 89990000, currency: "EUR" },
+  { amount_micros: 49990000, currency: "USD" },
+  { amount_micros: 44990000, currency: "EUR" },
 ];
 
 type TestStorePricesResponse = {

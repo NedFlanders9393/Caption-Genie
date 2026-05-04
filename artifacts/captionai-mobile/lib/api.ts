@@ -150,6 +150,42 @@ export async function remixCaption(
   return res.json();
 }
 
+export async function fetchHistory(token: string | null = null): Promise<unknown[]> {
+  if (!token || !BASE) return [];
+  const res = await fetchWithTimeout(`${BASE}/api/history`, {
+    method: "GET",
+    headers: authHeaders(token),
+  }, 10_000);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.entries ?? [];
+}
+
+export async function saveHistoryEntry(entry: unknown, token: string | null = null): Promise<void> {
+  if (!token || !BASE) return;
+  await fetchWithTimeout(`${BASE}/api/history`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(entry),
+  }, 10_000).catch(() => {});
+}
+
+export async function deleteHistoryEntry(id: string, token: string | null = null): Promise<void> {
+  if (!token || !BASE) return;
+  await fetchWithTimeout(`${BASE}/api/history/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    headers: authHeaders(token),
+  }, 10_000).catch(() => {});
+}
+
+export async function clearHistoryRemote(token: string | null = null): Promise<void> {
+  if (!token || !BASE) return;
+  await fetchWithTimeout(`${BASE}/api/history/all`, {
+    method: "DELETE",
+    headers: authHeaders(token),
+  }, 10_000).catch(() => {});
+}
+
 export async function generateHashtags(
   params: HashtagParams,
   token: string | null = null

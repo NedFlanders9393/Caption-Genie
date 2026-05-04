@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { useUser } from "@clerk/expo";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import { useUser, useSession } from "@clerk/expo";
 import {
   getHistory,
   addHistory,
-  deleteHistoryEntry,
+  deleteHistoryEntry as deleteHistoryLocal,
   clearHistory,
   getUsageCount,
   incrementUsage,
@@ -16,6 +16,12 @@ import {
   type HistoryEntry,
   type FavoriteEntry,
 } from "@/lib/storage";
+import {
+  fetchHistory,
+  saveHistoryEntry,
+  deleteHistoryEntry as deleteHistoryRemote,
+  clearHistoryRemote,
+} from "@/lib/api";
 import {
   scheduleDailyStreakReminder,
   scheduleLowUsageWarning,
@@ -46,6 +52,7 @@ const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { user } = useUser();
+  const { session } = useSession();
   const isBetaTester = BETA_TESTERS.includes(
     (user?.primaryEmailAddress?.emailAddress ?? "").toLowerCase()
   );
@@ -54,19 +61,47 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [usageCount, setUsageCount] = useState(0);
   const [streak, setStreak] = useState(0);
   const [favorites, setFavorites] = useState<FavoriteEntry[]>([]);
+  const tokenRef = useRef<string | null>(null);
+
+  // Keep a fresh token in a ref so callbacks can use it without stale closure issues
+  useEffect(() => {
+    if (!session) { tokenRef.current = null; return; }
+    session.getToken().then((t) => { tokenRef.current = t; }).catch(() => {});
+  }, [session]);
 
   const loadData = useCallback(async () => {
-    const [h, u, s, f] = await Promise.all([
+    const token = session ? await session.getToken().catch(() => null) : null;
+    tokenRef.current = token;
+
+    const [localHistory, u, s, f, remoteEntries] = await Promise.all([
       getHistory(),
       getUsageCount(),
       getStreak(),
       getFavorites(),
+      fetchHistory(token),
     ]);
-    setHistory(h);
+
+    // Merge: remote is source of truth, but keep any local entries not yet synced
+    if (remoteEntries.length > 0) {
+      const remoteIds = new Set((remoteEntries as HistoryEntry[]).map((e) => e.id));
+      const localOnly = localHistory.filter((e) => !remoteIds.has(e.id));
+      // Upload local-only entries to server in background
+      localOnly.forEach((e) => saveHistoryEntry(e, token).catch(() => {}));
+      const merged = [...(remoteEntries as HistoryEntry[]), ...localOnly]
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, 200);
+      // Persist merged list locally
+      await clearHistory();
+      for (const entry of merged) await addHistory(entry);
+      setHistory(merged);
+    } else {
+      setHistory(localHistory);
+    }
+
     setUsageCount(u);
     setStreak(s);
     setFavorites(f);
-  }, []);
+  }, [session]);
 
   useEffect(() => {
     loadData();
@@ -74,17 +109,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const addToHistory = useCallback(async (entry: HistoryEntry) => {
     await addHistory(entry);
-    setHistory((prev) => [entry, ...prev].slice(0, 100));
+    setHistory((prev) => [entry, ...prev].slice(0, 200));
+    saveHistoryEntry(entry, tokenRef.current).catch(() => {});
   }, []);
 
   const removeFromHistory = useCallback(async (id: string) => {
-    await deleteHistoryEntry(id);
+    await deleteHistoryLocal(id);
     setHistory((prev) => prev.filter((e) => e.id !== id));
+    deleteHistoryRemote(id, tokenRef.current).catch(() => {});
   }, []);
 
   const wipeHistory = useCallback(async () => {
     await clearHistory();
     setHistory([]);
+    clearHistoryRemote(tokenRef.current).catch(() => {});
   }, []);
 
   const refreshUsage = useCallback(async () => {

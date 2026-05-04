@@ -40,12 +40,12 @@ const GROUP_META = {
     bg: "#F8EFE4",
     desc: "Hyper-specific to your industry — reaches the exact audience most likely to buy",
   },
-  trending: {
-    label: "Trending",
+  popular: {
+    label: "Popular",
     icon: "trending-up" as const,
     accent: "#E8824A",
     bg: "#FEF0E7",
-    desc: "High-momentum tags that extend your reach beyond existing followers right now",
+    desc: "High-engagement tags with consistent reach — seasonally updated for your niche",
   },
   broad: {
     label: "Reach",
@@ -87,7 +87,7 @@ function HashtagChip({ tag, selected, onPress, accent, bg, colors }: HashtagChip
 }
 
 interface GroupCardProps {
-  groupKey: "niche" | "trending" | "broad";
+  groupKey: "niche" | "popular" | "broad";
   tags: string[];
   colors: any;
   selected: Set<string>;
@@ -191,7 +191,7 @@ export default function HashtagsScreen() {
   const smartMix = grouped
     ? [
         ...grouped.niche.slice(0, 3),
-        ...grouped.trending.slice(0, 3),
+        ...grouped.popular.slice(0, 3),
         ...grouped.broad.slice(0, 2),
       ]
     : [];
@@ -299,10 +299,10 @@ export default function HashtagsScreen() {
         {!grouped && !loading && (
           <View style={styles.preResultsHint}>
             <View style={styles.preResultsIconRow}>
-              {["niche", "trending", "broad"].map((label, i) => (
+              {["niche", "popular", "broad"].map((label, i) => (
                 <View key={label} style={[styles.preResultsPill, i === 0 && styles.preResultsPillDark]}>
                   <Text style={[styles.preResultsPillText, i === 0 && styles.preResultsPillTextLight]}>
-                    #{label === "niche" ? "targeted" : label === "trending" ? "trending" : "broad"}
+                    #{label === "niche" ? "targeted" : label === "popular" ? "popular" : "broad"}
                   </Text>
                 </View>
               ))}
@@ -357,7 +357,7 @@ export default function HashtagsScreen() {
 
             {/* Three groups */}
             <GroupCard groupKey="niche" tags={grouped.niche} colors={colors} selected={selected} onTagPress={toggleTag} />
-            <GroupCard groupKey="trending" tags={grouped.trending} colors={colors} selected={selected} onTagPress={toggleTag} />
+            <GroupCard groupKey="popular" tags={grouped.popular} colors={colors} selected={selected} onTagPress={toggleTag} />
             <GroupCard groupKey="broad" tags={grouped.broad} colors={colors} selected={selected} onTagPress={toggleTag} />
           </View>
         )}

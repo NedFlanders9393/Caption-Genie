@@ -407,6 +407,10 @@ Hook type variety to use across the ${count} caption(s):
 function buildHashtagPrompt(params: { niche: string; topic: string; platform?: string }) {
   const { niche, topic, platform = "Instagram" } = params;
   const nicheProfile = NICHE_PROFILES[niche] ?? `${niche} business`;
+  const now = new Date();
+  const monthName = now.toLocaleString("en-US", { month: "long" });
+  const year = now.getFullYear();
+  const dateContext = `Today is ${monthName} ${now.getDate()}, ${year}. Factor in the current season, any major upcoming holidays or events in the next 30 days, and month-specific trends when choosing hashtags.`;
 
   const platformHashtagGuide = {
     Instagram: "Instagram hashtag strategy: mix low-competition (10K-100K posts) for discoverability + medium (100K-1M) for reach + broad (1M+) for max exposure. Sweet spot is mostly medium-competition.",
@@ -420,6 +424,7 @@ function buildHashtagPrompt(params: { niche: string; topic: string; platform?: s
 
 Post topic: ${topic}
 Platform: ${platform}
+Timing: ${dateContext}
 
 AUDIENCE CONTEXT: ${nicheProfile}
 
@@ -427,25 +432,26 @@ PLATFORM STRATEGY: ${platformHashtagGuide}
 
 Generate 30 strategically chosen hashtags in 3 groups:
 
-NICHE (10 tags): Highly specific to this exact niche and topic. These reach the exact right audience — people already interested in ${niche}. Include hashtags your ideal customer actually searches and follows. Mix of ${niche}-specific industry terms + location-agnostic niche tags.
+NICHE (10 tags): Highly specific to this exact niche and topic. These reach the exact right audience — people already interested in ${niche}. Include hashtags your ideal customer actually searches and follows. Mix of ${niche}-specific industry terms + location-agnostic niche tags. If the timing context is relevant (e.g. a seasonal event or holiday is approaching), include 1-2 niche tags that tie into that moment.
 
-TRENDING (10 tags): Popular hashtags with high engagement in this category RIGHT NOW. These extend reach beyond existing followers. Should include mix of topic-specific trending tags + platform-specific trending formats.
+POPULAR (10 tags): Well-established hashtags with consistently high engagement in this category. These extend reach beyond existing followers. Include topic-specific popular tags and any seasonal or event-based tags that apply given the current date.
 
 BROAD (10 tags): High-volume discovery hashtags (millions of posts). These cast the widest net. Include universally relevant small business, entrepreneurship, and lifestyle tags that still fit this content.
 
 QUALITY RULES:
 - Every hashtag must be actually usable and discoverable (no nonsense or too-obscure tags)
-- Mix singular/plural variations thoughtfully  
-- Avoid hashtags that are banned or spammy
+- Mix singular/plural variations thoughtfully
+- Avoid hashtags that are banned, shadowbanned, or spammy
+- Avoid mega-generic filler: #love #instagood #photooftheday #follow #like4like — these are over-saturated and hurt reach
 - Make them specific enough that the right audience finds them
-- All hashtags MUST be relevant — no generic filler like #love #instagood unless genuinely appropriate
+- Factor in the current month/season — seasonally relevant hashtags consistently outperform generic evergreen ones
 
 Respond ONLY with valid JSON:
 {
   "hashtags": ["#all30", "#combined", "#in", "#one", "#array"],
   "grouped": {
     "niche": ["#niche1", "#niche2", "#niche3", "#niche4", "#niche5", "#niche6", "#niche7", "#niche8", "#niche9", "#niche10"],
-    "trending": ["#trending1", "#trending2", "#trending3", "#trending4", "#trending5", "#trending6", "#trending7", "#trending8", "#trending9", "#trending10"],
+    "popular": ["#popular1", "#popular2", "#popular3", "#popular4", "#popular5", "#popular6", "#popular7", "#popular8", "#popular9", "#popular10"],
     "broad": ["#broad1", "#broad2", "#broad3", "#broad4", "#broad5", "#broad6", "#broad7", "#broad8", "#broad9", "#broad10"]
   }
 }`;

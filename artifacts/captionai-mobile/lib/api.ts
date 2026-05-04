@@ -86,7 +86,7 @@ export interface HashtagParams {
 
 export interface HashtagGroups {
   niche: string[];
-  trending: string[];
+  popular: string[];
   broad: string[];
 }
 

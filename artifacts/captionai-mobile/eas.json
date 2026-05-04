@@ -31,7 +31,10 @@
       "ios": {
         "appleId": "nedflanders9393@gmail.com",
         "appleTeamId": "W964PYJS8W",
-        "ascAppId": "6766227449"
+        "ascAppId": "6766227449",
+        "ascApiKeyId": "88TCF86H75",
+        "ascApiIssuerId": "d7f20069-cfe7-4bfe-a6ad-29313f891092",
+        "ascApiKeyPath": "/tmp/AuthKey_88TCF86H75.p8"
       }
     }
   }

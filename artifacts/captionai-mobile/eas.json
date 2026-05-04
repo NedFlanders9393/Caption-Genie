@@ -30,7 +30,8 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "nedflanders9393@gmail.com"
+        "appleId": "nedflanders9393@gmail.com",
+        "appleTeamId": "W964PYJS8W"
       }
     }
   }

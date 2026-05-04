@@ -1,5 +1,5 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { requireAuth, getAuth } from "@clerk/express";
+import { requireAuth, getAuth, clerkClient } from "@clerk/express";
 import rateLimit from "express-rate-limit";
 import { anthropic } from "@workspace/integrations-anthropic-ai";
 import { GenerateCaptionsBody, RegenerateOneCaptionBody, GenerateHashtagsBody } from "@workspace/api-zod";
@@ -17,7 +17,36 @@ function getYearMonth(): string {
   return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
+// Cache userId → email for 10 minutes to avoid hammering Clerk on every request
+const emailCache = new Map<string, { email: string; expiresAt: number }>();
+
+async function getUserEmail(userId: string): Promise<string | null> {
+  const now = Date.now();
+  const cached = emailCache.get(userId);
+  if (cached && cached.expiresAt > now) return cached.email;
+  try {
+    const user = await clerkClient.users.getUser(userId);
+    const email = user.emailAddresses?.[0]?.emailAddress ?? null;
+    if (email) emailCache.set(userId, { email, expiresAt: now + 10 * 60 * 1000 });
+    return email;
+  } catch {
+    return null;
+  }
+}
+
+async function isProOverride(userId: string): Promise<boolean> {
+  const overrideList = process.env.PRO_OVERRIDE_EMAILS;
+  if (!overrideList) return false;
+  const allowed = overrideList.split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+  if (allowed.length === 0) return false;
+  const email = await getUserEmail(userId);
+  return !!email && allowed.includes(email.toLowerCase());
+}
+
 async function isRevenueCatPro(userId: string): Promise<boolean> {
+  // Owner / dev override — checked first so it's instant even without a subscription
+  if (await isProOverride(userId)) return true;
+
   const secretKey = process.env.REVENUECAT_SECRET_KEY;
   if (!secretKey) return false;
   try {

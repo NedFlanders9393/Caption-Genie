@@ -22,28 +22,17 @@ const REVENUECAT_ANDROID_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_AP
 
 export const REVENUECAT_ENTITLEMENT_IDENTIFIER = "pro";
 
-function getRevenueCatApiKey() {
-  if (!REVENUECAT_TEST_API_KEY || !REVENUECAT_IOS_API_KEY || !REVENUECAT_ANDROID_API_KEY) {
-    throw new Error("RevenueCat Public API Keys not found");
-  }
-
-  if (!REVENUECAT_ENTITLEMENT_IDENTIFIER) {
-    throw new Error("RevenueCat Entitlement Identifier not provided");
-  }
-
+function getRevenueCatApiKey(): string | null {
   if (__DEV__ || Platform.OS === "web" || Constants.executionEnvironment === "storeClient") {
-    return REVENUECAT_TEST_API_KEY;
+    return REVENUECAT_TEST_API_KEY || null;
   }
-
   if (Platform.OS === "ios") {
-    return REVENUECAT_IOS_API_KEY;
+    return REVENUECAT_IOS_API_KEY || null;
   }
-
   if (Platform.OS === "android") {
-    return REVENUECAT_ANDROID_API_KEY;
+    return REVENUECAT_ANDROID_API_KEY || null;
   }
-
-  return REVENUECAT_TEST_API_KEY;
+  return REVENUECAT_TEST_API_KEY || null;
 }
 
 export function initializeRevenueCat() {
@@ -54,7 +43,10 @@ export function initializeRevenueCat() {
   }
 
   const apiKey = getRevenueCatApiKey();
-  if (!apiKey) throw new Error("RevenueCat Public API Key not found");
+  if (!apiKey) {
+    console.warn("[RevenueCat] Public API key not configured — subscription features disabled.");
+    return;
+  }
 
   Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
   Purchases.configure({ apiKey });

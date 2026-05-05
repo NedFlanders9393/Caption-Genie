@@ -13,7 +13,6 @@ import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import * as Notifications from "expo-notifications";
 import React, { useEffect, useRef } from "react";
-import { Alert } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -118,11 +117,7 @@ export default function RootLayout() {
   }, [fontsLoaded, fontError]);
 
   useEffect(() => {
-    try {
-      initializeRevenueCat();
-    } catch (err: any) {
-      Alert.alert("RevenueCat Unavailable", err?.message ?? "Unknown error");
-    }
+    initializeRevenueCat();
   }, []);
 
   // Flush any crashes that were queued offline during a previous session

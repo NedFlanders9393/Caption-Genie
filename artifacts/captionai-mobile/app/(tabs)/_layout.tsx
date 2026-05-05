@@ -1,8 +1,6 @@
 import { useAuth } from "@clerk/expo";
 import { BlurView } from "expo-blur";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Redirect, Tabs, useRouter } from "expo-router";
-import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import { SymbolView } from "expo-symbols";
 import { Feather } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
@@ -12,33 +10,6 @@ import { useColors } from "@/hooks/useColors";
 import { ONBOARDING_KEY } from "@/lib/storage";
 
 const AMBER = "#E8B669";
-
-function NativeTabLayout() {
-  return (
-    <NativeTabs>
-      <NativeTabs.Trigger name="home">
-        <Icon sf={{ default: "house", selected: "house.fill" }} />
-        <Label>Home</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="generate">
-        <Icon sf={{ default: "wand.and.stars", selected: "wand.and.stars" }} />
-        <Label>Generate</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="history">
-        <Icon sf={{ default: "clock", selected: "clock.fill" }} />
-        <Label>History</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="hashtags">
-        <Icon sf={{ default: "number", selected: "number" }} />
-        <Label>Hashtags</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="profile">
-        <Icon sf={{ default: "person", selected: "person.fill" }} />
-        <Label>Profile</Label>
-      </NativeTabs.Trigger>
-    </NativeTabs>
-  );
-}
 
 function ClassicTabLayout() {
   const colors = useColors();
@@ -169,8 +140,5 @@ export default function TabLayout() {
     return <Redirect href="/(auth)/sign-in" />;
   }
 
-  if (isLiquidGlassAvailable()) {
-    return <NativeTabLayout />;
-  }
   return <ClassicTabLayout />;
 }

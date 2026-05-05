@@ -158,9 +158,7 @@ export default function RootLayout() {
               <SubscriptionProvider>
                 <AppProvider>
                   <GestureHandlerRootView>
-                    <KeyboardProvider>
-                      <RootLayoutNav />
-                    </KeyboardProvider>
+                    <RootLayoutNav />
                   </GestureHandlerRootView>
                 </AppProvider>
               </SubscriptionProvider>

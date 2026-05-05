@@ -16,17 +16,12 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.captionai.app",
-      "entitlements": {
-        "com.apple.security.application-groups": [
-          "group.com.captionai.app"
-        ]
-      },
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Captly uses your photo library to let you set a profile picture.",
         "NSUserNotificationsUsageDescription": "Captly sends optional reminders to help you maintain your writing streak.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "7"
+      "buildNumber": "8"
     },
     "android": {
       "permissions": [

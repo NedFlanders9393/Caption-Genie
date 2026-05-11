@@ -14,6 +14,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const PRIMARY = "#E8B669";
@@ -86,15 +87,6 @@ export default function SignInPage() {
   };
 
   if (isSignedIn) return null;
-
-  if (!isLoaded) {
-    return (
-      <SafeAreaView style={[styles.safe, styles.center]}>
-        <ActivityIndicator size="large" color={PRIMARY} />
-        <Text style={styles.loadingText}>Loading…</Text>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -189,12 +181,6 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
   center: { alignItems: "center", justifyContent: "center" },
   flex: { flex: 1 },
-  loadingText: {
-    marginTop: 14,
-    fontFamily: "Nunito_400Regular",
-    color: MUTED,
-    fontSize: 14,
-  },
   container: {
     flexGrow: 1,
     paddingHorizontal: 24,

@@ -125,14 +125,20 @@ export default function RootLayout() {
   }, []);
 
   // Handle tapping a notification — route the user to the relevant screen.
-  // We defer the listener registration to the next tick because on iOS 26 beta,
-  // synchronously calling expo-notifications TurboModule methods during the launch
-  // frame can throw an NSException that aborts the process.
+  //
+  // Registration is GATED on already-granted notification permission. This
+  // eliminates the expo-notifications TurboModule call from the launch path
+  // entirely on fresh installs (which never have permission) and matches the
+  // crash signature observed in builds 10–14 (TurboModule exception via
+  // RCTTurboModule.mm on a worker thread, JS try/catch can't contain it).
+  // On users who already granted permission, we still defer 2s past launch.
   useEffect(() => {
     let cancelled = false;
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
       if (cancelled) return;
       try {
+        const { status } = await Notifications.getPermissionsAsync();
+        if (cancelled || status !== "granted") return;
         notifListenerRef.current = Notifications.addNotificationResponseReceivedListener(
           (response) => {
             const type = response.notification.request.content.data?.type;
@@ -144,9 +150,9 @@ export default function RootLayout() {
           }
         );
       } catch {
-        // expo-notifications may throw on iOS 26 beta — ignore and continue
+        // expo-notifications can throw on some iOS versions — ignore
       }
-    }, 1500);
+    }, 2000);
     return () => {
       cancelled = true;
       clearTimeout(timer);

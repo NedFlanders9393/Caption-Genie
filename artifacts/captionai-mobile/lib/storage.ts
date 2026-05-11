@@ -79,7 +79,7 @@ export async function getHistory(): Promise<HistoryEntry[]> {
 
 export async function addHistory(entry: HistoryEntry): Promise<void> {
   const existing = await getHistory();
-  const updated = [entry, ...existing].slice(0, 100);
+  const updated = [entry, ...existing].slice(0, 200);
   await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
 }
 
@@ -91,6 +91,11 @@ export async function deleteHistoryEntry(id: string): Promise<void> {
 
 export async function clearHistory(): Promise<void> {
   await AsyncStorage.removeItem(HISTORY_KEY);
+}
+
+/** Atomically replace the entire history list (used for merges to avoid N writes). */
+export async function setHistory(entries: HistoryEntry[]): Promise<void> {
+  await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, 200)));
 }
 
 function getCurrentMonth() {
@@ -182,4 +187,9 @@ export async function removeFavorite(id: string): Promise<void> {
 export async function isFavorite(id: string): Promise<boolean> {
   const existing = await getFavorites();
   return existing.some((e) => e.id === id);
+}
+
+/** Atomically replace the entire favorites list. Used for remote/local merges. */
+export async function setFavorites(entries: FavoriteEntry[]): Promise<void> {
+  await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(entries));
 }

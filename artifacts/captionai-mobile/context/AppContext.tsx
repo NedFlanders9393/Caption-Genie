@@ -3,6 +3,7 @@ import { useUser, useSession } from "@clerk/expo";
 import {
   getHistory,
   addHistory,
+  setHistory as setHistoryLocal,
   deleteHistoryEntry as deleteHistoryLocal,
   clearHistory,
   getUsageCount,
@@ -13,6 +14,7 @@ import {
   getFavorites,
   addFavorite,
   removeFavorite,
+  setFavorites as setFavoritesLocal,
   type HistoryEntry,
   type FavoriteEntry,
 } from "@/lib/storage";
@@ -76,7 +78,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const token = session ? await session.getToken().catch(() => null) : null;
     tokenRef.current = token;
 
-    const [localHistory, u, s, localFavs, remoteEntries, remoteFavs] = await Promise.all([
+    // Local reads must always succeed; remote reads are best-effort and
+    // are isolated with `allSettled` so a single network failure can't
+    // prevent local hydration on cold start (especially offline).
+    const [localHistoryRes, uRes, sRes, localFavsRes, remoteEntriesRes, remoteFavsRes] = await Promise.allSettled([
       getHistory(),
       getUsageCount(),
       getStreak(),
@@ -85,32 +90,41 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       fetchFavorites(token),
     ]);
 
-    // Merge caption history: remote is source of truth, upload any local-only entries
-    if (remoteEntries.length > 0) {
-      const remoteIds = new Set((remoteEntries as HistoryEntry[]).map((e) => e.id));
-      const localOnly = localHistory.filter((e) => !remoteIds.has(e.id));
-      localOnly.forEach((e) => saveHistoryEntry(e, token).catch(() => {}));
-      const merged = [...(remoteEntries as HistoryEntry[]), ...localOnly]
-        .sort((a, b) => b.createdAt - a.createdAt)
-        .slice(0, 200);
-      await clearHistory();
-      for (const entry of merged) await addHistory(entry);
-      setHistory(merged);
-    } else {
-      setHistory(localHistory);
-    }
+    const localHistory = localHistoryRes.status === "fulfilled" ? localHistoryRes.value : [];
+    const u = uRes.status === "fulfilled" ? uRes.value : 0;
+    const s = sRes.status === "fulfilled" ? sRes.value : 0;
+    const localFavs = localFavsRes.status === "fulfilled" ? localFavsRes.value : [];
+    const remoteEntries = remoteEntriesRes.status === "fulfilled" ? remoteEntriesRes.value : [];
+    const remoteFavs = remoteFavsRes.status === "fulfilled" ? remoteFavsRes.value : [];
 
-    // Merge favorites: remote is source of truth, upload any local-only favorites
-    if (remoteFavs.length > 0) {
-      const remoteIds = new Set((remoteFavs as FavoriteEntry[]).map((e) => e.id));
-      const localOnly = localFavs.filter((e) => !remoteIds.has(e.id));
-      localOnly.forEach((e) => saveFavoriteEntry(e, token).catch(() => {}));
-      const mergedFavs = [...(remoteFavs as FavoriteEntry[]), ...localOnly]
-        .sort((a, b) => b.savedAt - a.savedAt);
-      setFavorites(mergedFavs);
-    } else {
-      setFavorites(localFavs);
+    // Merge caption history: union of remote + local; upload local-only either way
+    // so reinstall / device-switch never loses prior local history.
+    const remoteHistoryIds = new Set((remoteEntries as HistoryEntry[]).map((e) => e.id));
+    const localOnlyHistory = localHistory.filter((e) => !remoteHistoryIds.has(e.id));
+    if (token) {
+      localOnlyHistory.forEach((e) => saveHistoryEntry(e, token).catch(() => {}));
     }
+    const mergedHistory = [...(remoteEntries as HistoryEntry[]), ...localOnlyHistory]
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, 200);
+    if (mergedHistory.length > 0 && remoteEntries.length > 0) {
+      // Persist the merged remote-truth view locally so we hydrate fast next launch
+      await setHistoryLocal(mergedHistory).catch(() => {});
+    }
+    setHistory(mergedHistory);
+
+    // Merge favorites: same union rule, and persist merged set locally.
+    const remoteFavIds = new Set((remoteFavs as FavoriteEntry[]).map((e) => e.id));
+    const localOnlyFavs = localFavs.filter((e) => !remoteFavIds.has(e.id));
+    if (token) {
+      localOnlyFavs.forEach((e) => saveFavoriteEntry(e, token).catch(() => {}));
+    }
+    const mergedFavs = [...(remoteFavs as FavoriteEntry[]), ...localOnlyFavs]
+      .sort((a, b) => b.savedAt - a.savedAt);
+    if (remoteFavs.length > 0) {
+      await setFavoritesLocal(mergedFavs).catch(() => {});
+    }
+    setFavorites(mergedFavs);
 
     setUsageCount(u);
     setStreak(s);

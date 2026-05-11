@@ -68,16 +68,16 @@ function CaptionList({
 
   const handleCopy = async (caption: string, hashtags: string, idx: number) => {
     const text = hashtags ? `${caption}\n\n${hashtags}` : caption;
-    await Clipboard.setStringAsync(text);
-    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    try { await Clipboard.setStringAsync(text); } catch { return; }
+    if (Platform.OS !== "web") { try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {} }
     setCopiedIdx(idx);
     setTimeout(() => setCopiedIdx(null), 2000);
   };
 
   const handleCopyRemix = async (caption: string, hashtags: string, idx: number) => {
     const text = hashtags ? `${caption}\n\n${hashtags}` : caption;
-    await Clipboard.setStringAsync(text);
-    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    try { await Clipboard.setStringAsync(text); } catch { return; }
+    if (Platform.OS !== "web") { try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {} }
     setCopiedRemixIdx(idx);
     setTimeout(() => setCopiedRemixIdx(null), 2000);
   };
@@ -96,7 +96,7 @@ function CaptionList({
   const handleRemix = async (idx: number, direction: string) => {
     const original = captions[idx];
     if (!original) return;
-    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (Platform.OS !== "web") { try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {} }
     setRemixLoadingIdx(idx);
     setRemixOpenIdx(null);
     try {
@@ -158,7 +158,7 @@ function CaptionList({
               return (
                 <TouchableOpacity
                   onPress={() => {
-                    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    if (Platform.OS !== "web") { try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {} }
                     toggleFavorite({ id: favId, caption: c.caption, hashtags: c.hashtags, platform, niche, savedAt: Date.now() });
                   }}
                   style={styles.actionBtn}
@@ -404,8 +404,8 @@ function FavoritesList({ colors, bottomPad }: { colors: any; bottomPad: number }
 
   const handleCopy = async (entry: FavoriteEntry) => {
     const text = entry.hashtags ? `${entry.caption}\n\n${entry.hashtags}` : entry.caption;
-    await Clipboard.setStringAsync(text);
-    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    try { await Clipboard.setStringAsync(text); } catch { return; }
+    if (Platform.OS !== "web") { try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {} }
     setCopiedId(entry.id);
     setTimeout(() => setCopiedId(null), 2000);
   };
@@ -467,7 +467,7 @@ function FavoritesList({ colors, bottomPad }: { colors: any; bottomPad: number }
             </View>
             <TouchableOpacity
               onPress={() => {
-                if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                if (Platform.OS !== "web") { try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {} }
                 toggleFavorite(item);
               }}
               hitSlop={10}

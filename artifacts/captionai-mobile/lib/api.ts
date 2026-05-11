@@ -45,6 +45,18 @@ async function fetchWithTimeout(
   }
 }
 
+// Safely parse a Response as JSON. If the body is empty or malformed,
+// returns `null` instead of throwing — callers handle the null shape.
+async function safeJson(res: Response): Promise<any> {
+  try {
+    const text = await res.text();
+    if (!text) return null;
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
 export interface BrandVoice {
   brandName?: string;
   tagline?: string;
@@ -99,10 +111,13 @@ export async function generateCaptions(params: CaptionParams, token: string | nu
     body: JSON.stringify(params),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as any).error ?? "Failed to generate captions");
+    const err = await safeJson(res);
+    throw new Error(err?.error ?? "Failed to generate captions");
   }
-  const data = await res.json();
+  const data = await safeJson(res);
+  if (!data || !Array.isArray(data.captions)) {
+    throw new Error("Got an unexpected response from the server. Please try again.");
+  }
   return data.captions;
 }
 
@@ -130,10 +145,14 @@ export async function regenerateOneCaption(
     body: JSON.stringify(params),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as any).error ?? "Failed to regenerate caption");
+    const err = await safeJson(res);
+    throw new Error(err?.error ?? "Failed to regenerate caption");
   }
-  return res.json();
+  const data = await safeJson(res);
+  if (!data || typeof data.caption !== "string") {
+    throw new Error("Got an unexpected response from the server. Please try again.");
+  }
+  return data;
 }
 
 export async function remixCaption(
@@ -146,10 +165,14 @@ export async function remixCaption(
     body: JSON.stringify(params),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as any).error ?? "Failed to remix caption");
+    const err = await safeJson(res);
+    throw new Error(err?.error ?? "Failed to remix caption");
   }
-  return res.json();
+  const data = await safeJson(res);
+  if (!data || typeof data.caption !== "string") {
+    throw new Error("Got an unexpected response from the server. Please try again.");
+  }
+  return data;
 }
 
 export async function fetchHistory(token: string | null = null): Promise<unknown[]> {
@@ -159,8 +182,8 @@ export async function fetchHistory(token: string | null = null): Promise<unknown
     headers: authHeaders(token),
   }, 10_000);
   if (!res.ok) return [];
-  const data = await res.json();
-  return data.entries ?? [];
+  const data = await safeJson(res);
+  return Array.isArray(data?.entries) ? data.entries : [];
 }
 
 export async function saveHistoryEntry(entry: unknown, token: string | null = null): Promise<void> {
@@ -195,8 +218,8 @@ export async function fetchFavorites(token: string | null = null): Promise<unkno
     headers: authHeaders(token),
   }, 10_000);
   if (!res.ok) return [];
-  const data = await res.json();
-  return data.entries ?? [];
+  const data = await safeJson(res);
+  return Array.isArray(data?.entries) ? data.entries : [];
 }
 
 export async function saveFavoriteEntry(entry: unknown, token: string | null = null): Promise<void> {
@@ -227,8 +250,12 @@ export async function generateHashtags(
     // Hashtags are faster, but still give a reasonable window
   }, 20_000);
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as any).error ?? "Failed to generate hashtags");
+    const err = await safeJson(res);
+    throw new Error(err?.error ?? "Failed to generate hashtags");
   }
-  return res.json();
+  const data = await safeJson(res);
+  if (!data || !data.grouped) {
+    throw new Error("Got an unexpected response from the server. Please try again.");
+  }
+  return data;
 }

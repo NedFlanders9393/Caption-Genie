@@ -187,7 +187,7 @@ export default function GenerateScreen() {
       return;
     }
 
-    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (Platform.OS !== "web") { try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch {} }
     setLoading(true);
     setError(null);
 
@@ -197,7 +197,7 @@ export default function GenerateScreen() {
 
     try {
       const token = await getToken();
-      const genId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+      const genId = Date.now().toString() + Math.random().toString(36).slice(2, 11);
       if (multiPlatform) {
         const params = buildParams();
         const results = await generateMultiPlatform(params, platforms, token);

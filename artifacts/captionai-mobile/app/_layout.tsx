@@ -124,19 +124,32 @@ export default function RootLayout() {
     flushPendingCrashes().catch(() => {});
   }, []);
 
-  // Handle tapping a notification — route the user to the relevant screen
+  // Handle tapping a notification — route the user to the relevant screen.
+  // We defer the listener registration to the next tick because on iOS 26 beta,
+  // synchronously calling expo-notifications TurboModule methods during the launch
+  // frame can throw an NSException that aborts the process.
   useEffect(() => {
-    notifListenerRef.current = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        const type = response.notification.request.content.data?.type;
-        if (type === "streak_reminder") {
-          router.push("/(tabs)/generate");
-        } else if (type === "low_usage") {
-          router.push("/(tabs)/profile");
-        }
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      if (cancelled) return;
+      try {
+        notifListenerRef.current = Notifications.addNotificationResponseReceivedListener(
+          (response) => {
+            const type = response.notification.request.content.data?.type;
+            if (type === "streak_reminder") {
+              router.push("/(tabs)/generate");
+            } else if (type === "low_usage") {
+              router.push("/(tabs)/profile");
+            }
+          }
+        );
+      } catch {
+        // expo-notifications may throw on iOS 26 beta — ignore and continue
       }
-    );
+    }, 1500);
     return () => {
+      cancelled = true;
+      clearTimeout(timer);
       notifListenerRef.current?.remove();
     };
   }, []);

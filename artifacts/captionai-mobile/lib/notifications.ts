@@ -16,16 +16,27 @@ import { Platform } from "react-native";
 const STREAK_NOTIF_ID_KEY = "inkwell:streakNotifId";
 const LOW_USAGE_NOTIF_ID = "inkwell-low-usage";
 
-// Configure how notifications appear when the app is in the foreground
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+// Configure how notifications appear when the app is in the foreground.
+// IMPORTANT: This is called lazily (not at module load) because on iOS 26 beta,
+// invoking this synchronous TurboModule at app startup can throw an NSException
+// before any JS try/catch fires, aborting the process.
+let notificationHandlerConfigured = false;
+function ensureNotificationHandler(): void {
+  if (notificationHandlerConfigured) return;
+  try {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+    notificationHandlerConfigured = true;
+  } catch {
+    // Best-effort: ignore handler setup errors so the app keeps running
+  }
+}
 
 // ── Permissions ───────────────────────────────────────────────────────────────
 
@@ -36,6 +47,7 @@ Notifications.setNotificationHandler({
  */
 export async function requestNotificationPermissions(): Promise<boolean> {
   if (Platform.OS === "web") return false;
+  ensureNotificationHandler();
 
   const { status: existing } = await Notifications.getPermissionsAsync();
   if (existing === "granted") return true;
@@ -49,8 +61,12 @@ export async function requestNotificationPermissions(): Promise<boolean> {
  */
 export async function notificationsEnabled(): Promise<boolean> {
   if (Platform.OS === "web") return false;
-  const { status } = await Notifications.getPermissionsAsync();
-  return status === "granted";
+  try {
+    const { status } = await Notifications.getPermissionsAsync();
+    return status === "granted";
+  } catch {
+    return false;
+  }
 }
 
 // ── Streak reminder ───────────────────────────────────────────────────────────
@@ -68,6 +84,7 @@ const STREAK_MESSAGES = [
  */
 export async function scheduleDailyStreakReminder(streakDays: number): Promise<void> {
   if (!(await notificationsEnabled())) return;
+  ensureNotificationHandler();
 
   // Cancel the previous one
   await Notifications.cancelAllScheduledNotificationsAsync();
@@ -104,6 +121,7 @@ export async function scheduleDailyStreakReminder(streakDays: number): Promise<v
  */
 export async function scheduleLowUsageWarning(remaining: number): Promise<void> {
   if (!(await notificationsEnabled())) return;
+  ensureNotificationHandler();
 
   // Cancel any existing low-usage notification
   await Notifications.cancelScheduledNotificationAsync(LOW_USAGE_NOTIF_ID).catch(() => {});

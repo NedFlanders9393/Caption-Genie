@@ -30,7 +30,8 @@ const ERROR_BG = "#FEF2F2";
 const ERROR_BORDER = "#FECACA";
 
 export default function SignInPage() {
-  const { signIn, setActive, isLoaded } = useSignIn();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { signIn, setActive, isLoaded } = useSignIn() as any;
   const { isSignedIn } = useAuth();
   const router = useRouter();
 

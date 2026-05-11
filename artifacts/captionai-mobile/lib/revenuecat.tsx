@@ -7,6 +7,7 @@ import Constants from "expo-constants";
 // We load it lazily and fall back to a no-op stub when unavailable.
 let Purchases: any = null;
 let purchasesAvailable = false;
+let purchasesConfigured = false;
 
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -48,12 +49,18 @@ export function initializeRevenueCat() {
     return;
   }
 
-  Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
-  Purchases.configure({ apiKey });
+  try {
+    Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
+    Purchases.configure({ apiKey });
+    purchasesConfigured = true;
+  } catch (err) {
+    console.warn("[RevenueCat] configure() failed — subscription features disabled:", err);
+    purchasesConfigured = false;
+  }
 }
 
 export async function linkRevenueCatIdentity(clerkUserId: string): Promise<void> {
-  if (Platform.OS === "web" || !purchasesAvailable) return;
+  if (Platform.OS === "web" || !purchasesAvailable || !purchasesConfigured) return;
   try {
     await Purchases.logIn(clerkUserId);
   } catch (err) {
@@ -70,8 +77,13 @@ function useSubscriptionContext() {
   const customerInfoQuery = useQuery({
     queryKey: ["revenuecat", "customer-info"],
     queryFn: async () => {
-      if (!purchasesAvailable) return STUB_CUSTOMER_INFO;
-      return Purchases.getCustomerInfo();
+      if (!purchasesAvailable || !purchasesConfigured) return STUB_CUSTOMER_INFO;
+      try {
+        return await Purchases.getCustomerInfo();
+      } catch (err) {
+        console.warn("[RevenueCat] getCustomerInfo failed:", err);
+        return STUB_CUSTOMER_INFO;
+      }
     },
     staleTime: 60 * 1000,
     retry: false,
@@ -80,8 +92,13 @@ function useSubscriptionContext() {
   const offeringsQuery = useQuery({
     queryKey: ["revenuecat", "offerings"],
     queryFn: async () => {
-      if (!purchasesAvailable) return null;
-      return Purchases.getOfferings();
+      if (!purchasesAvailable || !purchasesConfigured) return null;
+      try {
+        return await Purchases.getOfferings();
+      } catch (err) {
+        console.warn("[RevenueCat] getOfferings failed:", err);
+        return null;
+      }
     },
     staleTime: 300 * 1000,
     retry: false,
@@ -89,7 +106,9 @@ function useSubscriptionContext() {
 
   const purchaseMutation = useMutation({
     mutationFn: async (packageToPurchase: any) => {
-      if (!purchasesAvailable) throw new Error("Purchases not available in Expo Go. Please use a development build.");
+      if (!purchasesAvailable || !purchasesConfigured) {
+        throw new Error("Subscriptions are not available yet. Please try again later.");
+      }
       const { customerInfo } = await Purchases.purchasePackage(packageToPurchase);
       return customerInfo;
     },
@@ -98,7 +117,9 @@ function useSubscriptionContext() {
 
   const restoreMutation = useMutation({
     mutationFn: async () => {
-      if (!purchasesAvailable) throw new Error("Purchases not available in Expo Go. Please use a development build.");
+      if (!purchasesAvailable || !purchasesConfigured) {
+        throw new Error("Subscriptions are not available yet. Please try again later.");
+      }
       return Purchases.restorePurchases();
     },
     onSuccess: () => customerInfoQuery.refetch(),

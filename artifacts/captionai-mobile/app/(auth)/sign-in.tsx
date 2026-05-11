@@ -121,6 +121,18 @@ export default function SignInPage() {
 
   if (isSignedIn) return null;
 
+  // Block the form until Clerk is ready — never show a sign-in button that can't work
+  if (!isLoaded) {
+    return (
+      <SafeAreaView style={[styles.safe, { alignItems: "center", justifyContent: "center" }]}>
+        <ActivityIndicator size="large" color={PRIMARY} />
+        <Text style={{ marginTop: 14, fontFamily: "Nunito_400Regular", color: MUTED, fontSize: 14 }}>
+          Loading…
+        </Text>
+      </SafeAreaView>
+    );
+  }
+
   if (step === "second_factor") {
     return (
       <SafeAreaView style={styles.safe}>

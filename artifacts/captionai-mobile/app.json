@@ -21,7 +21,7 @@
         "NSUserNotificationsUsageDescription": "Captly sends optional reminders to help you maintain your writing streak.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "10"
+      "buildNumber": "11"
     },
     "android": {
       "permissions": [
@@ -57,8 +57,7 @@
       ]
     ],
     "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "typedRoutes": true
     },
     "extra": {
       "eas": {

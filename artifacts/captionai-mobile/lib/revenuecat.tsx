@@ -3,19 +3,12 @@ import { Platform } from "react-native";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Constants from "expo-constants";
 
-// react-native-purchases is a native module — it cannot be imported in Expo Go.
-// We load it lazily and fall back to a no-op stub when unavailable.
-let Purchases: any = null;
-let purchasesAvailable = false;
+// react-native-purchases is intentionally NOT imported until RevenueCat keys are set.
+// Even just linking the native module into the binary has caused iOS 26 beta crashes,
+// so we keep it removed from the dependency tree entirely while subscriptions are disabled.
+const Purchases: any = null;
+const purchasesAvailable = false;
 let purchasesConfigured = false;
-
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  Purchases = require("react-native-purchases").default;
-  purchasesAvailable = true;
-} catch {
-  purchasesAvailable = false;
-}
 
 const REVENUECAT_TEST_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY;
 const REVENUECAT_IOS_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY;

@@ -62,7 +62,6 @@
     "@expo-google-fonts/nunito": "^0.4.2",
     "expo-clipboard": "^8.0.8",
     "expo-notifications": "^0.32.17",
-    "expo-store-review": "^9.0.9",
-    "react-native-purchases": "8.12.0"
+    "expo-store-review": "^9.0.9"
   }
 }

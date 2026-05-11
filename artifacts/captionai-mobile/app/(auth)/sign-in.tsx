@@ -3,6 +3,7 @@ import { Feather } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -52,12 +53,19 @@ export default function SignInPage() {
   }, [isSignedIn]);
 
   const handleSignIn = async () => {
-    if (!isLoaded) return;
+    if (!isLoaded) {
+      setGeneralError("Authentication is still loading. Please wait a moment and try again.");
+      return;
+    }
+    if (!emailAddress.trim() || !password) {
+      setGeneralError("Please enter your email and password.");
+      return;
+    }
     setGeneralError(null);
     setIsLoading(true);
     try {
       const result = await signIn.create({
-        identifier: emailAddress,
+        identifier: emailAddress.trim(),
         password,
       });
       if (result.status === "complete") {
@@ -256,15 +264,17 @@ export default function SignInPage() {
             <Pressable
               style={({ pressed }) => [
                 styles.button,
-                (!emailAddress || !password || isLoading) && styles.buttonDisabled,
-                pressed && styles.buttonPressed,
+                isLoading && styles.buttonDisabled,
+                pressed && !isLoading && styles.buttonPressed,
               ]}
               onPress={handleSignIn}
-              disabled={!emailAddress || !password || isLoading}
+              disabled={isLoading}
             >
-              <Text style={styles.buttonText}>
-                {isLoading ? "Signing in…" : "Sign in"}
-              </Text>
+              {isLoading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.buttonText}>Sign in</Text>
+              )}
             </Pressable>
 
             <View style={styles.footer}>

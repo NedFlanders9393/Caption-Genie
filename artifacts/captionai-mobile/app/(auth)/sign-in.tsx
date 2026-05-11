@@ -4,7 +4,7 @@ import { Link, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Image,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -28,23 +28,17 @@ const ERROR_COLOR = "#DC2626";
 const ERROR_BG = "#FEF2F2";
 const ERROR_BORDER = "#FECACA";
 
-type Step = "credentials" | "second_factor";
-
 export default function SignInPage() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { signIn, setActive, isLoaded } = useSignIn() as any;
+  const { signIn, setActive, isLoaded } = useSignIn();
   const { isSignedIn } = useAuth();
   const router = useRouter();
 
-  const [step, setStep] = useState<Step>("credentials");
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
-  const [code, setCode] = useState("");
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
-  const [codeFocused, setCodeFocused] = useState(false);
 
   useEffect(() => {
     if (isSignedIn) {
@@ -53,163 +47,51 @@ export default function SignInPage() {
   }, [isSignedIn]);
 
   const handleSignIn = async () => {
-    if (!isLoaded) {
-      setGeneralError("Authentication is still loading. Please wait a moment and try again.");
-      return;
-    }
-    if (!emailAddress.trim() || !password) {
+    if (!isLoaded || !signIn) return;
+
+    const email = emailAddress.trim();
+    if (!email || !password) {
       setGeneralError("Please enter your email and password.");
       return;
     }
+
     setGeneralError(null);
     setIsLoading(true);
+
     try {
       const result = await signIn.create({
-        identifier: emailAddress.trim(),
+        identifier: email,
         password,
       });
+
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
-        router.replace("/(tabs)/home");
-      } else if (result.status === "needs_second_factor") {
-        await signIn.prepareSecondFactor({ strategy: "email_code" });
-        setStep("second_factor");
       } else {
-        setGeneralError(`Sign-in could not complete (status: ${result.status}). Please try again.`);
+        const msg = `Sign-in incomplete (status: ${result.status}). Please try again.`;
+        setGeneralError(msg);
+        Alert.alert("Sign in failed", msg);
       }
-    } catch (err: any) {
-      const msg = err?.errors?.[0]?.longMessage ?? err?.errors?.[0]?.message ?? err?.message ?? "Something went wrong. Please try again.";
+    } catch (err: unknown) {
+      const e = err as { errors?: { longMessage?: string; message?: string }[]; message?: string };
+      const msg =
+        e?.errors?.[0]?.longMessage ??
+        e?.errors?.[0]?.message ??
+        e?.message ??
+        "Something went wrong. Please try again.";
       setGeneralError(msg);
+      Alert.alert("Sign in failed", msg);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleVerifyCode = async () => {
-    if (!isLoaded) return;
-    setGeneralError(null);
-    setIsLoading(true);
-    try {
-      const result = await signIn.attemptSecondFactor({
-        strategy: "email_code",
-        code,
-      });
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        router.replace("/(tabs)/home");
-      } else {
-        setGeneralError("Verification incomplete. Please try again.");
-      }
-    } catch (err: any) {
-      const msg = err?.errors?.[0]?.longMessage ?? err?.errors?.[0]?.message ?? err?.message ?? "Verification failed. Please try again.";
-      setGeneralError(msg);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleResendCode = async () => {
-    if (!isLoaded) return;
-    setGeneralError(null);
-    try {
-      await signIn.prepareSecondFactor({ strategy: "email_code" });
-    } catch (err: any) {
-      const msg = err?.errors?.[0]?.message ?? err?.message ?? "Could not resend. Please try again.";
-      setGeneralError(msg);
     }
   };
 
   if (isSignedIn) return null;
 
-  // Block the form until Clerk is ready — never show a sign-in button that can't work
   if (!isLoaded) {
     return (
-      <SafeAreaView style={[styles.safe, { alignItems: "center", justifyContent: "center" }]}>
+      <SafeAreaView style={[styles.safe, styles.center]}>
         <ActivityIndicator size="large" color={PRIMARY} />
-        <Text style={{ marginTop: 14, fontFamily: "Nunito_400Regular", color: MUTED, fontSize: 14 }}>
-          Loading…
-        </Text>
-      </SafeAreaView>
-    );
-  }
-
-  if (step === "second_factor") {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.flex}
-        >
-          <ScrollView
-            contentContainerStyle={styles.container}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View style={styles.header}>
-              <View style={styles.logoCircle}>
-                <Feather name="feather" size={28} color="#FFFFFF" />
-              </View>
-              <Text style={styles.title}>Check your email</Text>
-              <Text style={styles.subtitle}>
-                We sent a 6-digit code to{"\n"}
-                <Text style={{ color: PRIMARY, fontFamily: "Nunito_600SemiBold" }}>
-                  {emailAddress}
-                </Text>
-              </Text>
-            </View>
-
-            <View style={styles.form}>
-              {generalError && (
-                <View style={styles.errorBox}>
-                  <Text style={styles.errorBoxText}>{generalError}</Text>
-                </View>
-              )}
-
-              <View style={styles.field}>
-                <Text style={styles.label}>Verification code</Text>
-                <TextInput
-                  style={[styles.input, codeFocused && styles.inputFocused]}
-                  value={code}
-                  placeholder="000000"
-                  placeholderTextColor={MUTED}
-                  onChangeText={setCode}
-                  keyboardType="number-pad"
-                  autoFocus
-                  onFocus={() => setCodeFocused(true)}
-                  onBlur={() => setCodeFocused(false)}
-                />
-              </View>
-
-              <Pressable
-                style={({ pressed }) => [
-                  styles.button,
-                  (isLoading || !code) && styles.buttonDisabled,
-                  pressed && styles.buttonPressed,
-                ]}
-                onPress={handleVerifyCode}
-                disabled={isLoading || !code}
-              >
-                <Text style={styles.buttonText}>
-                  {isLoading ? "Verifying…" : "Verify & sign in"}
-                </Text>
-              </Pressable>
-
-              <Pressable style={styles.textButton} onPress={handleResendCode}>
-                <Text style={styles.textButtonText}>Resend code</Text>
-              </Pressable>
-
-              <Pressable
-                style={styles.textButton}
-                onPress={() => {
-                  setStep("credentials");
-                  setCode("");
-                  setGeneralError(null);
-                }}
-              >
-                <Text style={[styles.textButtonText, { color: MUTED }]}>← Back</Text>
-              </Pressable>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+        <Text style={styles.loadingText}>Loading…</Text>
       </SafeAreaView>
     );
   }
@@ -225,20 +107,19 @@ export default function SignInPage() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <Image
-              source={require("../../assets/images/icon.png")}
-              style={styles.logo}
-            />
+            <View style={styles.logoCircle}>
+              <Feather name="feather" size={32} color="#FFFFFF" />
+            </View>
             <Text style={styles.title}>Welcome back</Text>
             <Text style={styles.subtitle}>Sign in to your Captly account</Text>
           </View>
 
           <View style={styles.form}>
-            {generalError && (
+            {generalError ? (
               <View style={styles.errorBox}>
                 <Text style={styles.errorBoxText}>{generalError}</Text>
               </View>
-            )}
+            ) : null}
 
             <View style={styles.field}>
               <Text style={styles.label}>Email</Text>
@@ -306,27 +187,28 @@ export default function SignInPage() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
+  center: { alignItems: "center", justifyContent: "center" },
   flex: { flex: 1 },
+  loadingText: {
+    marginTop: 14,
+    fontFamily: "Nunito_400Regular",
+    color: MUTED,
+    fontSize: 14,
+  },
   container: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 40,
+    paddingTop: 48,
     paddingBottom: 32,
   },
   header: {
     alignItems: "center",
     marginBottom: 40,
   },
-  logo: {
-    width: 72,
-    height: 72,
-    borderRadius: 18,
-    marginBottom: 20,
-  },
   logoCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 18,
+    width: 80,
+    height: 80,
+    borderRadius: 20,
     backgroundColor: PRIMARY,
     alignItems: "center",
     justifyContent: "center",
@@ -406,15 +288,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     fontFamily: "Nunito_600SemiBold",
-  },
-  textButton: {
-    alignItems: "center",
-    paddingVertical: 8,
-  },
-  textButtonText: {
-    color: PRIMARY,
-    fontSize: 14,
-    fontFamily: "Nunito_500Medium",
   },
   footer: {
     flexDirection: "row",

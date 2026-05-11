@@ -1,0 +1,39 @@
+====== CAPTLY TERMINATE ======
+thread: 
+utcTimestamp: 2026-05-11 22:34:15 +0000
+C++ exception
+  type: facebook::jsi::JSError
+  what: ExceptionsManager.reportException raised an exception: Unhandled JS Exception: Error: @clerk/expo: Missing publishableKey. You can get your key at https://dashboard.clerk.com/last-active?path=api-keys.
+
+This error is located at:
+ ..., stack:
+throwMissingPublishableKeyError@76531:23
+anonymous@99018:72
+ClerkProvider@100586:95
+renderWithHooks@16530:31
+updateFunctionComponent@18083:31
+beginWork@18497:38
+performUnitOfWork@20050:24
+workLoopSync@19954:54
+renderRootSync@19939:18
+performWorkOnRoot@19742:55
+performWorkOnRootViaSchedulerTask@16085:21
+
+
+Error: ExceptionsManager.reportException raised an exception: Unhandled JS Exception: Error: @clerk/expo: Missing publishableKey. You can get your key at https://dashboard.clerk.com/last-active?path=api-keys.
+
+This error is located at:
+ ..., stack:
+throwMissingPublishableKeyError@76531:23
+anonymous@99018:72
+ClerkProvider@100586:95
+renderWithHooks@16530:31
+updateFunctionComponent@18083:31
+beginWork@18497:38
+performUnitOfWork@20050:24
+workLoopSync@19954:54
+renderRootSync@19939:18
+performWorkOnRoot@19742:55
+performWorkOnRootViaSchedulerTask@16085:21
+
+==============================

@@ -9,17 +9,26 @@
       "distribution": "internal",
       "ios": {
         "simulator": false
+      },
+      "env": {
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_cmVuZXdlZC1saW9uZXNzLTI0LmNsZXJrLmFjY291bnRzLmRldiQ"
       }
     },
     "preview": {
       "distribution": "internal",
       "ios": {
         "buildConfiguration": "Release"
+      },
+      "env": {
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_cmVuZXdlZC1saW9uZXNzLTI0LmNsZXJrLmFjY291bnRzLmRldiQ"
       }
     },
     "production": {
       "ios": {
         "buildConfiguration": "Release"
+      },
+      "env": {
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_cmVuZXdlZC1saW9uZXNzLTI0LmNsZXJrLmFjY291bnRzLmRldiQ"
       }
     }
   },

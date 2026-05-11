@@ -6,7 +6,7 @@ import {
   Nunito_800ExtraBold,
   useFonts,
 } from "@expo-google-fonts/nunito";
-import { ClerkLoaded, ClerkProvider, useSession, useUser } from "@clerk/expo";
+import { ClerkLoaded, ClerkProvider, useUser } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
@@ -20,7 +20,6 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppProvider } from "@/context/AppContext";
 import { SubscriptionProvider, initializeRevenueCat, linkRevenueCatIdentity } from "@/lib/revenuecat";
 import { initGlobalCrashHandler, flushPendingCrashes, reportCrash } from "@/lib/crashReporter";
-import { syncAuthToken, clearAuthToken } from "@/lib/tokenSync";
 
 function RevenueCatIdentityLinker() {
   const { user } = useUser();
@@ -32,25 +31,13 @@ function RevenueCatIdentityLinker() {
   return null;
 }
 
-/** Keeps the Share Extension's shared App Group in sync with the current Clerk session token. */
-function ShareExtensionTokenSyncer() {
-  const { session, isSignedIn } = useSession();
-  useEffect(() => {
-    if (!isSignedIn || !session) {
-      clearAuthToken();
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        const token = await session.getToken();
-        if (token && !cancelled) syncAuthToken(token);
-      } catch {}
-    })();
-    return () => { cancelled = true; };
-  }, [isSignedIn, session]);
-  return null;
-}
+// NOTE: ShareExtensionTokenSyncer was removed from the launch path because the
+// Share Extension is not currently included in the build (no plugin in app.json
+// adds TokenSync.swift/.m to the Xcode project). Calling NativeModules.TokenSync
+// when it isn't registered is a no-op in tokenSync.ts, but keeping the
+// component in the render tree adds a useEffect with a `useSession()` subscription
+// that runs on every mount during the launch window. Re-add when shipping the
+// Share Extension.
 
 
 SplashScreen.preventAutoHideAsync();
@@ -170,7 +157,6 @@ export default function RootLayout() {
     >
       <ClerkLoaded>
         <RevenueCatIdentityLinker />
-        <ShareExtensionTokenSyncer />
         <SafeAreaProvider>
           <ErrorBoundary onError={(error, stack) => reportCrash(error, "ErrorBoundary").catch(() => {})}>
             <QueryClientProvider client={queryClient}>

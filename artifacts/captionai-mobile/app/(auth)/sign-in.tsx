@@ -97,7 +97,7 @@ export default function SignInPage() {
       >
         <ScrollView
           contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps="always"
         >
           <View style={styles.header}>
             <View style={styles.logoCircle}>

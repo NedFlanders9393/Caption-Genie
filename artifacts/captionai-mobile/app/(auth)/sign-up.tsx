@@ -106,7 +106,7 @@ export default function SignUpPage() {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.flex}
         >
-          <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+          <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="always">
             <View style={styles.header}>
               <Image
                 source={require("../../assets/images/icon.png")}
@@ -184,7 +184,7 @@ export default function SignUpPage() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.flex}
       >
-        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="always">
           <View style={styles.header}>
             <Image
               source={require("../../assets/images/icon.png")}

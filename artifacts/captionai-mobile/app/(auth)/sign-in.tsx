@@ -66,24 +66,13 @@ export default function SignInPage() {
     setIsLoading(true);
 
     try {
-      console.log("[sign-in] calling signIn.create");
-      const createResult = await signIn.create({ identifier: email });
-      const createStatus = createResult?.status ?? signIn?.status;
-      console.log("[sign-in] create status=", createStatus, "sessionId=", createResult?.createdSessionId);
-
-      let sessionId = createResult?.createdSessionId ?? signIn?.createdSessionId;
-      let finalStatus = createStatus;
-
-      if (!sessionId && (createStatus === "needs_first_factor" || createStatus === undefined)) {
-        console.log("[sign-in] attempting first factor with password");
-        const attemptResult = await signIn.attemptFirstFactor({
-          strategy: "password",
-          password,
-        });
-        finalStatus = attemptResult?.status ?? signIn?.status;
-        sessionId = attemptResult?.createdSessionId ?? signIn?.createdSessionId;
-        console.log("[sign-in] attempt status=", finalStatus, "sessionId=", sessionId);
-      }
+      // For password sign-in, Clerk takes identifier AND password in a single
+      // create() call. attemptFirstFactor is only for email-code / OTP flows.
+      console.log("[sign-in] calling signIn.create with password");
+      const attempt = await signIn.create({ identifier: email, password });
+      const finalStatus = attempt?.status ?? signIn?.status;
+      const sessionId = attempt?.createdSessionId ?? signIn?.createdSessionId;
+      console.log("[sign-in] result status=", finalStatus, "sessionId=", sessionId);
 
       if (sessionId) {
         await setActive({ session: sessionId });

@@ -87,11 +87,13 @@ export default function SignUpPage() {
     setIsLoading(true);
     try {
       const result = await signUp.attemptEmailAddressVerification({ code });
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
+      console.log("[verify] result keys=", result ? Object.keys(result) : null, "status=", result?.status, "sessionId=", result?.createdSessionId ?? signUp?.createdSessionId);
+      const sessionId = result?.createdSessionId ?? signUp?.createdSessionId;
+      if (sessionId) {
+        await setActive({ session: sessionId });
         router.replace("/(tabs)/home");
       } else {
-        setGeneralError("Verification incomplete. Please try again.");
+        setGeneralError(`Verification incomplete (status: ${result?.status ?? "unknown"}). Please try again.`);
       }
     } catch (err: any) {
       console.log("[verify] error", JSON.stringify(err));

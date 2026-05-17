@@ -71,17 +71,21 @@ export default function SignInPage() {
         identifier: email,
         password,
       });
-      console.log("[sign-in] result status=", result?.status);
+      console.log("[sign-in] result keys=", result ? Object.keys(result) : null);
+      console.log("[sign-in] status=", result?.status, "signIn.status=", signIn?.status, "createdSessionId=", result?.createdSessionId ?? signIn?.createdSessionId);
 
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
+      const status = result?.status ?? signIn?.status;
+      const sessionId = result?.createdSessionId ?? signIn?.createdSessionId;
+
+      if (sessionId) {
+        await setActive({ session: sessionId });
         console.log("[sign-in] setActive done, navigating");
         router.replace("/(tabs)/home");
-      } else if (result.status === "needs_first_factor" || result.status === "needs_second_factor") {
-        const msg = `Additional verification required (${result.status}). This isn't supported yet — please use a password-only account.`;
+      } else if (status === "needs_first_factor" || status === "needs_second_factor") {
+        const msg = `Additional verification required (${status}). This isn't supported yet — please use a password-only account.`;
         setGeneralError(msg);
       } else {
-        const msg = `Sign-in incomplete (status: ${result.status}). Please try again.`;
+        const msg = `Sign-in incomplete (status: ${status ?? "unknown"}). Please try again.`;
         setGeneralError(msg);
       }
     } catch (err: unknown) {

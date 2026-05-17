@@ -239,6 +239,60 @@ export async function deleteFavoriteRemote(id: string, token: string | null = nu
   }, 10_000).catch(() => {});
 }
 
+// ─── Credits ─────────────────────────────────────────────────────────────
+
+export interface CreditBalance {
+  subscription: number;
+  purchased: number;
+  total: number;
+  monthlyCreditsResetAt: string;
+  lifetimeUsed: number;
+  lifetimePurchased: number;
+}
+
+export interface CreditTransaction {
+  id: number;
+  delta: number;
+  reason: string;
+  bucket: string;
+  source: string | null;
+  balanceAfter: number;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export async function fetchCreditBalance(token: string | null): Promise<CreditBalance> {
+  const res = await fetchWithTimeout(
+    `${BASE}/api/credits/balance`,
+    { method: "GET", headers: authHeaders(token) },
+    10_000,
+  );
+  if (!res.ok) {
+    const err = await safeJson(res);
+    throw new Error(err?.error ?? "Failed to fetch credit balance");
+  }
+  const data = await safeJson(res);
+  if (!data) throw new Error("Empty response from credit balance endpoint");
+  return data as CreditBalance;
+}
+
+export async function fetchCreditTransactions(
+  token: string | null,
+  limit: number = 50,
+): Promise<CreditTransaction[]> {
+  const res = await fetchWithTimeout(
+    `${BASE}/api/credits/transactions?limit=${limit}`,
+    { method: "GET", headers: authHeaders(token) },
+    10_000,
+  );
+  if (!res.ok) {
+    const err = await safeJson(res);
+    throw new Error(err?.error ?? "Failed to fetch credit transactions");
+  }
+  const data = await safeJson(res);
+  return (data?.transactions ?? []) as CreditTransaction[];
+}
+
 export async function generateHashtags(
   params: HashtagParams,
   token: string | null = null

@@ -95,8 +95,20 @@ export default function SignInPage() {
         setGeneralError(`Sign-in incomplete (status: ${finalStatus ?? "unknown"}). Please try again.`);
       }
     } catch (err: unknown) {
-      console.log("[sign-in] error", JSON.stringify(err));
-      const e = err as { errors?: { longMessage?: string; message?: string; code?: string }[]; message?: string };
+      // Clerk errors have non-enumerable props — JSON.stringify returns {}.
+      // Manually extract fields so we can actually see what's wrong.
+      const e = err as {
+        errors?: { longMessage?: string; message?: string; code?: string; meta?: unknown }[];
+        message?: string;
+        status?: number;
+        clerkTraceId?: string;
+      };
+      console.log(
+        "[sign-in] error status=", e?.status,
+        "traceId=", e?.clerkTraceId,
+        "message=", e?.message,
+        "errors=", JSON.stringify(e?.errors ?? []),
+      );
       const msg =
         e?.errors?.[0]?.longMessage ??
         e?.errors?.[0]?.message ??

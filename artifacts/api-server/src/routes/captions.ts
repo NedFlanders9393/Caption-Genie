@@ -5,9 +5,20 @@ import { anthropic } from "@workspace/integrations-anthropic-ai";
 import { GenerateCaptionsBody, RegenerateOneCaptionBody, GenerateHashtagsBody } from "@workspace/api-zod";
 import { db } from "@workspace/db";
 import { sql } from "drizzle-orm";
+import { spendCredits, canSpend, grantPurchasedCredits } from "../services/credits.js";
 
 const FREE_MONTHLY_LIMIT = 10;
 const PRO_MONTHLY_LIMIT = 500;
+
+/**
+ * When `CREDITS_ENFORCED=true`, the credit ledger becomes the primary gate
+ * and the old monthly_usage limits are bypassed. Flip this on June 1 once
+ * the new mobile build (with credit UI + 402 handling) is in users' hands.
+ *
+ * Until then, monthly_usage is the gate and we spend credits in parallel
+ * (best-effort) so the ledger is populated for everyone.
+ */
+const CREDITS_ENFORCED = process.env.CREDITS_ENFORCED === "true";
 
 const FREE_MODEL = "claude-haiku-4-5";
 const PRO_MODEL = "claude-sonnet-4-6";
@@ -64,9 +75,73 @@ async function isRevenueCatPro(userId: string): Promise<boolean> {
   }
 }
 
-async function enforceUsageLimit(userId: string, req: Request, res: Response): Promise<{ allowed: boolean; isPro: boolean }> {
-  const yearMonth = getYearMonth();
+/**
+ * Gate a request against either the old monthly_usage limit OR the new
+ * credit ledger (when CREDITS_ENFORCED=true).
+ *
+ * @param creditCost — credits to charge. 0 = free action (hashtags, remix).
+ *                    1+ = paid action (generation, regeneration).
+ *
+ * Behavior:
+ *  - CREDITS_ENFORCED=false (current): use monthly_usage as the gate. Also
+ *    spend credits best-effort so the ledger is populated; failures here
+ *    are logged and the request still succeeds.
+ *  - CREDITS_ENFORCED=true (June 1): use credits as the gate. Returns 402
+ *    "insufficient_credits" if balance < creditCost.
+ */
+/**
+ * Result includes a `refund()` callback. Routes MUST call `refund()` from
+ * their catch blocks when generation fails downstream so we never charge
+ * users for an answer they didn't receive.
+ *
+ * Refunds go to the PURCHASED bucket (never expires) — even if we originally
+ * charged from the subscription bucket — to keep the refund atomic and
+ * race-free. Net effect for the user is identical: total balance restored.
+ */
+type UsageResult = {
+  allowed: boolean;
+  isPro: boolean;
+  refund: () => Promise<void>;
+};
+
+async function enforceUsageLimit(
+  userId: string,
+  req: Request,
+  res: Response,
+  creditCost: number = 1,
+): Promise<UsageResult> {
   const isPro = await isRevenueCatPro(userId);
+  const noopRefund = async () => {};
+
+  // --- Path A: credits as primary gate (post-June 1) ---
+  if (CREDITS_ENFORCED) {
+    if (creditCost > 0) {
+      const result = await spendCredits(userId, creditCost, "generation");
+      if (!result.ok) {
+        res.status(402).json({
+          error: "insufficient_credits",
+          message: "You're out of credits. Upgrade to Pro for 150/mo or buy a credit pack.",
+          isPro,
+        });
+        return { allowed: false, isPro, refund: noopRefund };
+      }
+      // Caller can refund if AI fails
+      const refund = async () => {
+        try {
+          await grantPurchasedCredits(userId, creditCost, "generation_refund", {
+            reason: "ai_failure",
+          });
+        } catch (err) {
+          req.log.error({ err, userId, creditCost }, "Refund failed after AI error");
+        }
+      };
+      return { allowed: true, isPro, refund };
+    }
+    return { allowed: true, isPro, refund: noopRefund };
+  }
+
+  // --- Path B: legacy monthly_usage gate (current TestFlight build) ---
+  const yearMonth = getYearMonth();
   const limit = isPro ? PRO_MONTHLY_LIMIT : FREE_MONTHLY_LIMIT;
 
   const result = await db.execute(
@@ -90,11 +165,54 @@ async function enforceUsageLimit(userId: string, req: Request, res: Response): P
       limit,
       isPro,
     });
-    return { allowed: false, isPro };
+    return { allowed: false, isPro, refund: noopRefund };
   }
 
-  return { allowed: true, isPro };
+  // Best-effort parallel credit spend so the ledger is populated. We don't
+  // want to fail a request whose monthly_usage check passed just because the
+  // credit balance is low — that would surprise existing users.
+  let creditSpendSucceeded = false;
+  if (creditCost > 0) {
+    try {
+      const spend = await spendCredits(userId, creditCost, "generation");
+      if (spend.ok) {
+        creditSpendSucceeded = true;
+      } else {
+        req.log.warn({ userId, creditCost }, "Credit spend skipped: insufficient balance (parallel mode)");
+      }
+    } catch (err) {
+      req.log.warn({ err, userId, creditCost }, "Credit spend failed (parallel mode, ignored)");
+    }
+  }
+
+  // Build a refund that also rolls back monthly_usage if AI fails. This
+  // keeps both gates consistent regardless of which is "primary" today.
+  const refund = async () => {
+    try {
+      await db.execute(
+        sql`UPDATE monthly_usage SET count = GREATEST(0, count - 1)
+            WHERE user_id = ${userId} AND year_month = ${yearMonth}`
+      );
+    } catch (err) {
+      req.log.error({ err }, "Failed to roll back monthly_usage after AI error");
+    }
+    if (creditSpendSucceeded) {
+      try {
+        await grantPurchasedCredits(userId, creditCost, "generation_refund", {
+          reason: "ai_failure",
+        });
+      } catch (err) {
+        req.log.error({ err }, "Failed to refund credits after AI error");
+      }
+    }
+  };
+
+  return { allowed: true, isPro, refund };
 }
+
+// Helper to suppress unused-import lint warnings if canSpend isn't used yet.
+// Exposed so other routes can pre-check balance without spending.
+export { canSpend as canSpendCredits };
 
 const captionsRouter: IRouter = Router();
 
@@ -653,7 +771,7 @@ captionsRouter.post("/captions/generate", async (req, res) => {
   }
 
   const userId = getAuth(req).userId ?? "";
-  const { allowed, isPro } = await enforceUsageLimit(userId, req, res);
+  const { allowed, isPro, refund } = await enforceUsageLimit(userId, req, res, 1);
   if (!allowed) return;
 
   const { niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType } = parsed.data;
@@ -690,6 +808,7 @@ captionsRouter.post("/captions/generate", async (req, res) => {
 
     const block = message.content[0];
     if (block.type !== "text") {
+      await refund();
       res.status(500).json({ error: "Unexpected response type from AI" });
       return;
     }
@@ -700,12 +819,14 @@ captionsRouter.post("/captions/generate", async (req, res) => {
 
     const parsed_response = JSON.parse(rawText) as { captions: { caption: string; hashtags: string }[] };
     if (!parsed_response.captions || !Array.isArray(parsed_response.captions)) {
+      await refund();
       res.status(500).json({ error: "Invalid AI response format" });
       return;
     }
 
     res.json({ captions: parsed_response.captions });
   } catch (err) {
+    await refund();
     req.log.error({ err }, "Caption generation failed");
     res.status(500).json({ error: "Failed to generate captions" });
   }
@@ -719,7 +840,7 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
   }
 
   const userId = getAuth(req).userId ?? "";
-  const { allowed, isPro } = await enforceUsageLimit(userId, req, res);
+  const { allowed, isPro, refund } = await enforceUsageLimit(userId, req, res, 1);
   if (!allowed) return;
 
   const { niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType, existingCaptions } = parsed.data;
@@ -757,6 +878,7 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
 
     const block = message.content[0];
     if (block.type !== "text") {
+      await refund();
       res.status(500).json({ error: "Unexpected response type from AI" });
       return;
     }
@@ -767,12 +889,14 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
 
     const parsed_response = JSON.parse(rawText) as { captions: { caption: string; hashtags: string }[] };
     if (!parsed_response.captions?.[0]) {
+      await refund();
       res.status(500).json({ error: "Invalid AI response format" });
       return;
     }
 
     res.json(parsed_response.captions[0]);
   } catch (err) {
+    await refund();
     req.log.error({ err }, "Single caption regeneration failed");
     res.status(500).json({ error: "Failed to regenerate caption" });
   }
@@ -786,7 +910,8 @@ captionsRouter.post("/captions/hashtags", async (req, res) => {
   }
 
   const userId = getAuth(req).userId ?? "";
-  const { allowed, isPro } = await enforceUsageLimit(userId, req, res);
+  // Hashtags are FREE in the new credit model — pass cost=0.
+  const { allowed, isPro } = await enforceUsageLimit(userId, req, res, 0);
   if (!allowed) return;
 
   const { niche, topic, platform } = parsed.data;

@@ -1,8 +1,8 @@
 import { useAuth, useUser } from "@clerk/expo";
 import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -21,6 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import Paywall from "@/components/Paywall";
 import { useSubscription } from "@/lib/revenuecat";
+import { fetchCreditBalance, type CreditBalance } from "@/lib/api";
 
 const BASE_URL = process.env.EXPO_PUBLIC_DOMAIN
   ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
@@ -63,6 +64,31 @@ export default function ProfileScreen() {
   const [bugExpected, setBugExpected] = useState("");
   const [bugSubmitting, setBugSubmitting] = useState(false);
   const [bugSubmitted, setBugSubmitted] = useState(false);
+  const [credits, setCredits] = useState<CreditBalance | null>(null);
+  const [creditsLoading, setCreditsLoading] = useState(false);
+  const [creditsError, setCreditsError] = useState<string | null>(null);
+
+  const loadCredits = useCallback(async () => {
+    try {
+      setCreditsLoading(true);
+      setCreditsError(null);
+      const token = await getToken();
+      const bal = await fetchCreditBalance(token);
+      setCredits(bal);
+    } catch (err) {
+      setCreditsError((err as Error)?.message ?? "Couldn't load credit balance");
+    } finally {
+      setCreditsLoading(false);
+    }
+  }, [getToken]);
+
+  // Refresh credits every time the tab becomes focused so users see fresh
+  // balance after a generation, restore, or purchase elsewhere in the app.
+  useFocusEffect(
+    useCallback(() => {
+      void loadCredits();
+    }, [loadCredits]),
+  );
 
   const meta = (user?.unsafeMetadata ?? {}) as UserMeta;
 
@@ -203,6 +229,52 @@ export default function ProfileScreen() {
                 </View>
               ) : null}
             </View>
+          ) : null}
+        </View>
+
+        {/* Credits */}
+        <View style={styles.card}>
+          <View style={styles.creditsHeader}>
+            <Text style={styles.cardTitle}>Credits</Text>
+            <TouchableOpacity onPress={loadCredits} disabled={creditsLoading} hitSlop={10}>
+              <Feather
+                name="refresh-cw"
+                size={14}
+                color={creditsLoading ? CARD_BORDER : MUTED}
+              />
+            </TouchableOpacity>
+          </View>
+          {creditsLoading && !credits ? (
+            <ActivityIndicator size="small" color={PRIMARY} style={{ marginVertical: 12 }} />
+          ) : creditsError && !credits ? (
+            <Text style={[styles.usageSub, { color: DANGER }]}>{creditsError}</Text>
+          ) : credits ? (
+            <>
+              <View style={styles.creditsTotalRow}>
+                <Text style={styles.creditsTotalValue}>{credits.total}</Text>
+                <Text style={styles.creditsTotalLabel}>credits available</Text>
+              </View>
+              <View style={styles.creditsBreakdown}>
+                <View style={styles.creditsBreakdownItem}>
+                  <Text style={styles.creditsBreakdownValue}>{credits.subscription}</Text>
+                  <Text style={styles.creditsBreakdownLabel}>From Pro</Text>
+                </View>
+                <View style={styles.creditsBreakdownDivider} />
+                <View style={styles.creditsBreakdownItem}>
+                  <Text style={styles.creditsBreakdownValue}>{credits.purchased}</Text>
+                  <Text style={styles.creditsBreakdownLabel}>Purchased</Text>
+                </View>
+              </View>
+              {creditsError ? (
+                <Text style={[styles.usageSub, { color: DANGER }]}>
+                  Couldn't refresh: {creditsError}
+                </Text>
+              ) : (
+                <Text style={styles.usageSub}>
+                  {credits.lifetimeUsed} used all-time · 1 credit per caption set
+                </Text>
+              )}
+            </>
           ) : null}
         </View>
 
@@ -588,6 +660,55 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: 4,
+  },
+  creditsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  creditsTotalRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 8,
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  creditsTotalValue: {
+    fontSize: 36,
+    fontWeight: "700",
+    color: FOREGROUND,
+    letterSpacing: -1,
+  },
+  creditsTotalLabel: {
+    fontSize: 13,
+    color: MUTED,
+  },
+  creditsBreakdown: {
+    flexDirection: "row",
+    backgroundColor: BG,
+    borderRadius: 10,
+    paddingVertical: 12,
+    marginBottom: 10,
+  },
+  creditsBreakdownItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+  creditsBreakdownDivider: {
+    width: 1,
+    backgroundColor: CARD_BORDER,
+  },
+  creditsBreakdownValue: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: FOREGROUND,
+  },
+  creditsBreakdownLabel: {
+    fontSize: 11,
+    color: MUTED,
+    marginTop: 2,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   usageRow: {
     flexDirection: "row",

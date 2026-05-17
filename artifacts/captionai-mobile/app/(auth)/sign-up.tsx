@@ -1,4 +1,4 @@
-import { useAuth, useSignUp } from "@clerk/expo";
+import { useAuth, useClerk, useSignUp } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -30,7 +30,8 @@ type Step = "credentials" | "verify";
 
 export default function SignUpPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { signUp, setActive, isLoaded } = useSignUp() as any;
+  const { signUp, isLoaded } = useSignUp() as any;
+  const { setActive } = useClerk() as any;
   const { isSignedIn } = useAuth();
   const router = useRouter();
 

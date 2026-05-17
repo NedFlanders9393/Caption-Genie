@@ -66,20 +66,30 @@ export default function SignInPage() {
     setIsLoading(true);
 
     try {
-      // For password sign-in, Clerk takes identifier AND password in a single
-      // create() call. attemptFirstFactor is only for email-code / OTP flows.
+      // Step 1: try the password shortcut in create()
       console.log("[sign-in] calling signIn.create with password");
-      const attempt = await signIn.create({ identifier: email, password });
-      const finalStatus = attempt?.status ?? signIn?.status;
-      const sessionId = attempt?.createdSessionId ?? signIn?.createdSessionId;
-      console.log("[sign-in] result status=", finalStatus, "sessionId=", sessionId);
+      let attempt = await signIn.create({ identifier: email, password });
+      console.log("[sign-in] create status=", attempt?.status);
 
-      if (sessionId) {
+      // Step 2: if Clerk didn't auto-attempt the password, do it explicitly
+      // on the RETURNED resource (not the hook's cached signIn ref).
+      if (attempt?.status === "needs_first_factor" && typeof attempt.attemptFirstFactor === "function") {
+        console.log("[sign-in] calling attemptFirstFactor on returned resource");
+        attempt = await attempt.attemptFirstFactor({ strategy: "password", password });
+        console.log("[sign-in] attempt status=", attempt?.status);
+      }
+
+      const finalStatus = attempt?.status;
+      const sessionId = attempt?.createdSessionId;
+
+      if (finalStatus === "complete" && sessionId) {
         await setActive({ session: sessionId });
         console.log("[sign-in] setActive done, navigating");
         router.replace("/(tabs)/home");
       } else if (finalStatus === "needs_second_factor") {
         setGeneralError("Two-factor authentication isn't supported in this app yet. Please disable 2FA on your account.");
+      } else if (finalStatus === "needs_first_factor") {
+        setGeneralError("Password sign-in isn't enabled for this account. Use a different sign-in method or contact support.");
       } else {
         setGeneralError(`Sign-in incomplete (status: ${finalStatus ?? "unknown"}). Please try again.`);
       }

@@ -48,14 +48,10 @@ export default function SignInPage() {
   }, [isSignedIn]);
 
   const handleSignIn = async () => {
-    console.log("[sign-in] tap, isLoaded=", isLoaded, "hasSignIn=", !!signIn);
+    console.log("[sign-in] tap, isLoaded=", isLoaded, "hasSignIn=", !!signIn, "hasSetActive=", !!setActive);
 
-    if (!isLoaded) {
+    if (!signIn || !setActive) {
       setGeneralError("Still connecting to authentication service. Please wait a moment and try again.");
-      return;
-    }
-    if (!signIn) {
-      setGeneralError("Authentication service unavailable. Please restart the app.");
       return;
     }
 

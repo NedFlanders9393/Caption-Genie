@@ -51,13 +51,9 @@ export default function SignUpPage() {
   }, [isSignedIn]);
 
   const handleSubmit = async () => {
-    console.log("[sign-up] submit, isLoaded=", isLoaded, "hasSignUp=", !!signUp);
-    if (!isLoaded) {
+    console.log("[sign-up] submit, isLoaded=", isLoaded, "hasSignUp=", !!signUp, "hasSetActive=", !!setActive);
+    if (!signUp || !setActive) {
       setGeneralError("Still connecting to authentication service. Please wait a moment and try again.");
-      return;
-    }
-    if (!signUp) {
-      setGeneralError("Authentication service unavailable. Please restart the app.");
       return;
     }
     const email = emailAddress.trim();
@@ -81,13 +77,9 @@ export default function SignUpPage() {
   };
 
   const handleVerify = async () => {
-    console.log("[verify] submit, isLoaded=", isLoaded);
-    if (!isLoaded) {
+    console.log("[verify] submit, isLoaded=", isLoaded, "hasSignUp=", !!signUp);
+    if (!signUp || !setActive) {
       setGeneralError("Still connecting to authentication service. Please wait a moment and try again.");
-      return;
-    }
-    if (!signUp) {
-      setGeneralError("Authentication service unavailable. Please restart the app.");
       return;
     }
     setGeneralError(null);

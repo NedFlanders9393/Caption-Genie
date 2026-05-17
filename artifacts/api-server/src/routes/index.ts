@@ -6,6 +6,8 @@ import moderationRouter from "./moderation";
 import bugsRouter from "./bugs";
 import historyRouter from "./history";
 import favoritesRouter from "./favorites";
+import creditsRouter from "./credits";
+import revenuecatWebhookRouter from "./revenuecatWebhook";
 
 const router: IRouter = Router();
 
@@ -16,5 +18,7 @@ router.use(moderationRouter);
 router.use(bugsRouter);
 router.use(historyRouter);
 router.use(favoritesRouter);
+router.use(creditsRouter);
+router.use(revenuecatWebhookRouter);
 
 export default router;

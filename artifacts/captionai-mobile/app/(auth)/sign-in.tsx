@@ -67,26 +67,32 @@ export default function SignInPage() {
 
     try {
       console.log("[sign-in] calling signIn.create");
-      const result = await signIn.create({
-        identifier: email,
-        password,
-      });
-      console.log("[sign-in] result keys=", result ? Object.keys(result) : null);
-      console.log("[sign-in] status=", result?.status, "signIn.status=", signIn?.status, "createdSessionId=", result?.createdSessionId ?? signIn?.createdSessionId);
+      const createResult = await signIn.create({ identifier: email });
+      const createStatus = createResult?.status ?? signIn?.status;
+      console.log("[sign-in] create status=", createStatus, "sessionId=", createResult?.createdSessionId);
 
-      const status = result?.status ?? signIn?.status;
-      const sessionId = result?.createdSessionId ?? signIn?.createdSessionId;
+      let sessionId = createResult?.createdSessionId ?? signIn?.createdSessionId;
+      let finalStatus = createStatus;
+
+      if (!sessionId && (createStatus === "needs_first_factor" || createStatus === undefined)) {
+        console.log("[sign-in] attempting first factor with password");
+        const attemptResult = await signIn.attemptFirstFactor({
+          strategy: "password",
+          password,
+        });
+        finalStatus = attemptResult?.status ?? signIn?.status;
+        sessionId = attemptResult?.createdSessionId ?? signIn?.createdSessionId;
+        console.log("[sign-in] attempt status=", finalStatus, "sessionId=", sessionId);
+      }
 
       if (sessionId) {
         await setActive({ session: sessionId });
         console.log("[sign-in] setActive done, navigating");
         router.replace("/(tabs)/home");
-      } else if (status === "needs_first_factor" || status === "needs_second_factor") {
-        const msg = `Additional verification required (${status}). This isn't supported yet — please use a password-only account.`;
-        setGeneralError(msg);
+      } else if (finalStatus === "needs_second_factor") {
+        setGeneralError("Two-factor authentication isn't supported in this app yet. Please disable 2FA on your account.");
       } else {
-        const msg = `Sign-in incomplete (status: ${status ?? "unknown"}). Please try again.`;
-        setGeneralError(msg);
+        setGeneralError(`Sign-in incomplete (status: ${finalStatus ?? "unknown"}). Please try again.`);
       }
     } catch (err: unknown) {
       console.log("[sign-in] error", JSON.stringify(err));

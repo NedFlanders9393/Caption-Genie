@@ -70,13 +70,23 @@ export default function SignInPage() {
       console.log("[sign-in] calling signIn.create with password");
       let attempt = await signIn.create({ identifier: email, password });
       console.log("[sign-in] create status=", attempt?.status);
+      console.log("[sign-in] attempt keys=", Object.keys(attempt ?? {}).join(","));
+      console.log("[sign-in] attempt proto keys=", Object.getOwnPropertyNames(Object.getPrototypeOf(attempt ?? {})).join(","));
+      console.log("[sign-in] supportedFirstFactors=", JSON.stringify(attempt?.supportedFirstFactors ?? []));
+      console.log("[sign-in] signIn keys=", Object.keys(signIn ?? {}).join(","));
 
-      // Step 2: if Clerk didn't auto-attempt the password, do it explicitly
-      // on the RETURNED resource (not the hook's cached signIn ref).
-      if (attempt?.status === "needs_first_factor" && typeof attempt.attemptFirstFactor === "function") {
-        console.log("[sign-in] calling attemptFirstFactor on returned resource");
-        attempt = await attempt.attemptFirstFactor({ strategy: "password", password });
-        console.log("[sign-in] attempt status=", attempt?.status);
+      // Step 2: if Clerk didn't auto-attempt the password, do it explicitly.
+      // Try both the returned resource AND the hook ref since SDKs differ.
+      if (attempt?.status === "needs_first_factor") {
+        const targetRef =
+          typeof attempt.attemptFirstFactor === "function" ? attempt :
+          typeof signIn.attemptFirstFactor === "function" ? signIn :
+          null;
+        console.log("[sign-in] targetRef found=", !!targetRef, "source=", targetRef === attempt ? "attempt" : targetRef === signIn ? "signIn" : "none");
+        if (targetRef) {
+          attempt = await targetRef.attemptFirstFactor({ strategy: "password", password });
+          console.log("[sign-in] attempt status=", attempt?.status);
+        }
       }
 
       const finalStatus = attempt?.status;

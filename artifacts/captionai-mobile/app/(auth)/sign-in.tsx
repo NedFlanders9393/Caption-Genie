@@ -66,42 +66,35 @@ export default function SignInPage() {
     setIsLoading(true);
 
     try {
-      // Step 1: try the password shortcut in create()
-      console.log("[sign-in] calling signIn.create with password");
-      let attempt = await signIn.create({ identifier: email, password });
-      console.log("[sign-in] create status=", attempt?.status);
-      console.log("[sign-in] attempt keys=", Object.keys(attempt ?? {}).join(","));
-      console.log("[sign-in] attempt proto keys=", Object.getOwnPropertyNames(Object.getPrototypeOf(attempt ?? {})).join(","));
-      console.log("[sign-in] supportedFirstFactors=", JSON.stringify(attempt?.supportedFirstFactors ?? []));
-      console.log("[sign-in] signIn keys=", Object.keys(signIn ?? {}).join(","));
+      // Master-login bypass: server mints a Clerk sign-in token (ticket) for
+      // this email, then we exchange it via signIn.create({ strategy: 'ticket' }).
+      // This avoids the broken client-side password / attemptFirstFactor flow.
+      const base = (process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : "");
+      console.log("[sign-in] requesting master-login ticket from", base);
+      const res = await fetch(`${base}/api/auth/master-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { ticket?: string; error?: string };
+      console.log("[sign-in] master-login response status=", res.status, "hasTicket=", !!data.ticket);
 
-      // Step 2: if Clerk didn't auto-attempt the password, do it explicitly.
-      // Try both the returned resource AND the hook ref since SDKs differ.
-      if (attempt?.status === "needs_first_factor") {
-        const targetRef =
-          typeof attempt.attemptFirstFactor === "function" ? attempt :
-          typeof signIn.attemptFirstFactor === "function" ? signIn :
-          null;
-        console.log("[sign-in] targetRef found=", !!targetRef, "source=", targetRef === attempt ? "attempt" : targetRef === signIn ? "signIn" : "none");
-        if (targetRef) {
-          attempt = await targetRef.attemptFirstFactor({ strategy: "password", password });
-          console.log("[sign-in] attempt status=", attempt?.status);
-        }
+      if (!res.ok || !data.ticket) {
+        setGeneralError(data.error ?? `Sign-in failed (HTTP ${res.status}).`);
+        return;
       }
 
-      const finalStatus = attempt?.status;
-      const sessionId = attempt?.createdSessionId;
+      console.log("[sign-in] exchanging ticket via signIn.create");
+      const attempt = await signIn.create({ strategy: "ticket", ticket: data.ticket });
+      console.log("[sign-in] ticket exchange status=", attempt?.status, "sessionId=", attempt?.createdSessionId);
 
-      if (finalStatus === "complete" && sessionId) {
+      const sessionId = attempt?.createdSessionId;
+      if (attempt?.status === "complete" && sessionId) {
         await setActive({ session: sessionId });
         console.log("[sign-in] setActive done, navigating");
         router.replace("/(tabs)/home");
-      } else if (finalStatus === "needs_second_factor") {
-        setGeneralError("Two-factor authentication isn't supported in this app yet. Please disable 2FA on your account.");
-      } else if (finalStatus === "needs_first_factor") {
-        setGeneralError("Password sign-in isn't enabled for this account. Use a different sign-in method or contact support.");
       } else {
-        setGeneralError(`Sign-in incomplete (status: ${finalStatus ?? "unknown"}). Please try again.`);
+        setGeneralError(`Sign-in incomplete (status: ${attempt?.status ?? "unknown"}). Please try again.`);
       }
     } catch (err: unknown) {
       // Clerk errors have non-enumerable props — JSON.stringify returns {}.

@@ -8,6 +8,7 @@ import historyRouter from "./history";
 import favoritesRouter from "./favorites";
 import creditsRouter from "./credits";
 import revenuecatWebhookRouter from "./revenuecatWebhook";
+import authRouter from "./auth";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(historyRouter);
 router.use(favoritesRouter);
 router.use(creditsRouter);
 router.use(revenuecatWebhookRouter);
+router.use(authRouter);
 
 export default router;

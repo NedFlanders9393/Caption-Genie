@@ -51,14 +51,28 @@ export default function SignUpPage() {
   }, [isSignedIn]);
 
   const handleSubmit = async () => {
-    if (!isLoaded) return;
+    console.log("[sign-up] submit, isLoaded=", isLoaded, "hasSignUp=", !!signUp);
+    if (!isLoaded) {
+      setGeneralError("Still connecting to authentication service. Please wait a moment and try again.");
+      return;
+    }
+    if (!signUp) {
+      setGeneralError("Authentication service unavailable. Please restart the app.");
+      return;
+    }
+    const email = emailAddress.trim();
+    if (!email || !password) {
+      setGeneralError("Please enter your email and password.");
+      return;
+    }
     setGeneralError(null);
     setIsLoading(true);
     try {
-      await signUp.create({ emailAddress, password });
+      await signUp.create({ emailAddress: email, password });
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setStep("verify");
     } catch (err: any) {
+      console.log("[sign-up] error", JSON.stringify(err));
       const msg = err?.errors?.[0]?.longMessage ?? err?.errors?.[0]?.message ?? err?.message ?? "Something went wrong. Please try again.";
       setGeneralError(msg);
     } finally {
@@ -67,7 +81,15 @@ export default function SignUpPage() {
   };
 
   const handleVerify = async () => {
-    if (!isLoaded) return;
+    console.log("[verify] submit, isLoaded=", isLoaded);
+    if (!isLoaded) {
+      setGeneralError("Still connecting to authentication service. Please wait a moment and try again.");
+      return;
+    }
+    if (!signUp) {
+      setGeneralError("Authentication service unavailable. Please restart the app.");
+      return;
+    }
     setGeneralError(null);
     setIsLoading(true);
     try {
@@ -79,6 +101,7 @@ export default function SignUpPage() {
         setGeneralError("Verification incomplete. Please try again.");
       }
     } catch (err: any) {
+      console.log("[verify] error", JSON.stringify(err));
       const msg = err?.errors?.[0]?.longMessage ?? err?.errors?.[0]?.message ?? err?.message ?? "Verification failed. Please try again.";
       setGeneralError(msg);
     } finally {

@@ -4,7 +4,6 @@ import { Link, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -49,7 +48,16 @@ export default function SignInPage() {
   }, [isSignedIn]);
 
   const handleSignIn = async () => {
-    if (!isLoaded || !signIn) return;
+    console.log("[sign-in] tap, isLoaded=", isLoaded, "hasSignIn=", !!signIn);
+
+    if (!isLoaded) {
+      setGeneralError("Still connecting to authentication service. Please wait a moment and try again.");
+      return;
+    }
+    if (!signIn) {
+      setGeneralError("Authentication service unavailable. Please restart the app.");
+      return;
+    }
 
     const email = emailAddress.trim();
     if (!email || !password) {
@@ -61,27 +69,33 @@ export default function SignInPage() {
     setIsLoading(true);
 
     try {
+      console.log("[sign-in] calling signIn.create");
       const result = await signIn.create({
         identifier: email,
         password,
       });
+      console.log("[sign-in] result status=", result?.status);
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
+        console.log("[sign-in] setActive done, navigating");
+        router.replace("/(tabs)/home");
+      } else if (result.status === "needs_first_factor" || result.status === "needs_second_factor") {
+        const msg = `Additional verification required (${result.status}). This isn't supported yet — please use a password-only account.`;
+        setGeneralError(msg);
       } else {
         const msg = `Sign-in incomplete (status: ${result.status}). Please try again.`;
         setGeneralError(msg);
-        Alert.alert("Sign in failed", msg);
       }
     } catch (err: unknown) {
-      const e = err as { errors?: { longMessage?: string; message?: string }[]; message?: string };
+      console.log("[sign-in] error", JSON.stringify(err));
+      const e = err as { errors?: { longMessage?: string; message?: string; code?: string }[]; message?: string };
       const msg =
         e?.errors?.[0]?.longMessage ??
         e?.errors?.[0]?.message ??
         e?.message ??
         "Something went wrong. Please try again.";
       setGeneralError(msg);
-      Alert.alert("Sign in failed", msg);
     } finally {
       setIsLoading(false);
     }

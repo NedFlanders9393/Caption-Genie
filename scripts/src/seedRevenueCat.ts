@@ -219,7 +219,22 @@ async function seedRevenueCat() {
       }
     }
     const { data: created, error } = await createProduct({ client, path: { project_id: project.id }, body });
-    if (error) throw new Error(`Failed to create ${label} product`);
+    if (error) {
+      // RC returns resource_already_exists when display_name is taken even if
+      // store_identifier lookup above missed (e.g. a prior run used a slightly
+      // different identifier). Re-fetch and match by display_name as fallback.
+      if (typeof error === "object" && "type" in error && (error as any).type === "resource_already_exists") {
+        const { data: refetched } = await listProducts({ client, path: { project_id: project.id }, query: { limit: 100 } });
+        const found = refetched?.items?.find(
+          (p) => p.app_id === targetApp.id && p.display_name === displayName
+        );
+        if (found) {
+          console.log(`${label} product already exists (display_name match):`, found.id);
+          return found;
+        }
+      }
+      throw new Error(`Failed to create ${label} product: ${JSON.stringify(error)}`);
+    }
     console.log(`Created ${label} product:`, created.id);
     return created;
   };

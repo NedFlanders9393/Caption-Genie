@@ -66,13 +66,17 @@ export default function SignInPage() {
         return;
       }
       const attempt = await signIn.create({ strategy: "ticket", ticket: data.ticket });
-      console.log("[dev-sign-in] exchange status=", attempt?.status);
-      const sessionId = attempt?.createdSessionId;
-      if (attempt?.status === "complete" && sessionId) {
+      // Clerk sometimes mutates the hook's signIn ref instead of returning a fully populated resource.
+      // Check both the returned attempt AND the hook ref for status/sessionId.
+      const status = attempt?.status ?? signIn?.status;
+      const sessionId = attempt?.createdSessionId ?? signIn?.createdSessionId;
+      console.log("[dev-sign-in] exchange status=", status, "sessionId=", sessionId, "attemptKeys=", Object.keys(attempt ?? {}).join(","));
+      if (sessionId) {
         await setActive({ session: sessionId });
+        console.log("[dev-sign-in] setActive done, navigating");
         router.replace("/(tabs)/home");
       } else {
-        setGeneralError(`Dev sign-in incomplete (status: ${attempt?.status ?? "unknown"}).`);
+        setGeneralError(`Dev sign-in incomplete (status: ${status ?? "unknown"}).`);
       }
     } catch (err: unknown) {
       const e = err as { errors?: { longMessage?: string; message?: string }[]; message?: string };

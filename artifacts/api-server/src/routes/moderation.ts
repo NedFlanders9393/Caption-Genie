@@ -14,7 +14,8 @@ router.post(
   (req, res, next) => {
     const contentLength = Number(req.headers["content-length"] ?? 0);
     if (contentLength > 10 * 1024 * 1024) {
-      return res.status(413).json({ error: "Image too large" });
+      res.status(413).json({ error: "Image too large" });
+      return;
     }
     next();
   },
@@ -25,7 +26,8 @@ router.post(
     };
 
     if (!imageBase64) {
-      return res.status(400).json({ error: "imageBase64 is required" });
+      res.status(400).json({ error: "imageBase64 is required" });
+      return;
     }
 
     try {
@@ -54,11 +56,10 @@ router.post(
       const answer = response.choices[0]?.message?.content?.trim().toUpperCase() ?? "UNSAFE";
       const safe = answer.startsWith("SAFE");
 
-      return res.json({ safe, reason: safe ? null : "Image contains inappropriate content." });
+      res.json({ safe, reason: safe ? null : "Image contains inappropriate content." });
     } catch (err: any) {
       req.log.error({ err }, "Moderation check failed");
-      // Fail open if the moderation service is unavailable, but log it
-      return res.json({ safe: true, reason: null, warning: "Moderation service unavailable" });
+      res.json({ safe: true, reason: null, warning: "Moderation service unavailable" });
     }
   }
 );

@@ -6,8 +6,6 @@ export type { GenerateCaptionsBodyCtaType } from "./generated/types/generateCapt
 export type { GenerateCaptionsBodyNiche } from "./generated/types/generateCaptionsBodyNiche";
 export type { GenerateCaptionsBodyPlatform } from "./generated/types/generateCaptionsBodyPlatform";
 export type { GenerateCaptionsBodyPostType } from "./generated/types/generateCaptionsBodyPostType";
-export type { GenerateHashtagsBody } from "./generated/types/generateHashtagsBody";
 export type { GenerateHashtagsResponse } from "./generated/types/generateHashtagsResponse";
 export type { GenerateHashtagsResponseGrouped } from "./generated/types/generateHashtagsResponseGrouped";
 export type { HealthStatus } from "./generated/types/healthStatus";
-export type { RegenerateOneCaptionBody } from "./generated/types/regenerateOneCaptionBody";

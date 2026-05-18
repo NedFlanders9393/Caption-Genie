@@ -9,14 +9,16 @@ router.post('/api/stripe/checkout', async (req, res) => {
   try {
     const { email } = req.body as { email?: string };
     if (!email || !email.includes('@')) {
-      return res.status(400).json({ error: 'Valid email is required' });
+      res.status(400).json({ error: 'Valid email is required' });
+      return;
     }
 
     const stripe = await getUncachableStripeClient();
 
     const priceId = await storage.getActiveProPriceId();
     if (!priceId) {
-      return res.status(500).json({ error: 'No active price found. Please contact support.' });
+      res.status(500).json({ error: 'No active price found. Please contact support.' });
+      return;
     }
 
     // Find or create customer by email
@@ -53,7 +55,8 @@ router.get('/api/stripe/verify-session', async (req, res) => {
   try {
     const { session_id } = req.query as { session_id?: string };
     if (!session_id) {
-      return res.status(400).json({ error: 'session_id is required' });
+      res.status(400).json({ error: 'session_id is required' });
+      return;
     }
 
     const stripe = await getUncachableStripeClient();
@@ -78,7 +81,8 @@ router.post('/api/stripe/check-status', async (req, res) => {
     const { email, customerId } = req.body as { email?: string; customerId?: string };
 
     if (!email && !customerId) {
-      return res.status(400).json({ error: 'email or customerId is required' });
+      res.status(400).json({ error: 'email or customerId is required' });
+      return;
     }
 
     let resolvedCustomerId = customerId;
@@ -89,7 +93,8 @@ router.post('/api/stripe/check-status', async (req, res) => {
     }
 
     if (!resolvedCustomerId) {
-      return res.json({ isPro: false });
+      res.json({ isPro: false });
+      return;
     }
 
     const subscription = await storage.getSubscriptionByCustomerId(resolvedCustomerId);

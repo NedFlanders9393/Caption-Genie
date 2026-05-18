@@ -28,10 +28,13 @@ const AMBER_LIGHT = "#F8EFE4";
 // Top-up pack identifiers — server-side RevenueCat seed should match these.
 // Until the RC seed script is updated to create these products, the UI will
 // show "Coming soon" for any pack whose package isn't found in offerings.
+// Must match App Store / Play Store product identifiers seeded in
+// scripts/src/seedRevenueCat.ts (CREDIT_PACKS[].storeId) and the webhook map
+// in artifacts/api-server/src/routes/revenuecatWebhook.ts.
 const TOP_UP_PACK_IDS = {
-  small: "captionai_credits_50",
-  medium: "captionai_credits_200",
-  large: "captionai_credits_500",
+  small: "com.captionai.app.credits.50",
+  medium: "com.captionai.app.credits.200",
+  large: "com.captionai.app.credits.500",
 } as const;
 
 const TOP_UP_PACKS: {

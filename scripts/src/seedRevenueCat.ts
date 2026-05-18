@@ -65,6 +65,51 @@ const ANNUAL_PRICES = [
   { amount_micros: 44990000, currency: "EUR" },
 ];
 
+// ── One-time credit packs (consumable IAPs) ─────────────────────────────────
+// These are NOT subscriptions. They grant credits via the RevenueCat webhook
+// (NON_RENEWING_PURCHASE event) and never expire on the user's balance.
+// IMPORTANT: keep these identifiers in sync with:
+//   - artifacts/api-server/src/routes/revenuecatWebhook.ts → CREDIT_PACK_PRODUCTS
+//   - artifacts/captionai-mobile/components/Paywall.tsx    → TOP_UP_PACK_IDS
+const CREDIT_PACKS = [
+  {
+    label: "Credits50",
+    storeId: "com.captionai.app.credits.50",
+    displayName: "50 Captly Credits",
+    title: "50 Captly Credits",
+    packageId: "credits_50",
+    packageName: "50 Credits – $4.99",
+    prices: [
+      { amount_micros: 4990000, currency: "USD" },
+      { amount_micros: 4490000, currency: "EUR" },
+    ],
+  },
+  {
+    label: "Credits200",
+    storeId: "com.captionai.app.credits.200",
+    displayName: "200 Captly Credits",
+    title: "200 Captly Credits",
+    packageId: "credits_200",
+    packageName: "200 Credits – $14.99",
+    prices: [
+      { amount_micros: 14990000, currency: "USD" },
+      { amount_micros: 13990000, currency: "EUR" },
+    ],
+  },
+  {
+    label: "Credits500",
+    storeId: "com.captionai.app.credits.500",
+    displayName: "500 Captly Credits",
+    title: "500 Captly Credits",
+    packageId: "credits_500",
+    packageName: "500 Credits – $29.99",
+    prices: [
+      { amount_micros: 29990000, currency: "USD" },
+      { amount_micros: 27990000, currency: "EUR" },
+    ],
+  },
+] as const;
+
 type TestStorePricesResponse = {
   object: string;
   prices: { amount_micros: number; currency: string }[];
@@ -148,7 +193,7 @@ async function seedRevenueCat() {
     isTestStore: boolean,
     displayName: string,
     title: string,
-    duration: string
+    duration: string | null
   ): Promise<Product> => {
     const existing = existingProducts.items?.find(
       (p) => p.store_identifier === storeId && p.app_id === targetApp.id
@@ -157,15 +202,21 @@ async function seedRevenueCat() {
       console.log(`${label} product already exists:`, existing.id);
       return existing;
     }
+    // duration === null → consumable (one-time IAP), otherwise subscription
+    const isConsumable = duration === null;
     const body: CreateProductData["body"] = {
       store_identifier: storeId,
       app_id: targetApp.id,
-      type: "subscription",
+      type: isConsumable ? "consumable" : "subscription",
       display_name: displayName,
     };
     if (isTestStore) {
-      body.subscription = { duration };
       body.title = title;
+      if (!isConsumable) {
+        // duration is constrained to RC's Duration enum; existing call sites
+        // pass valid ISO 8601 values ("P1M" / "P1Y") so cast is safe.
+        body.subscription = { duration: duration as never };
+      }
     }
     const { data: created, error } = await createProduct({ client, path: { project_id: project.id }, body });
     if (error) throw new Error(`Failed to create ${label} product`);
@@ -201,6 +252,18 @@ async function seedRevenueCat() {
   const annualAppStore = await ensureProduct(appStoreApp, "AppStore/Annual", ANNUAL_PRODUCT_ID, false, ANNUAL_DISPLAY_NAME, ANNUAL_TITLE, ANNUAL_DURATION);
   const annualPlayStore = await ensureProduct(playStoreApp, "PlayStore/Annual", ANNUAL_PLAY_STORE_ID, false, ANNUAL_DISPLAY_NAME, ANNUAL_TITLE, ANNUAL_DURATION);
   await addTestStorePrices(annualTest, ANNUAL_PRICES);
+
+  // ── Credit-pack consumables ────────────────────────────────────────────
+  // Same store_identifier on all three stores so the RC webhook (which
+  // receives the App Store / Play Store product id) can map deterministically.
+  const creditPackProducts: { pack: typeof CREDIT_PACKS[number]; testId: string; appStoreId: string; playStoreId: string }[] = [];
+  for (const pack of CREDIT_PACKS) {
+    const test = await ensureProduct(testApp, `Test/${pack.label}`, pack.storeId, true, pack.displayName, pack.title, null);
+    const appStore = await ensureProduct(appStoreApp, `AppStore/${pack.label}`, pack.storeId, false, pack.displayName, pack.title, null);
+    const playStore = await ensureProduct(playStoreApp, `PlayStore/${pack.label}`, pack.storeId, false, pack.displayName, pack.title, null);
+    await addTestStorePrices(test, pack.prices as unknown as typeof MONTHLY_PRICES);
+    creditPackProducts.push({ pack, testId: test.id, appStoreId: appStore.id, playStoreId: playStore.id });
+  }
 
   // ── Entitlement ───────────────────────────────────────────────────────────
   let entitlement: Entitlement;
@@ -328,6 +391,13 @@ async function seedRevenueCat() {
 
   const annualPkg = await ensurePackage(ANNUAL_PACKAGE_ID, ANNUAL_PACKAGE_NAME);
   await attachPackage(annualPkg, [annualTest.id, annualAppStore.id, annualPlayStore.id]);
+
+  // Credit-pack packages (one per pack). NOT attached to the `pro` entitlement —
+  // these are pure consumables; the credit ledger is the source of truth.
+  for (const cp of creditPackProducts) {
+    const pkg = await ensurePackage(cp.pack.packageId, cp.pack.packageName);
+    await attachPackage(pkg, [cp.testId, cp.appStoreId, cp.playStoreId]);
+  }
 
   // ── API Keys ──────────────────────────────────────────────────────────────
   const { data: testKeys } = await listAppPublicApiKeys({ client, path: { project_id: project.id, app_id: testApp.id } });

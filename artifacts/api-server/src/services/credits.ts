@@ -278,15 +278,21 @@ export async function refundCredits(
   await getOrCreateUserCredits(userId);
 
   return await db.transaction(async (tx) => {
-    await tx.execute(
-      sql`SELECT 1 FROM user_credits WHERE user_id = ${userId} FOR UPDATE`
+    // Read locked row so we can compute the exact deducted amount. If the user
+    // already spent some/all of the refunded credits, we can only claw back
+    // what's still in the bucket — we never go negative.
+    const lockedRows = await tx.execute(
+      sql`SELECT purchased_credits FROM user_credits WHERE user_id = ${userId} FOR UPDATE`
     );
+    const lockedRow = lockedRows.rows[0] as { purchased_credits: number } | undefined;
+    const currentPurchased = lockedRow?.purchased_credits ?? 0;
+    const actualDeducted = Math.min(currentPurchased, amount);
+    const unrecovered = amount - actualDeducted;
 
-    // Don't allow purchased to go negative
     await tx
       .update(userCredits)
       .set({
-        purchasedCredits: sql`GREATEST(0, ${userCredits.purchasedCredits} - ${amount})`,
+        purchasedCredits: sql`${userCredits.purchasedCredits} - ${actualDeducted}`,
         updatedAt: new Date(),
       })
       .where(eq(userCredits.userId, userId));
@@ -294,14 +300,24 @@ export async function refundCredits(
     const after = await tx.select().from(userCredits).where(eq(userCredits.userId, userId)).limit(1);
     const total = (after[0]?.subscriptionCredits ?? 0) + (after[0]?.purchasedCredits ?? 0);
 
+    // Record the ACTUAL deducted amount so the ledger reconciles to the
+    // balance. Preserve the requested amount and any unrecovered shortfall
+    // in metadata for finance / dispute audit.
+    const refundMetadata: Record<string, unknown> = {
+      ...(metadata ?? {}),
+      requestedAmount: amount,
+      actualDeducted,
+      unrecoveredAmount: unrecovered,
+    };
+
     await tx.insert(creditTransactions).values({
       userId,
-      delta: -amount,
+      delta: -actualDeducted,
       reason: "refund",
       bucket: "purchased",
       source,
       balanceAfter: total,
-      metadata: metadata ? metadata : null,
+      metadata: refundMetadata,
     });
 
     return { ok: true, balanceAfter: total };

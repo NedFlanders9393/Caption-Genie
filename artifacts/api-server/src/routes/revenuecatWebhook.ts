@@ -35,14 +35,20 @@ const PRO_MONTHLY_CREDITS = 150;
  * Map RevenueCat product identifier → credits to grant for that purchase.
  * Keep these in sync with App Store Connect product IDs.
  */
+// Keys are RevenueCat `product_id` values (matches the App Store / Play Store
+// store_identifier). Keep in sync with scripts/src/seedRevenueCat.ts.
 const CREDIT_PACK_PRODUCTS: Record<string, number> = {
-  captionai_credits_50: 50,
-  captionai_credits_200: 200,
-  captionai_credits_500: 500,
+  "com.captionai.app.credits.50": 50,
+  "com.captionai.app.credits.200": 200,
+  "com.captionai.app.credits.500": 500,
 };
 
 const PRO_SUBSCRIPTION_PRODUCTS = new Set<string>([
-  "captionai_pro_monthly",
+  "com.captionai.app.pro.monthly",
+  "com.captionai.app.pro.yearly",
+  // Play Store sends the base-plan-suffixed identifier
+  "com.captionai.app.pro.monthly:monthly",
+  "com.captionai.app.pro.yearly:annual",
 ]);
 
 interface RCEvent {

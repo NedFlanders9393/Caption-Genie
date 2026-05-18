@@ -56,4 +56,42 @@ router.post("/auth/master-login", async (req, res) => {
   }
 });
 
+/**
+ * Dev-only one-tap login. No password required.
+ * Mints a Clerk sign-in ticket for DEV_LOGIN_EMAIL. Disabled in production
+ * unless DEV_LOGIN_ENABLED=true is explicitly set.
+ */
+router.post("/auth/dev-login", async (req, res) => {
+  const log = req.log;
+  try {
+    const isProd = process.env.NODE_ENV === "production";
+    const explicitlyEnabled = process.env.DEV_LOGIN_ENABLED === "true";
+    if (isProd && !explicitlyEnabled) {
+      res.status(403).json({ error: "Dev login disabled in production" });
+      return;
+    }
+
+    const email = (process.env.DEV_LOGIN_EMAIL ?? "chrisbaca9393@gmail.com").trim().toLowerCase();
+
+    const list = await clerkClient.users.getUserList({ emailAddress: [email] });
+    const user = list.data?.[0];
+    if (!user) {
+      log.warn({ email }, "Dev login: user not found in Clerk");
+      res.status(404).json({ error: `No Clerk user for ${email}` });
+      return;
+    }
+
+    const token = await clerkClient.signInTokens.createSignInToken({
+      userId: user.id,
+      expiresInSeconds: 60 * 5,
+    });
+
+    log.info({ userId: user.id, email }, "Dev login: minted sign-in token");
+    res.json({ ticket: token.token, email });
+  } catch (err) {
+    log.error({ err }, "Dev login failed");
+    res.status(500).json({ error: "Dev login failed" });
+  }
+});
+
 export default router;

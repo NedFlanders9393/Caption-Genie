@@ -11,3 +11,9 @@ id = "E-GdJpUgbOg8Hg4cdEGw4"
 uri = "file://qr-expo.png"
 type = "image"
 title = "Scan with Expo Go"
+
+[[outputs]]
+id = "G9B9B8L-Q9qiA2Ur3_j5n"
+uri = "file://screenshots/paywall-review.jpg"
+type = "image"
+title = "Paywall Review Screenshot"

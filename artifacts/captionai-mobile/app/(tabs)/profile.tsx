@@ -1,7 +1,7 @@
 import { useAuth, useUser } from "@clerk/expo";
 import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -71,7 +71,6 @@ export default function ProfileScreen() {
   const [creditsError, setCreditsError] = useState<string | null>(null);
   const spinAnim = useRef(new Animated.Value(0)).current;
   const spinLoop = useRef<Animated.CompositeAnimation | null>(null);
-  const lastFetchTime = useRef<number>(0);
 
   const startSpin = useCallback(() => {
     spinAnim.setValue(0);
@@ -92,11 +91,7 @@ export default function ProfileScreen() {
     spinAnim.setValue(0);
   }, [spinAnim]);
 
-  const loadCredits = useCallback(async (force = false) => {
-    // Throttle auto-refreshes — only re-fetch if 10s have passed since last load,
-    // unless forced (manual tap). This prevents rapid flickering in web preview
-    // and avoids hammering the server on every focus event.
-    if (!force && Date.now() - lastFetchTime.current < 10_000) return;
+  const loadCredits = useCallback(async () => {
     try {
       setCreditsLoading(true);
       setCreditsError(null);
@@ -104,7 +99,6 @@ export default function ProfileScreen() {
       const token = await getToken();
       const bal = await fetchCreditBalance(token);
       setCredits(bal);
-      lastFetchTime.current = Date.now();
     } catch (err) {
       setCreditsError((err as Error)?.message ?? "Couldn't load credit balance");
     } finally {
@@ -113,13 +107,11 @@ export default function ProfileScreen() {
     }
   }, [getToken, startSpin, stopSpin]);
 
-  // Refresh credits every time the tab becomes focused so users see fresh
-  // balance after a generation, restore, or purchase elsewhere in the app.
-  useFocusEffect(
-    useCallback(() => {
-      void loadCredits(false);
-    }, [loadCredits]),
-  );
+  // Load credits once on mount only.
+  useEffect(() => {
+    void loadCredits();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const meta = (user?.unsafeMetadata ?? {}) as UserMeta;
 
@@ -267,7 +259,7 @@ export default function ProfileScreen() {
         <View style={styles.card}>
           <View style={styles.creditsHeader}>
             <Text style={styles.cardTitle}>Credits</Text>
-            <TouchableOpacity onPress={() => loadCredits(true)} disabled={creditsLoading} hitSlop={10}>
+            <TouchableOpacity onPress={loadCredits} disabled={creditsLoading} hitSlop={10}>
               <Animated.View style={{
                 transform: [{
                   rotate: spinAnim.interpolate({

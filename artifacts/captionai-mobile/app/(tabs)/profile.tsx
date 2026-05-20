@@ -71,6 +71,7 @@ export default function ProfileScreen() {
   const [creditsError, setCreditsError] = useState<string | null>(null);
   const spinAnim = useRef(new Animated.Value(0)).current;
   const spinLoop = useRef<Animated.CompositeAnimation | null>(null);
+  const lastFetchTime = useRef<number>(0);
 
   const startSpin = useCallback(() => {
     spinAnim.setValue(0);
@@ -91,7 +92,11 @@ export default function ProfileScreen() {
     spinAnim.setValue(0);
   }, [spinAnim]);
 
-  const loadCredits = useCallback(async () => {
+  const loadCredits = useCallback(async (force = false) => {
+    // Throttle auto-refreshes — only re-fetch if 10s have passed since last load,
+    // unless forced (manual tap). This prevents rapid flickering in web preview
+    // and avoids hammering the server on every focus event.
+    if (!force && Date.now() - lastFetchTime.current < 10_000) return;
     try {
       setCreditsLoading(true);
       setCreditsError(null);
@@ -99,6 +104,7 @@ export default function ProfileScreen() {
       const token = await getToken();
       const bal = await fetchCreditBalance(token);
       setCredits(bal);
+      lastFetchTime.current = Date.now();
     } catch (err) {
       setCreditsError((err as Error)?.message ?? "Couldn't load credit balance");
     } finally {
@@ -111,7 +117,7 @@ export default function ProfileScreen() {
   // balance after a generation, restore, or purchase elsewhere in the app.
   useFocusEffect(
     useCallback(() => {
-      void loadCredits();
+      void loadCredits(false);
     }, [loadCredits]),
   );
 
@@ -261,7 +267,7 @@ export default function ProfileScreen() {
         <View style={styles.card}>
           <View style={styles.creditsHeader}>
             <Text style={styles.cardTitle}>Credits</Text>
-            <TouchableOpacity onPress={loadCredits} disabled={creditsLoading} hitSlop={10}>
+            <TouchableOpacity onPress={() => loadCredits(true)} disabled={creditsLoading} hitSlop={10}>
               <Animated.View style={{
                 transform: [{
                   rotate: spinAnim.interpolate({

@@ -2,9 +2,11 @@ import { useAuth, useUser } from "@clerk/expo";
 import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
   Alert,
   KeyboardAvoidingView,
   Modal,
@@ -67,11 +69,33 @@ export default function ProfileScreen() {
   const [credits, setCredits] = useState<CreditBalance | null>(null);
   const [creditsLoading, setCreditsLoading] = useState(false);
   const [creditsError, setCreditsError] = useState<string | null>(null);
+  const spinAnim = useRef(new Animated.Value(0)).current;
+  const spinLoop = useRef<Animated.CompositeAnimation | null>(null);
+
+  const startSpin = useCallback(() => {
+    spinAnim.setValue(0);
+    spinLoop.current = Animated.loop(
+      Animated.timing(spinAnim, {
+        toValue: 1,
+        duration: 900,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+    spinLoop.current.start();
+  }, [spinAnim]);
+
+  const stopSpin = useCallback(() => {
+    spinLoop.current?.stop();
+    spinLoop.current = null;
+    spinAnim.setValue(0);
+  }, [spinAnim]);
 
   const loadCredits = useCallback(async () => {
     try {
       setCreditsLoading(true);
       setCreditsError(null);
+      startSpin();
       const token = await getToken();
       const bal = await fetchCreditBalance(token);
       setCredits(bal);
@@ -79,8 +103,9 @@ export default function ProfileScreen() {
       setCreditsError((err as Error)?.message ?? "Couldn't load credit balance");
     } finally {
       setCreditsLoading(false);
+      stopSpin();
     }
-  }, [getToken]);
+  }, [getToken, startSpin, stopSpin]);
 
   // Refresh credits every time the tab becomes focused so users see fresh
   // balance after a generation, restore, or purchase elsewhere in the app.
@@ -237,11 +262,16 @@ export default function ProfileScreen() {
           <View style={styles.creditsHeader}>
             <Text style={styles.cardTitle}>Credits</Text>
             <TouchableOpacity onPress={loadCredits} disabled={creditsLoading} hitSlop={10}>
-              <Feather
-                name="refresh-cw"
-                size={14}
-                color={creditsLoading ? CARD_BORDER : MUTED}
-              />
+              <Animated.View style={{
+                transform: [{
+                  rotate: spinAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ["0deg", "360deg"],
+                  })
+                }]
+              }}>
+                <Feather name="refresh-cw" size={14} color={MUTED} />
+              </Animated.View>
             </TouchableOpacity>
           </View>
           {creditsLoading && !credits ? (

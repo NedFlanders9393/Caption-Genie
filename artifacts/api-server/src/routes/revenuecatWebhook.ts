@@ -44,10 +44,10 @@ const CREDIT_PACK_PRODUCTS: Record<string, number> = {
 };
 
 const PRO_SUBSCRIPTION_PRODUCTS = new Set<string>([
-  "com.captionai.app.pro.monthly",
+  "com.captionai.app.pro",
   "com.captionai.app.pro.yearly",
   // Play Store sends the base-plan-suffixed identifier
-  "com.captionai.app.pro.monthly:monthly",
+  "com.captionai.app.pro:monthly",
   "com.captionai.app.pro.yearly:annual",
 ]);
 

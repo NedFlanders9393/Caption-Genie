@@ -12,9 +12,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import * as Notifications from "expo-notifications";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import AnimatedSplash from "@/components/AnimatedSplash";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppProvider } from "@/context/AppContext";
@@ -93,6 +94,7 @@ export default function RootLayout() {
     Nunito_700Bold,
     Nunito_800ExtraBold,
   });
+  const [splashDone, setSplashDone] = useState(false);
   const router = useRouter();
   const notifListenerRef = useRef<Notifications.EventSubscription | null>(null);
 
@@ -171,6 +173,7 @@ export default function RootLayout() {
           </ErrorBoundary>
         </SafeAreaProvider>
       </ClerkLoaded>
+      {!splashDone && <AnimatedSplash onFinish={() => setSplashDone(true)} />}
     </ClerkProvider>
   );
 }

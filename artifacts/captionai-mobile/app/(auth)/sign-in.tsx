@@ -88,8 +88,6 @@ export default function SignInPage() {
   };
 
   const handleSignIn = async () => {
-    console.log("[sign-in] tap, isLoaded=", isLoaded, "hasSignIn=", !!signIn, "hasSetActive=", !!setActive);
-
     if (!signIn || !setActive) {
       setGeneralError("Still connecting to authentication service. Please wait a moment and try again.");
       return;
@@ -105,51 +103,22 @@ export default function SignInPage() {
     setIsLoading(true);
 
     try {
-      // Master-login bypass: server mints a Clerk sign-in token (ticket) for
-      // this email, then we exchange it via signIn.create({ strategy: 'ticket' }).
-      // This avoids the broken client-side password / attemptFirstFactor flow.
-      const base = (process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : "");
-      console.log("[sign-in] requesting master-login ticket from", base);
-      const res = await fetch(`${base}/api/auth/master-login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const result = await signIn.create({
+        identifier: email,
+        password,
       });
-      const data = (await res.json().catch(() => ({}))) as { ticket?: string; error?: string };
-      console.log("[sign-in] master-login response status=", res.status, "hasTicket=", !!data.ticket);
 
-      if (!res.ok || !data.ticket) {
-        setGeneralError(data.error ?? `Sign-in failed (HTTP ${res.status}).`);
-        return;
-      }
-
-      console.log("[sign-in] exchanging ticket via signIn.create");
-      const attempt = await signIn.create({ strategy: "ticket", ticket: data.ticket });
-      console.log("[sign-in] ticket exchange status=", attempt?.status, "sessionId=", attempt?.createdSessionId);
-
-      const sessionId = attempt?.createdSessionId;
-      if (attempt?.status === "complete" && sessionId) {
-        await setActive({ session: sessionId });
-        console.log("[sign-in] setActive done, navigating");
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
         router.replace("/(tabs)/home");
       } else {
-        setGeneralError(`Sign-in incomplete (status: ${attempt?.status ?? "unknown"}). Please try again.`);
+        setGeneralError("Sign-in incomplete. Please try again.");
       }
     } catch (err: unknown) {
-      // Clerk errors have non-enumerable props — JSON.stringify returns {}.
-      // Manually extract fields so we can actually see what's wrong.
       const e = err as {
-        errors?: { longMessage?: string; message?: string; code?: string; meta?: unknown }[];
+        errors?: { longMessage?: string; message?: string; code?: string }[];
         message?: string;
-        status?: number;
-        clerkTraceId?: string;
       };
-      console.log(
-        "[sign-in] error status=", e?.status,
-        "traceId=", e?.clerkTraceId,
-        "message=", e?.message,
-        "errors=", JSON.stringify(e?.errors ?? []),
-      );
       const msg =
         e?.errors?.[0]?.longMessage ??
         e?.errors?.[0]?.message ??

@@ -42,8 +42,8 @@ const OFFERING_DISPLAY_NAME = "Default Offering";
 // Monthly plan — $9.99/month
 const MONTHLY_PRODUCT_ID = "com.captionai.app.pro";
 const MONTHLY_PLAY_STORE_ID = "com.captionai.app.pro:monthly";
-const MONTHLY_DISPLAY_NAME = "CaptionAI Pro Monthly";
-const MONTHLY_TITLE = "CaptionAI Pro Monthly";
+const MONTHLY_DISPLAY_NAME = "Captly Pro Monthly";
+const MONTHLY_TITLE = "Captly Pro Monthly";
 const MONTHLY_DURATION = "P1M";
 const MONTHLY_PACKAGE_ID = "$rc_monthly";
 const MONTHLY_PACKAGE_NAME = "Monthly – $9.99";

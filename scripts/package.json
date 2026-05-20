@@ -7,6 +7,7 @@
     "hello": "tsx ./src/hello.ts",
     "seed-products": "tsx ./src/seed-products.ts",
     "seed-revenuecat": "tsx ./src/seedRevenueCat.ts",
+    "fix-monthly-package": "tsx ./src/fixMonthlyPackage.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {

@@ -77,8 +77,13 @@ export default function SignUpPage() {
       }
       setStep("verify");
     } catch (err: any) {
-      console.log("[sign-up] error", JSON.stringify(err));
-      const msg = err?.errors?.[0]?.longMessage ?? err?.errors?.[0]?.message ?? err?.message ?? "Something went wrong. Please try again.";
+      console.log("[sign-up] error", err?.errors, err?.message, String(err));
+      const msg =
+        err?.errors?.[0]?.longMessage ??
+        err?.errors?.[0]?.message ??
+        err?.message ??
+        (typeof err?.toString === "function" ? err.toString() : null) ??
+        "Something went wrong. Please try again.";
       setGeneralError(msg);
     } finally {
       setIsLoading(false);

@@ -67,10 +67,19 @@ export default function SignInPage() {
     setIsLoading(true);
 
     try {
-      const result = await signIn.create({
+      let result = await signIn.create({
         identifier: email,
         password,
       });
+
+      // Expo web returns needs_first_factor and requires a second step.
+      // Native iOS completes in one call.
+      if (result.status === "needs_first_factor") {
+        result = await signIn.attemptFirstFactor({
+          strategy: "password",
+          password,
+        });
+      }
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
@@ -86,7 +95,7 @@ export default function SignInPage() {
         } catch {}
         router.replace("/(tabs)/home");
       } else {
-        setGeneralError("Sign-in incomplete. Please try again.");
+        setGeneralError(`Sign-in incomplete (status: ${result.status ?? "unknown"}). Please try again.`);
       }
     } catch (err: unknown) {
       const e = err as {

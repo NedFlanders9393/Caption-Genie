@@ -69,7 +69,12 @@ export default function SignUpPage() {
     setIsLoading(true);
     try {
       await signUp.create({ emailAddress: email, password });
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      // Native uses prepareEmailAddressVerification; web uses prepareVerification
+      if (typeof signUp.prepareEmailAddressVerification === "function") {
+        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      } else {
+        await signUp.prepareVerification({ strategy: "email_code" });
+      }
       setStep("verify");
     } catch (err: any) {
       console.log("[sign-up] error", JSON.stringify(err));
@@ -89,7 +94,10 @@ export default function SignUpPage() {
     setGeneralError(null);
     setIsLoading(true);
     try {
-      const result = await signUp.attemptEmailAddressVerification({ code });
+      // Native uses attemptEmailAddressVerification; web uses attemptVerification
+      const result = typeof signUp.attemptEmailAddressVerification === "function"
+        ? await signUp.attemptEmailAddressVerification({ code })
+        : await signUp.attemptVerification({ strategy: "email_code", code });
       console.log("[verify] result keys=", result ? Object.keys(result) : null, "status=", result?.status, "sessionId=", result?.createdSessionId ?? signUp?.createdSessionId);
       const sessionId = result?.createdSessionId ?? signUp?.createdSessionId;
       if (sessionId) {

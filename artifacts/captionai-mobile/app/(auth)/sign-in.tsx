@@ -48,45 +48,6 @@ export default function SignInPage() {
     }
   }, [isSignedIn]);
 
-  const handleDevSignIn = async () => {
-    if (!signIn || !setActive) {
-      setGeneralError("Still connecting to authentication service. Please wait a moment and try again.");
-      return;
-    }
-    setGeneralError(null);
-    setIsLoading(true);
-    try {
-      const base = (process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : "");
-      console.log("[dev-sign-in] requesting ticket from", base);
-      const res = await fetch(`${base}/api/auth/dev-login`, { method: "POST" });
-      const data = (await res.json().catch(() => ({}))) as { ticket?: string; email?: string; error?: string };
-      console.log("[dev-sign-in] status=", res.status, "hasTicket=", !!data.ticket, "email=", data.email);
-      if (!res.ok || !data.ticket) {
-        setGeneralError(data.error ?? `Dev sign-in failed (HTTP ${res.status}).`);
-        return;
-      }
-      const attempt = await signIn.create({ strategy: "ticket", ticket: data.ticket });
-      // Clerk sometimes mutates the hook's signIn ref instead of returning a fully populated resource.
-      // Check both the returned attempt AND the hook ref for status/sessionId.
-      const status = attempt?.status ?? signIn?.status;
-      const sessionId = attempt?.createdSessionId ?? signIn?.createdSessionId;
-      console.log("[dev-sign-in] exchange status=", status, "sessionId=", sessionId, "attemptKeys=", Object.keys(attempt ?? {}).join(","));
-      if (sessionId) {
-        await setActive({ session: sessionId });
-        console.log("[dev-sign-in] setActive done, navigating");
-        router.replace("/(tabs)/home");
-      } else {
-        setGeneralError(`Dev sign-in incomplete (status: ${status ?? "unknown"}).`);
-      }
-    } catch (err: unknown) {
-      const e = err as { errors?: { longMessage?: string; message?: string }[]; message?: string };
-      console.log("[dev-sign-in] error", e?.message, JSON.stringify(e?.errors ?? []));
-      setGeneralError(e?.errors?.[0]?.longMessage ?? e?.errors?.[0]?.message ?? e?.message ?? "Dev sign-in failed.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleSignIn = async () => {
     if (!signIn || !setActive) {
       setGeneralError("Still connecting to authentication service. Please wait a moment and try again.");
@@ -206,18 +167,6 @@ export default function SignInPage() {
               )}
             </Pressable>
 
-            <Pressable
-              style={({ pressed }) => [
-                styles.devButton,
-                isLoading && styles.buttonDisabled,
-                pressed && !isLoading && styles.devButtonPressed,
-              ]}
-              onPress={handleDevSignIn}
-              disabled={isLoading}
-            >
-              <Text style={styles.devButtonText}>Dev sign in (one tap)</Text>
-            </Pressable>
-
             <View style={styles.footer}>
               <Text style={styles.footerText}>Don't have an account? </Text>
               <Link href="/(auth)/sign-up" asChild>
@@ -328,24 +277,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: "600",
-    fontFamily: "Nunito_600SemiBold",
-  },
-  devButton: {
-    height: 52,
-    backgroundColor: "#3A3129",
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 4,
-  },
-  devButtonPressed: {
-    backgroundColor: "#2A211A",
-    transform: [{ scale: 0.98 }],
-  },
-  devButtonText: {
-    color: "#FFFFFF",
-    fontSize: 15,
     fontWeight: "600",
     fontFamily: "Nunito_600SemiBold",
   },

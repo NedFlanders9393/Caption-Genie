@@ -1,4 +1,4 @@
-import { useAuth, useClerk, useSignIn } from "@clerk/expo";
+import { useAuth, useSignIn } from "@clerk/expo";
 import { Feather } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -30,8 +30,7 @@ const ERROR_BORDER = "#FECACA";
 
 export default function SignInPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { signIn, isLoaded } = useSignIn() as any;
-  const { setActive } = useClerk() as any;
+  const { signIn, isLoaded, setActive } = useSignIn() as any;
   const { isSignedIn } = useAuth();
   const router = useRouter();
 

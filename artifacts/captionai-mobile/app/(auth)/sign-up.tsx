@@ -2,7 +2,7 @@ import { useAuth, useClerk, useSignUp } from "@clerk/expo";
 import { claimFreeCreditsForDevice } from "../../lib/api";
 import { getDeviceId } from "../../lib/deviceId";
 import { Link, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -38,6 +38,10 @@ export default function SignUpPage() {
   const { isSignedIn, getToken } = useAuth() as any;
   const router = useRouter();
 
+  // Hold the SignUpResource returned by create() so handleVerify can use it.
+  // The hook ref may become stale after create() triggers a re-render.
+  const signUpResourceRef = useRef<any>(null);
+
   const [step, setStep] = useState<Step>("credentials");
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
@@ -55,7 +59,6 @@ export default function SignUpPage() {
   }, [isSignedIn]);
 
   const handleSubmit = async () => {
-    console.log("[sign-up] submit, isLoaded=", isLoaded, "hasSignUp=", !!signUp, "hasSetActive=", !!setActive);
     if (!signUp || !setActive) {
       setGeneralError("Still connecting to authentication service. Please wait a moment and try again.");
       return;
@@ -68,13 +71,43 @@ export default function SignUpPage() {
     setGeneralError(null);
     setIsLoading(true);
     try {
-      await signUp.create({ emailAddress: email, password });
-      // Native uses prepareEmailAddressVerification; web uses prepareVerification
-      if (typeof signUp.prepareEmailAddressVerification === "function") {
-        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      } else {
-        await signUp.prepareVerification({ strategy: "email_code" });
+      // Always use the RETURNED resource — the hook ref may be stale after create() re-renders.
+      const resource = await signUp.create({ emailAddress: email, password }) as any;
+      signUpResourceRef.current = resource;
+
+      console.log("[sign-up] created, status=", resource?.status,
+        "hasPrepareEmail=", typeof resource?.prepareEmailAddressVerification,
+        "hasPrepareVer=", typeof resource?.prepareVerification,
+        "hookHasPrepareEmail=", typeof signUp?.prepareEmailAddressVerification,
+        "hookHasPrepareVer=", typeof signUp?.prepareVerification);
+
+      // If Clerk completed sign-up without needing email verification, go straight in.
+      if (resource?.status === "complete" && resource?.createdSessionId) {
+        await setActive({ session: resource.createdSessionId });
+        try {
+          const [deviceId, token] = await Promise.all([getDeviceId(), getToken?.()]);
+          if (deviceId && token) claimFreeCreditsForDevice(deviceId, token).catch(() => {});
+        } catch {}
+        router.replace("/(tabs)/home");
+        return;
       }
+
+      // Try every known prepare-verification method (native vs web SDK naming).
+      const su = resource ?? signUp;
+      if (typeof su?.prepareEmailAddressVerification === "function") {
+        await su.prepareEmailAddressVerification({ strategy: "email_code" });
+      } else if (typeof su?.prepareVerification === "function") {
+        await su.prepareVerification({ strategy: "email_code" });
+      } else if (typeof signUp?.prepareEmailAddressVerification === "function") {
+        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      } else if (typeof signUp?.prepareVerification === "function") {
+        await signUp.prepareVerification({ strategy: "email_code" });
+      } else {
+        // Neither method found — Clerk may auto-send the email on create().
+        // Proceed to the code entry step anyway.
+        console.log("[sign-up] no prepare method found; proceeding to verify step");
+      }
+
       setStep("verify");
     } catch (err: any) {
       console.log("[sign-up] error", err?.errors, err?.message, String(err));
@@ -82,7 +115,7 @@ export default function SignUpPage() {
         err?.errors?.[0]?.longMessage ??
         err?.errors?.[0]?.message ??
         err?.message ??
-        (typeof err?.toString === "function" ? err.toString() : null) ??
+        String(err) ??
         "Something went wrong. Please try again.";
       setGeneralError(msg);
     } finally {
@@ -91,38 +124,40 @@ export default function SignUpPage() {
   };
 
   const handleVerify = async () => {
-    console.log("[verify] submit, isLoaded=", isLoaded, "hasSignUp=", !!signUp);
-    if (!signUp || !setActive) {
+    if (!setActive) {
       setGeneralError("Still connecting to authentication service. Please wait a moment and try again.");
       return;
     }
     setGeneralError(null);
     setIsLoading(true);
     try {
-      // Native uses attemptEmailAddressVerification; web uses attemptVerification
-      const result = typeof signUp.attemptEmailAddressVerification === "function"
-        ? await signUp.attemptEmailAddressVerification({ code })
-        : await signUp.attemptVerification({ strategy: "email_code", code });
-      console.log("[verify] result keys=", result ? Object.keys(result) : null, "status=", result?.status, "sessionId=", result?.createdSessionId ?? signUp?.createdSessionId);
-      const sessionId = result?.createdSessionId ?? signUp?.createdSessionId;
+      // Prefer the resource returned by create() over the potentially-stale hook ref.
+      const su = signUpResourceRef.current ?? signUp;
+      let result: any;
+      if (typeof su?.attemptEmailAddressVerification === "function") {
+        result = await su.attemptEmailAddressVerification({ code });
+      } else if (typeof su?.attemptVerification === "function") {
+        result = await su.attemptVerification({ strategy: "email_code", code });
+      } else if (typeof signUp?.attemptEmailAddressVerification === "function") {
+        result = await signUp.attemptEmailAddressVerification({ code });
+      } else {
+        result = await signUp.attemptVerification({ strategy: "email_code", code });
+      }
+
+      console.log("[verify] status=", result?.status, "sessionId=", result?.createdSessionId ?? su?.createdSessionId);
+      const sessionId = result?.createdSessionId ?? su?.createdSessionId ?? signUp?.createdSessionId;
       if (sessionId) {
         await setActive({ session: sessionId });
-        // Fire-and-forget: claim free credits for this device (idempotent)
         try {
-          const [deviceId, token] = await Promise.all([
-            getDeviceId(),
-            getToken?.(),
-          ]);
-          if (deviceId && token) {
-            claimFreeCreditsForDevice(deviceId, token).catch(() => {});
-          }
+          const [deviceId, token] = await Promise.all([getDeviceId(), getToken?.()]);
+          if (deviceId && token) claimFreeCreditsForDevice(deviceId, token).catch(() => {});
         } catch {}
         router.replace("/(tabs)/home");
       } else {
         setGeneralError(`Verification incomplete (status: ${result?.status ?? "unknown"}). Please try again.`);
       }
     } catch (err: any) {
-      console.log("[verify] error", JSON.stringify(err));
+      console.log("[verify] error", err?.errors, err?.message, String(err));
       const msg = err?.errors?.[0]?.longMessage ?? err?.errors?.[0]?.message ?? err?.message ?? "Verification failed. Please try again.";
       setGeneralError(msg);
     } finally {

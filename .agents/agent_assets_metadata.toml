@@ -17,3 +17,9 @@ id = "G9B9B8L-Q9qiA2Ur3_j5n"
 uri = "file://screenshots/paywall-review.jpg"
 type = "image"
 title = "Paywall Review Screenshot"
+
+[[outputs]]
+id = "ZwwQ2jaCQWxGIMHsS6DNC"
+uri = "file://artifacts/captionai-mobile/assets/images/icon.png"
+type = "image"
+title = "New App Icon"

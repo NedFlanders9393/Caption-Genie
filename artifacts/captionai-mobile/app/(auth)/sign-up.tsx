@@ -32,8 +32,9 @@ type Step = "credentials" | "verify";
 
 export default function SignUpPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { signUp, isLoaded, setActive: setActiveHook } = useSignUp() as any;
-  const { setActive: setActiveClerk } = useClerk() as any;
+  const { signUp, setActive: setActiveHook } = useSignUp() as any;
+  const clerkInstance = useClerk() as any;
+  const { setActive: setActiveClerk } = clerkInstance;
   const setActive = setActiveHook ?? setActiveClerk;
   const { isSignedIn, getToken } = useAuth() as any;
   const router = useRouter();
@@ -71,17 +72,21 @@ export default function SignUpPage() {
     setGeneralError(null);
     setIsLoading(true);
     try {
-      // Always use the RETURNED resource — the hook ref may be stale after create() re-renders.
+      // create() returns the updated SignUpResource; store it so verify can use it.
       const resource = await signUp.create({ emailAddress: email, password }) as any;
       signUpResourceRef.current = resource;
 
-      console.log("[sign-up] created, status=", resource?.status,
-        "hasPrepareEmail=", typeof resource?.prepareEmailAddressVerification,
-        "hasPrepareVer=", typeof resource?.prepareVerification,
-        "hookHasPrepareEmail=", typeof signUp?.prepareEmailAddressVerification,
-        "hookHasPrepareVer=", typeof signUp?.prepareVerification);
+      // After create(), clerk.client.signUp is the live authoritative object.
+      // The hook ref (signUp) may be stale due to React re-renders.
+      const liveSignUp = clerkInstance?.client?.signUp ?? resource ?? signUp;
 
-      // If Clerk completed sign-up without needing email verification, go straight in.
+      console.log("[sign-up] created, status=", resource?.status,
+        "liveHasPrepareEmail=", typeof liveSignUp?.prepareEmailAddressVerification,
+        "liveHasPrepareVer=", typeof liveSignUp?.prepareVerification,
+        "resourceHasPrepareVer=", typeof resource?.prepareVerification,
+        "liveKeys=", liveSignUp ? Object.getOwnPropertyNames(Object.getPrototypeOf(liveSignUp ?? {})).join(",") : "none");
+
+      // If sign-up already completed (email verification disabled in Clerk instance)
       if (resource?.status === "complete" && resource?.createdSessionId) {
         await setActive({ session: resource.createdSessionId });
         try {
@@ -92,20 +97,23 @@ export default function SignUpPage() {
         return;
       }
 
-      // Try every known prepare-verification method (native vs web SDK naming).
-      const su = resource ?? signUp;
-      if (typeof su?.prepareEmailAddressVerification === "function") {
-        await su.prepareEmailAddressVerification({ strategy: "email_code" });
-      } else if (typeof su?.prepareVerification === "function") {
-        await su.prepareVerification({ strategy: "email_code" });
-      } else if (typeof signUp?.prepareEmailAddressVerification === "function") {
-        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      } else if (typeof signUp?.prepareVerification === "function") {
-        await signUp.prepareVerification({ strategy: "email_code" });
-      } else {
-        // Neither method found — Clerk may auto-send the email on create().
-        // Proceed to the code entry step anyway.
-        console.log("[sign-up] no prepare method found; proceeding to verify step");
+      // Try prepare-verification across all candidate objects and all known method names.
+      const candidates = [liveSignUp, resource, signUp].filter(Boolean);
+      let prepared = false;
+      for (const su of candidates) {
+        if (typeof su?.prepareEmailAddressVerification === "function") {
+          await su.prepareEmailAddressVerification({ strategy: "email_code" });
+          prepared = true;
+          break;
+        }
+        if (typeof su?.prepareVerification === "function") {
+          await su.prepareVerification({ strategy: "email_code" });
+          prepared = true;
+          break;
+        }
+      }
+      if (!prepared) {
+        console.log("[sign-up] no prepare method on any candidate — Clerk may auto-send");
       }
 
       setStep("verify");
@@ -131,21 +139,28 @@ export default function SignUpPage() {
     setGeneralError(null);
     setIsLoading(true);
     try {
-      // Prefer the resource returned by create() over the potentially-stale hook ref.
-      const su = signUpResourceRef.current ?? signUp;
+      const liveSignUp = clerkInstance?.client?.signUp ?? signUpResourceRef.current ?? signUp;
+      const candidates = [liveSignUp, signUpResourceRef.current, signUp].filter(Boolean);
       let result: any;
-      if (typeof su?.attemptEmailAddressVerification === "function") {
-        result = await su.attemptEmailAddressVerification({ code });
-      } else if (typeof su?.attemptVerification === "function") {
-        result = await su.attemptVerification({ strategy: "email_code", code });
-      } else if (typeof signUp?.attemptEmailAddressVerification === "function") {
-        result = await signUp.attemptEmailAddressVerification({ code });
-      } else {
-        result = await signUp.attemptVerification({ strategy: "email_code", code });
+      let attempted = false;
+      for (const su of candidates) {
+        if (typeof su?.attemptEmailAddressVerification === "function") {
+          result = await su.attemptEmailAddressVerification({ code });
+          attempted = true;
+          break;
+        }
+        if (typeof su?.attemptVerification === "function") {
+          result = await su.attemptVerification({ strategy: "email_code", code });
+          attempted = true;
+          break;
+        }
+      }
+      if (!attempted) {
+        throw new Error("No attempt verification method available. Please try again.");
       }
 
-      console.log("[verify] status=", result?.status, "sessionId=", result?.createdSessionId ?? su?.createdSessionId);
-      const sessionId = result?.createdSessionId ?? su?.createdSessionId ?? signUp?.createdSessionId;
+      console.log("[verify] status=", result?.status, "sessionId=", result?.createdSessionId ?? liveSignUp?.createdSessionId);
+      const sessionId = result?.createdSessionId ?? liveSignUp?.createdSessionId ?? signUp?.createdSessionId;
       if (sessionId) {
         await setActive({ session: sessionId });
         try {
@@ -166,10 +181,22 @@ export default function SignUpPage() {
   };
 
   const handleResend = async () => {
-    if (!isLoaded) return;
     setGeneralError(null);
     try {
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      const liveSignUp = clerkInstance?.client?.signUp ?? signUp;
+      const candidates = [liveSignUp, signUp].filter(Boolean);
+      let sent = false;
+      for (const su of candidates) {
+        if (typeof su?.prepareEmailAddressVerification === "function") {
+          await su.prepareEmailAddressVerification({ strategy: "email_code" });
+          sent = true; break;
+        }
+        if (typeof su?.prepareVerification === "function") {
+          await su.prepareVerification({ strategy: "email_code" });
+          sent = true; break;
+        }
+      }
+      if (!sent) console.log("[resend] no prepare method found");
     } catch (err: any) {
       const msg = err?.errors?.[0]?.message ?? err?.message ?? "Failed to resend. Please try again.";
       setGeneralError(msg);

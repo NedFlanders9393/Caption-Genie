@@ -32,8 +32,9 @@ const ERROR_BORDER = "#FECACA";
 
 export default function SignInPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { signIn, isLoaded, setActive: setActiveHook } = useSignIn() as any;
-  const { setActive: setActiveClerk } = useClerk() as any;
+  const { signIn, setActive: setActiveHook } = useSignIn() as any;
+  const clerkInstance = useClerk() as any;
+  const { setActive: setActiveClerk } = clerkInstance;
   const setActive = setActiveHook ?? setActiveClerk;
   const { isSignedIn, getToken } = useAuth() as any;
   const router = useRouter();
@@ -67,45 +68,39 @@ export default function SignInPage() {
     setIsLoading(true);
 
     try {
-      let result = await signIn.create({
-        identifier: email,
-        password,
-      });
+      // create() returns the updated SignIn resource.
+      // After create(), clerkInstance.client.signIn is the live authoritative object.
+      const resource = await signIn.create({ identifier: email, password }) as any;
+      const liveSignIn = clerkInstance?.client?.signIn ?? resource ?? signIn;
 
-      // Expo web returns needs_first_factor and requires a second step.
-      // Native iOS completes in one call.
-      if (result.status === "needs_first_factor") {
-        result = await signIn.attemptFirstFactor({
-          strategy: "password",
-          password,
-        });
+      console.log("[sign-in] created, status=", resource?.status,
+        "liveHasAttemptFirst=", typeof liveSignIn?.attemptFirstFactor);
+
+      let result = resource;
+
+      // Expo web returns needs_first_factor; native iOS completes in one call.
+      if (result?.status === "needs_first_factor") {
+        result = await liveSignIn.attemptFirstFactor({ strategy: "password", password });
       }
 
-      if (result.status === "complete") {
+      if (result?.status === "complete") {
         await setActive({ session: result.createdSessionId });
-        // Fire-and-forget: claim free credits for this device (idempotent)
         try {
-          const [deviceId, token] = await Promise.all([
-            getDeviceId(),
-            getToken?.(),
-          ]);
-          if (deviceId && token) {
-            claimFreeCreditsForDevice(deviceId, token).catch(() => {});
-          }
+          const [deviceId, token] = await Promise.all([getDeviceId(), getToken?.()]);
+          if (deviceId && token) claimFreeCreditsForDevice(deviceId, token).catch(() => {});
         } catch {}
         router.replace("/(tabs)/home");
       } else {
-        setGeneralError(`Sign-in incomplete (status: ${result.status ?? "unknown"}). Please try again.`);
+        setGeneralError(`Sign-in incomplete (status: ${result?.status ?? "unknown"}). Please try again.`);
       }
     } catch (err: unknown) {
-      const e = err as {
-        errors?: { longMessage?: string; message?: string; code?: string }[];
-        message?: string;
-      };
+      const e = err as any;
+      console.log("[sign-in] error", e?.errors, e?.message, String(e));
       const msg =
         e?.errors?.[0]?.longMessage ??
         e?.errors?.[0]?.message ??
         e?.message ??
+        String(e) ??
         "Something went wrong. Please try again.";
       setGeneralError(msg);
     } finally {

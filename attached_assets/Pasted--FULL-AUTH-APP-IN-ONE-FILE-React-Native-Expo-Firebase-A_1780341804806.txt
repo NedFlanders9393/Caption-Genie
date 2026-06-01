@@ -1,0 +1,213 @@
+// FULL AUTH APP IN ONE FILE
+// React Native + Expo + Firebase Authentication
+
+import React, { useState, useEffect } from "react";
+import { 
+  View, Text, TextInput, TouchableOpacity, StyleSheet 
+} from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+
+// -----------------------------
+// FIREBASE SETUP
+// -----------------------------
+import { initializeApp } from "firebase/app";
+import { 
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "firebase/auth";
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// -----------------------------
+// AUTH FUNCTIONS
+// -----------------------------
+const registerUser = (email, password) => {
+  return createUserWithEmailAndPassword(auth, email, password);
+};
+
+const loginUser = (email, password) => {
+  return signInWithEmailAndPassword(auth, email, password);
+};
+
+const logoutUser = () => {
+  return signOut(auth);
+};
+
+// -----------------------------
+// SCREENS
+// -----------------------------
+
+// LOGIN SCREEN
+function LoginScreen({ navigation }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async () => {
+    try {
+      await loginUser(email, password);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Sign In</Text>
+
+      <TextInput 
+        style={styles.input}
+        placeholder="Email"
+        autoCapitalize="none"
+        onChangeText={setEmail}
+      />
+
+      <TextInput 
+        style={styles.input}
+        placeholder="Password"
+        secureTextEntry
+        onChangeText={setPassword}
+      />
+
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <Text style={styles.buttonText}>Sign In</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
+        <Text style={styles.link}>Create an account</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+// SIGNUP SCREEN
+function SignupScreen({ navigation }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSignup = async () => {
+    try {
+      await registerUser(email, password);
+      alert("Account created!");
+      navigation.navigate("Login");
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Create Account</Text>
+
+      <TextInput 
+        style={styles.input}
+        placeholder="Email"
+        autoCapitalize="none"
+        onChangeText={setEmail}
+      />
+
+      <TextInput 
+        style={styles.input}
+        placeholder="Password"
+        secureTextEntry
+        onChangeText={setPassword}
+      />
+
+      <TouchableOpacity style={styles.button} onPress={handleSignup}>
+        <Text style={styles.buttonText}>Sign Up</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+        <Text style={styles.link}>Already have an account? Sign In</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+// HOME SCREEN
+function HomeScreen() {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Welcome!</Text>
+
+      <TouchableOpacity style={styles.button} onPress={logoutUser}>
+        <Text style={styles.buttonText}>Log Out</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+// -----------------------------
+// NAVIGATION
+// -----------------------------
+const Stack = createNativeStackNavigator();
+
+function AppNavigator({ user }) {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {user ? (
+        <Stack.Screen name="Home" component={HomeScreen} />
+      ) : (
+        <>
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Signup" component={SignupScreen} />
+        </>
+      )}
+    </Stack.Navigator>
+  );
+}
+
+// -----------------------------
+// MAIN APP
+// -----------------------------
+export default function App() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => setUser(u));
+    return unsub;
+  }, []);
+
+  return (
+    <NavigationContainer>
+      <AppNavigator user={user} />
+    </NavigationContainer>
+  );
+}
+
+// -----------------------------
+// STYLES
+// -----------------------------
+const styles = StyleSheet.create({
+  container: { flex: 1, justifyContent: "center", padding: 20 },
+  title: { fontSize: 28, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 15
+  },
+  button: {
+    backgroundColor: "#000",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 10
+  },
+  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  link: { marginTop: 15, textAlign: "center", color: "#007bff" }
+});

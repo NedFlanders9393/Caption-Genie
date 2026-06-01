@@ -1,4 +1,4 @@
-import { useAuth, useSignIn } from "@clerk/expo";
+import { useAuth, useClerk, useSignIn } from "@clerk/expo";
 import { claimFreeCreditsForDevice } from "../../lib/api";
 import { getDeviceId } from "../../lib/deviceId";
 import { Feather } from "@expo/vector-icons";
@@ -32,7 +32,9 @@ const ERROR_BORDER = "#FECACA";
 
 export default function SignInPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { signIn, isLoaded, setActive } = useSignIn() as any;
+  const { signIn, isLoaded, setActive: setActiveHook } = useSignIn() as any;
+  const { setActive: setActiveClerk } = useClerk() as any;
+  const setActive = setActiveHook ?? setActiveClerk;
   const { isSignedIn, getToken } = useAuth() as any;
   const router = useRouter();
 

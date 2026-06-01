@@ -1,4 +1,4 @@
-import { useAuth, useSignUp } from "@clerk/expo";
+import { useAuth, useClerk, useSignUp } from "@clerk/expo";
 import { claimFreeCreditsForDevice } from "../../lib/api";
 import { getDeviceId } from "../../lib/deviceId";
 import { Link, useRouter } from "expo-router";
@@ -32,7 +32,9 @@ type Step = "credentials" | "verify";
 
 export default function SignUpPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { signUp, isLoaded, setActive } = useSignUp() as any;
+  const { signUp, isLoaded, setActive: setActiveHook } = useSignUp() as any;
+  const { setActive: setActiveClerk } = useClerk() as any;
+  const setActive = setActiveHook ?? setActiveClerk;
   const { isSignedIn, getToken } = useAuth() as any;
   const router = useRouter();
 

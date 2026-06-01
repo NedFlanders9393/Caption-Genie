@@ -3,7 +3,8 @@ import { requireAuth, getAuth } from "@clerk/express";
 import { db } from "@workspace/db";
 import { creditTransactions } from "@workspace/db/schema";
 import { desc, eq } from "drizzle-orm";
-import { getBalance } from "../services/credits.js";
+import { getBalance, claimFreeCredits } from "../services/credits.js";
+import { clerkClient } from "@clerk/express";
 
 const router: IRouter = Router();
 
@@ -69,6 +70,48 @@ router.get("/credits/transactions", requireAuth(), async (req, res) => {
   } catch (err) {
     req.log.error({ err }, "Failed to fetch credit transactions");
     return res.status(500).json({ error: "failed_to_fetch_transactions" });
+  }
+});
+
+/**
+ * POST /api/credits/claim-free
+ * Claim the one-time free signup bonus for this device.
+ * Body: { deviceId: string }
+ *
+ * Each physical device may only claim credits once, regardless of how many
+ * Clerk accounts are created on it. Idempotent — safe to call on every sign-in.
+ */
+router.post("/credits/claim-free", requireAuth(), async (req, res) => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    return res.status(401).json({ error: "unauthorized" });
+  }
+
+  const body = (req.body ?? {}) as { deviceId?: unknown };
+  const deviceId = typeof body.deviceId === "string" ? body.deviceId.trim() : "";
+
+  if (!deviceId) {
+    return res.status(400).json({ error: "deviceId is required" });
+  }
+
+  try {
+    // Fetch email from Clerk for disposable-email check
+    let userEmail: string | undefined;
+    try {
+      const clerkUser = await clerkClient.users.getUser(userId);
+      userEmail = clerkUser.emailAddresses?.[0]?.emailAddress;
+    } catch {
+      // Non-fatal — proceed without email check
+    }
+
+    const result = await claimFreeCredits(userId, deviceId, userEmail);
+
+    req.log.info({ userId, deviceId, ...result }, "claim-free-credits");
+
+    return res.json(result);
+  } catch (err) {
+    req.log.error({ err }, "Failed to claim free credits");
+    return res.status(500).json({ error: "failed_to_claim_credits" });
   }
 });
 

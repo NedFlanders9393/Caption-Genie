@@ -64,3 +64,17 @@ export const processedRevenueCatEvents = pgTable("processed_rc_events", {
 });
 
 export type ProcessedRevenueCatEvent = typeof processedRevenueCatEvents.$inferSelect;
+
+/**
+ * One row per physical device that has ever claimed the free signup bonus.
+ * Used to prevent account-farming (create new account → get fresh 10 credits).
+ *
+ * deviceId: iOS identifierForVendor (or a SecureStore-persisted UUID fallback)
+ */
+export const deviceFreeCredits = pgTable("device_free_credits", {
+  deviceId: text("device_id").primaryKey(),
+  userId: text("user_id").notNull(),
+  grantedAt: timestamp("granted_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type DeviceFreeCredit = typeof deviceFreeCredits.$inferSelect;

@@ -14,6 +14,8 @@ import { db } from "@workspace/db";
 import {
   userCredits,
   creditTransactions,
+  deviceFreeCredits,
+  users,
   type UserCredits,
 } from "@workspace/db/schema";
 import { eq, sql } from "drizzle-orm";
@@ -39,8 +41,9 @@ export type GrantReason =
 const FREE_SIGNUP_CREDITS = 10;
 
 /**
- * Look up the credits row for a user, creating it on first access with the
- * free signup grant. Idempotent.
+ * Look up the credits row for a user, creating it on first access with
+ * ZERO credits. Free credits are granted separately via claimFreeCredits()
+ * after device-fingerprint validation, to prevent account-farming.
  */
 export async function getOrCreateUserCredits(userId: string): Promise<UserCredits> {
   if (!userId) throw new Error("userId required");
@@ -48,38 +51,121 @@ export async function getOrCreateUserCredits(userId: string): Promise<UserCredit
   const existing = await db.select().from(userCredits).where(eq(userCredits.userId, userId)).limit(1);
   if (existing[0]) return existing[0];
 
-  // INSERT ... ON CONFLICT DO NOTHING RETURNING tells us whether THIS call
-  // actually created the row. Only the winning caller writes the signup
-  // bonus transaction — preventing duplicate ledger rows under concurrency.
-  const inserted = await db
+  await db
     .insert(userCredits)
     .values({
       userId,
-      subscriptionCredits: FREE_SIGNUP_CREDITS,
+      subscriptionCredits: 0,
       purchasedCredits: 0,
       lifetimeCreditsUsed: 0,
       lifetimeCreditsPurchased: 0,
     })
-    .onConflictDoNothing()
-    .returning({ userId: userCredits.userId });
-
-  if (inserted.length > 0) {
-    // This call won the race — log the signup grant exactly once.
-    await db.insert(creditTransactions).values({
-      userId,
-      delta: FREE_SIGNUP_CREDITS,
-      reason: "signup_bonus",
-      bucket: "subscription",
-      source: null,
-      balanceAfter: FREE_SIGNUP_CREDITS,
-      metadata: null,
-    });
-  }
+    .onConflictDoNothing();
 
   const created = await db.select().from(userCredits).where(eq(userCredits.userId, userId)).limit(1);
   if (!created[0]) throw new Error("Failed to create user_credits row");
   return created[0];
 }
+
+/**
+ * Attempt to claim the one-time free signup bonus for a device.
+ * Each physical device (identified by iOS Vendor ID or a stored UUID) may
+ * only claim credits once — regardless of how many accounts are created.
+ *
+ * Returns { granted: number, alreadyClaimed: boolean }
+ */
+export async function claimFreeCredits(
+  userId: string,
+  deviceId: string,
+  userEmail?: string,
+): Promise<{ granted: number; alreadyClaimed: boolean; blockedReason?: string }> {
+  if (!userId) throw new Error("userId required");
+  if (!deviceId || deviceId.trim().length < 4) {
+    return { granted: 0, alreadyClaimed: false, blockedReason: "invalid_device_id" };
+  }
+
+  const cleanDeviceId = deviceId.trim().toLowerCase();
+
+  // Disposable email domain check
+  if (userEmail) {
+    const domain = userEmail.split("@")[1]?.toLowerCase() ?? "";
+    if (DISPOSABLE_EMAIL_DOMAINS.has(domain)) {
+      return { granted: 0, alreadyClaimed: false, blockedReason: "disposable_email" };
+    }
+  }
+
+  // Check if this device has already claimed free credits
+  const existing = await db
+    .select()
+    .from(deviceFreeCredits)
+    .where(eq(deviceFreeCredits.deviceId, cleanDeviceId))
+    .limit(1);
+
+  if (existing[0]) {
+    return { granted: 0, alreadyClaimed: true };
+  }
+
+  // Ensure the user has a credits row
+  await getOrCreateUserCredits(userId);
+
+  // Atomically record device claim + grant credits
+  return await db.transaction(async (tx) => {
+    // Insert device record (idempotent — ON CONFLICT means we only win once)
+    const inserted = await tx
+      .insert(deviceFreeCredits)
+      .values({ deviceId: cleanDeviceId, userId })
+      .onConflictDoNothing()
+      .returning({ deviceId: deviceFreeCredits.deviceId });
+
+    if (inserted.length === 0) {
+      // Another concurrent request won the race
+      return { granted: 0, alreadyClaimed: true };
+    }
+
+    // Grant the credits
+    await tx
+      .update(userCredits)
+      .set({
+        subscriptionCredits: sql`${userCredits.subscriptionCredits} + ${FREE_SIGNUP_CREDITS}`,
+        updatedAt: new Date(),
+      })
+      .where(eq(userCredits.userId, userId));
+
+    const after = await tx.select().from(userCredits).where(eq(userCredits.userId, userId)).limit(1);
+    const total = (after[0]?.subscriptionCredits ?? 0) + (after[0]?.purchasedCredits ?? 0);
+
+    await tx.insert(creditTransactions).values({
+      userId,
+      delta: FREE_SIGNUP_CREDITS,
+      reason: "signup_bonus",
+      bucket: "subscription",
+      source: cleanDeviceId,
+      balanceAfter: total,
+      metadata: { deviceId: cleanDeviceId },
+    });
+
+    // Store deviceId on the user record for future reference
+    await tx
+      .update(users)
+      .set({ deviceId: cleanDeviceId })
+      .where(eq(users.id, userId));
+
+    return { granted: FREE_SIGNUP_CREDITS, alreadyClaimed: false };
+  });
+}
+
+const DISPOSABLE_EMAIL_DOMAINS = new Set([
+  "mailinator.com", "guerrillamail.com", "guerrillamail.info", "guerrillamailblock.com",
+  "grr.la", "sharklasers.com", "spam4.me", "10minutemail.com", "temp-mail.org",
+  "throwaway.email", "yopmail.com", "yopmail.fr", "trashmail.com", "trashmail.me",
+  "trashmail.net", "trashmail.io", "trashmail.at", "maildrop.cc", "dispostable.com",
+  "fakeinbox.com", "mailnull.com", "spamgourmet.com", "spamgourmet.net", "tempinbox.com",
+  "binkmail.com", "bob.email", "mailsac.com", "getnada.com", "tempr.email",
+  "discard.email", "throwam.com", "mytempemail.com", "mohmal.com", "mailforspam.com",
+  "tempail.com", "spamex.com", "getairmail.com", "filzmail.com", "shitmail.me",
+  "mailexpire.com", "inboxalias.com", "cool.fr.nf", "jetable.fr.nf", "nospam.ze.tc",
+  "nomail.xl.cx", "mega.zik.dj", "speed.1s.fr", "courriel.fr.nf", "moncourrier.fr.nf",
+]);
 
 export async function getBalance(userId: string): Promise<CreditBalance> {
   const row = await getOrCreateUserCredits(userId);

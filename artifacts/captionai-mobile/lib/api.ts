@@ -293,6 +293,38 @@ export async function fetchCreditTransactions(
   return (data?.transactions ?? []) as CreditTransaction[];
 }
 
+// ─── Device Free Credits ──────────────────────────────────────────────────
+
+export interface ClaimFreeResult {
+  granted: number;
+  alreadyClaimed: boolean;
+  blockedReason?: string;
+}
+
+/**
+ * Claim the one-time free signup bonus for this device.
+ * Safe to call on every sign-in — idempotent on the server.
+ * Silently succeeds even if the device already claimed or is blocked.
+ */
+export async function claimFreeCreditsForDevice(
+  deviceId: string,
+  token: string | null,
+): Promise<ClaimFreeResult> {
+  if (!token || !BASE) return { granted: 0, alreadyClaimed: false };
+  const res = await fetchWithTimeout(
+    `${BASE}/api/credits/claim-free`,
+    {
+      method: "POST",
+      headers: authHeaders(token),
+      body: JSON.stringify({ deviceId }),
+    },
+    10_000,
+  );
+  if (!res.ok) return { granted: 0, alreadyClaimed: false };
+  const data = await safeJson(res);
+  return data ?? { granted: 0, alreadyClaimed: false };
+}
+
 export async function generateHashtags(
   params: HashtagParams,
   token: string | null = null

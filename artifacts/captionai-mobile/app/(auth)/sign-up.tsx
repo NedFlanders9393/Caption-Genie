@@ -1,4 +1,6 @@
 import { useAuth, useSignUp } from "@clerk/expo";
+import { claimFreeCreditsForDevice } from "../../lib/api";
+import { getDeviceId } from "../../lib/deviceId";
 import { Link, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -31,7 +33,7 @@ type Step = "credentials" | "verify";
 export default function SignUpPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { signUp, isLoaded, setActive } = useSignUp() as any;
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, getToken } = useAuth() as any;
   const router = useRouter();
 
   const [step, setStep] = useState<Step>("credentials");
@@ -90,6 +92,16 @@ export default function SignUpPage() {
       const sessionId = result?.createdSessionId ?? signUp?.createdSessionId;
       if (sessionId) {
         await setActive({ session: sessionId });
+        // Fire-and-forget: claim free credits for this device (idempotent)
+        try {
+          const [deviceId, token] = await Promise.all([
+            getDeviceId(),
+            getToken?.(),
+          ]);
+          if (deviceId && token) {
+            claimFreeCreditsForDevice(deviceId, token).catch(() => {});
+          }
+        } catch {}
         router.replace("/(tabs)/home");
       } else {
         setGeneralError(`Verification incomplete (status: ${result?.status ?? "unknown"}). Please try again.`);

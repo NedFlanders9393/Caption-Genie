@@ -11,7 +11,8 @@
         "simulator": false
       },
       "env": {
-        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_cmVuZXdlZC1saW9uZXNzLTI0LmNsZXJrLmFjY291bnRzLmRldiQ"
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_cmVuZXdlZC1saW9uZXNzLTI0LmNsZXJrLmFjY291bnRzLmRldiQ",
+        "EXPO_PUBLIC_DOMAIN": "captura.replit.app"
       }
     },
     "preview": {
@@ -20,7 +21,8 @@
         "buildConfiguration": "Release"
       },
       "env": {
-        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_cmVuZXdlZC1saW9uZXNzLTI0LmNsZXJrLmFjY291bnRzLmRldiQ"
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_cmVuZXdlZC1saW9uZXNzLTI0LmNsZXJrLmFjY291bnRzLmRldiQ",
+        "EXPO_PUBLIC_DOMAIN": "captura.replit.app"
       }
     },
     "production": {
@@ -28,7 +30,8 @@
         "buildConfiguration": "Release"
       },
       "env": {
-        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_cmVuZXdlZC1saW9uZXNzLTI0LmNsZXJrLmFjY291bnRzLmRldiQ"
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_cmVuZXdlZC1saW9uZXNzLTI0LmNsZXJrLmFjY291bnRzLmRldiQ",
+        "EXPO_PUBLIC_DOMAIN": "captura.replit.app"
       }
     }
   },

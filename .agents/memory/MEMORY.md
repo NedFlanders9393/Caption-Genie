@@ -1,1 +1,2 @@
-- [Clerk Expo new-device verification](clerk-expo-new-device-verification.md) — fresh-device sign-in returns needs_second_factor; satisfy with email code + finalize(), not setActive.
+- [ASC API key — secret format & submit debugging](asc-api-key-submit.md) — ASC_API_KEY_CONTENT stores the .p8 with spaces (not newlines); reconstruct PEM before submit; 401 = key revoked, user must regenerate.
+- [Clerk Expo new-device verification](clerk-expo-new-device-verification.md) — sign-in returns needs_second_factor on untrusted devices; handle via mfa email code, not MFA.

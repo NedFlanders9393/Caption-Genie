@@ -2,7 +2,7 @@ import { useAuth, useClerk, useSignUp } from "@clerk/expo";
 import { claimFreeCreditsForDevice } from "../../lib/api";
 import { getDeviceId } from "../../lib/deviceId";
 import { Link, useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -31,17 +31,10 @@ const ERROR_BORDER = "#FECACA";
 type Step = "credentials" | "verify";
 
 export default function SignUpPage() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { signUp, setActive: setActiveHook } = useSignUp() as any;
-  const clerkInstance = useClerk() as any;
-  const { setActive: setActiveClerk } = clerkInstance;
-  const setActive = setActiveHook ?? setActiveClerk;
+  const { signUp } = useSignUp();
+  const clerk = useClerk() as any;
   const { isSignedIn, getToken } = useAuth() as any;
   const router = useRouter();
-
-  // Hold the SignUpResource returned by create() so handleVerify can use it.
-  // The hook ref may become stale after create() triggers a re-render.
-  const signUpResourceRef = useRef<any>(null);
 
   const [step, setStep] = useState<Step>("credentials");
   const [emailAddress, setEmailAddress] = useState("");
@@ -59,8 +52,17 @@ export default function SignUpPage() {
     }
   }, [isSignedIn]);
 
+  const completeSignUp = async (su: any) => {
+    await clerk.setActive({ session: su.createdSessionId });
+    try {
+      const [deviceId, token] = await Promise.all([getDeviceId(), getToken?.()]);
+      if (deviceId && token) claimFreeCreditsForDevice(deviceId, token).catch(() => {});
+    } catch {}
+    router.replace("/(tabs)/home");
+  };
+
   const handleSubmit = async () => {
-    if (!signUp || !setActive) {
+    if (!signUp) {
       setGeneralError("Still connecting to authentication service. Please wait a moment and try again.");
       return;
     }
@@ -72,58 +74,30 @@ export default function SignUpPage() {
     setGeneralError(null);
     setIsLoading(true);
     try {
-      // create() returns the updated SignUpResource; store it so verify can use it.
-      const resource = await signUp.create({ emailAddress: email, password }) as any;
-      signUpResourceRef.current = resource;
+      const su = signUp as any;
 
-      // After create(), clerk.client.signUp is the live authoritative object.
-      // The hook ref (signUp) may be stale due to React re-renders.
-      const liveSignUp = clerkInstance?.client?.signUp ?? resource ?? signUp;
+      // Clerk v6 "Future API": password() creates the account and automatically
+      // sends the email verification code if email verification is enabled.
+      // Returns { error } — actual state lives on the reactive signUp resource.
+      const { error } = await su.password({ emailAddress: email, password });
 
-      console.log("[sign-up] created, status=", resource?.status,
-        "liveHasPrepareEmail=", typeof liveSignUp?.prepareEmailAddressVerification,
-        "liveHasPrepareVer=", typeof liveSignUp?.prepareVerification,
-        "resourceHasPrepareVer=", typeof resource?.prepareVerification,
-        "liveKeys=", liveSignUp ? Object.getOwnPropertyNames(Object.getPrototypeOf(liveSignUp ?? {})).join(",") : "none");
-
-      // If sign-up already completed (email verification disabled in Clerk instance)
-      if (resource?.status === "complete" && resource?.createdSessionId) {
-        await setActive({ session: resource.createdSessionId });
-        try {
-          const [deviceId, token] = await Promise.all([getDeviceId(), getToken?.()]);
-          if (deviceId && token) claimFreeCreditsForDevice(deviceId, token).catch(() => {});
-        } catch {}
-        router.replace("/(tabs)/home");
+      if (error) {
+        const msg = error.longMessage ?? error.message ?? "Sign-up failed. Please try again.";
+        setGeneralError(msg);
         return;
       }
 
-      // Try prepare-verification across all candidate objects and all known method names.
-      const candidates = [liveSignUp, resource, signUp].filter(Boolean);
-      let prepared = false;
-      for (const su of candidates) {
-        if (typeof su?.prepareEmailAddressVerification === "function") {
-          await su.prepareEmailAddressVerification({ strategy: "email_code" });
-          prepared = true;
-          break;
-        }
-        if (typeof su?.prepareVerification === "function") {
-          await su.prepareVerification({ strategy: "email_code" });
-          prepared = true;
-          break;
-        }
+      if (su.status === "complete" && su.createdSessionId) {
+        await completeSignUp(su);
+      } else {
+        // Email verification code was sent automatically — show verify step
+        setStep("verify");
       }
-      if (!prepared) {
-        console.log("[sign-up] no prepare method on any candidate — Clerk may auto-send");
-      }
-
-      setStep("verify");
     } catch (err: any) {
-      console.log("[sign-up] error", err?.errors, err?.message, String(err));
       const msg =
         err?.errors?.[0]?.longMessage ??
         err?.errors?.[0]?.message ??
         err?.message ??
-        String(err) ??
         "Something went wrong. Please try again.";
       setGeneralError(msg);
     } finally {
@@ -132,48 +106,35 @@ export default function SignUpPage() {
   };
 
   const handleVerify = async () => {
-    if (!setActive) {
+    if (!signUp) {
       setGeneralError("Still connecting to authentication service. Please wait a moment and try again.");
       return;
     }
     setGeneralError(null);
     setIsLoading(true);
     try {
-      const liveSignUp = clerkInstance?.client?.signUp ?? signUpResourceRef.current ?? signUp;
-      const candidates = [liveSignUp, signUpResourceRef.current, signUp].filter(Boolean);
-      let result: any;
-      let attempted = false;
-      for (const su of candidates) {
-        if (typeof su?.attemptEmailAddressVerification === "function") {
-          result = await su.attemptEmailAddressVerification({ code });
-          attempted = true;
-          break;
-        }
-        if (typeof su?.attemptVerification === "function") {
-          result = await su.attemptVerification({ strategy: "email_code", code });
-          attempted = true;
-          break;
-        }
-      }
-      if (!attempted) {
-        throw new Error("No attempt verification method available. Please try again.");
+      const su = signUp as any;
+
+      // Clerk v6 "Future API": verifyEmailCode() is on signUp.verifications
+      const { error } = await su.verifications.verifyEmailCode({ code });
+
+      if (error) {
+        const msg = error.longMessage ?? error.message ?? "Verification failed. Please try again.";
+        setGeneralError(msg);
+        return;
       }
 
-      console.log("[verify] status=", result?.status, "sessionId=", result?.createdSessionId ?? liveSignUp?.createdSessionId);
-      const sessionId = result?.createdSessionId ?? liveSignUp?.createdSessionId ?? signUp?.createdSessionId;
-      if (sessionId) {
-        await setActive({ session: sessionId });
-        try {
-          const [deviceId, token] = await Promise.all([getDeviceId(), getToken?.()]);
-          if (deviceId && token) claimFreeCreditsForDevice(deviceId, token).catch(() => {});
-        } catch {}
-        router.replace("/(tabs)/home");
+      if (su.status === "complete" && su.createdSessionId) {
+        await completeSignUp(su);
       } else {
-        setGeneralError(`Verification incomplete (status: ${result?.status ?? "unknown"}). Please try again.`);
+        setGeneralError(`Verification incomplete (status: ${su.status ?? "unknown"}). Please try again.`);
       }
     } catch (err: any) {
-      console.log("[verify] error", err?.errors, err?.message, String(err));
-      const msg = err?.errors?.[0]?.longMessage ?? err?.errors?.[0]?.message ?? err?.message ?? "Verification failed. Please try again.";
+      const msg =
+        err?.errors?.[0]?.longMessage ??
+        err?.errors?.[0]?.message ??
+        err?.message ??
+        "Verification failed. Please try again.";
       setGeneralError(msg);
     } finally {
       setIsLoading(false);
@@ -181,22 +142,17 @@ export default function SignUpPage() {
   };
 
   const handleResend = async () => {
+    if (!signUp) return;
     setGeneralError(null);
+    const email = emailAddress.trim();
     try {
-      const liveSignUp = clerkInstance?.client?.signUp ?? signUp;
-      const candidates = [liveSignUp, signUp].filter(Boolean);
-      let sent = false;
-      for (const su of candidates) {
-        if (typeof su?.prepareEmailAddressVerification === "function") {
-          await su.prepareEmailAddressVerification({ strategy: "email_code" });
-          sent = true; break;
-        }
-        if (typeof su?.prepareVerification === "function") {
-          await su.prepareVerification({ strategy: "email_code" });
-          sent = true; break;
-        }
+      const su = signUp as any;
+      // Re-trigger password() to resend the verification code
+      const { error } = await su.password({ emailAddress: email, password });
+      if (error) {
+        const msg = error.longMessage ?? error.message ?? "Failed to resend. Please try again.";
+        setGeneralError(msg);
       }
-      if (!sent) console.log("[resend] no prepare method found");
     } catch (err: any) {
       const msg = err?.errors?.[0]?.message ?? err?.message ?? "Failed to resend. Please try again.";
       setGeneralError(msg);
@@ -371,8 +327,6 @@ export default function SignUpPage() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-
-      <View nativeID="clerk-captcha" />
     </SafeAreaView>
   );
 }

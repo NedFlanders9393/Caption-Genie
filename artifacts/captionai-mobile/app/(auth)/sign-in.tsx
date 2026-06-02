@@ -15,7 +15,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const PRIMARY = "#E8B669";
@@ -31,11 +30,8 @@ const ERROR_BG = "#FEF2F2";
 const ERROR_BORDER = "#FECACA";
 
 export default function SignInPage() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { signIn, setActive: setActiveHook } = useSignIn() as any;
-  const clerkInstance = useClerk() as any;
-  const { setActive: setActiveClerk } = clerkInstance;
-  const setActive = setActiveHook ?? setActiveClerk;
+  const { signIn } = useSignIn();
+  const clerk = useClerk() as any;
   const { isSignedIn, getToken } = useAuth() as any;
   const router = useRouter();
 
@@ -53,54 +49,46 @@ export default function SignInPage() {
   }, [isSignedIn]);
 
   const handleSignIn = async () => {
-    if (!signIn || !setActive) {
+    if (!signIn) {
       setGeneralError("Still connecting to authentication service. Please wait a moment and try again.");
       return;
     }
-
     const email = emailAddress.trim();
     if (!email || !password) {
       setGeneralError("Please enter your email and password.");
       return;
     }
-
     setGeneralError(null);
     setIsLoading(true);
-
     try {
-      // create() returns the updated SignIn resource.
-      // After create(), clerkInstance.client.signIn is the live authoritative object.
-      const resource = await signIn.create({ identifier: email, password }) as any;
-      const liveSignIn = clerkInstance?.client?.signIn ?? resource ?? signIn;
+      const si = signIn as any;
 
-      console.log("[sign-in] created, status=", resource?.status,
-        "liveHasAttemptFirst=", typeof liveSignIn?.attemptFirstFactor);
+      // Clerk v6 "Future API": password() does sign-in in one step.
+      // Returns { error } — actual status lives on the reactive signIn resource.
+      const { error } = await si.password({ identifier: email, password });
 
-      let result = resource;
-
-      // Expo web returns needs_first_factor; native iOS completes in one call.
-      if (result?.status === "needs_first_factor") {
-        result = await liveSignIn.attemptFirstFactor({ strategy: "password", password });
+      if (error) {
+        const msg = error.longMessage ?? error.message ?? "Sign-in failed. Please try again.";
+        setGeneralError(msg);
+        return;
       }
 
-      if (result?.status === "complete") {
-        await setActive({ session: result.createdSessionId });
+      if (si.status === "complete" && si.createdSessionId) {
+        await clerk.setActive({ session: si.createdSessionId });
         try {
           const [deviceId, token] = await Promise.all([getDeviceId(), getToken?.()]);
           if (deviceId && token) claimFreeCreditsForDevice(deviceId, token).catch(() => {});
         } catch {}
         router.replace("/(tabs)/home");
       } else {
-        setGeneralError(`Sign-in incomplete (status: ${result?.status ?? "unknown"}). Please try again.`);
+        setGeneralError(`Sign-in incomplete (status: ${si.status ?? "unknown"}). Please try again.`);
       }
     } catch (err: unknown) {
       const e = err as any;
-      console.log("[sign-in] error", e?.errors, e?.message, String(e));
       const msg =
         e?.errors?.[0]?.longMessage ??
         e?.errors?.[0]?.message ??
         e?.message ??
-        String(e) ??
         "Something went wrong. Please try again.";
       setGeneralError(msg);
     } finally {
@@ -201,7 +189,6 @@ export default function SignInPage() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
-  center: { alignItems: "center", justifyContent: "center" },
   flex: { flex: 1 },
   container: {
     flexGrow: 1,

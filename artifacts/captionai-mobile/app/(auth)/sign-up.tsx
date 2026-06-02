@@ -75,9 +75,9 @@ export default function SignUpPage() {
     try {
       const su = signUp as any;
 
-      // Clerk v6 "Future API": password() creates the account and automatically
-      // sends the email verification code if email verification is enabled.
+      // Clerk v6 "Future API": password() creates the pending sign-up.
       // Returns { error } — actual state lives on the reactive signUp resource.
+      // The verification email is dispatched separately below via sendEmailCode().
       const { error } = await su.password({ emailAddress: email, password });
 
       if (error) {
@@ -89,7 +89,17 @@ export default function SignUpPage() {
       if (su.status === "complete") {
         await completeSignUp(su);
       } else {
-        // Email verification code was sent automatically — show verify step
+        // Clerk v6 "Future API": password() creates the pending sign-up but does
+        // NOT send the verification email — we must dispatch it explicitly.
+        const { error: sendError } = await su.verifications.sendEmailCode();
+        if (sendError) {
+          const msg =
+            sendError.longMessage ??
+            sendError.message ??
+            "Couldn't send a verification code. Please try again.";
+          setGeneralError(msg);
+          return;
+        }
         setStep("verify");
       }
     } catch (err: any) {
@@ -115,7 +125,7 @@ export default function SignUpPage() {
       const su = signUp as any;
 
       // Clerk v6 "Future API": verifyEmailCode() is on signUp.verifications
-      const { error } = await su.verifications.verifyEmailCode({ code });
+      const { error } = await su.verifications.verifyEmailCode({ code: code.trim() });
 
       if (error) {
         const msg = error.longMessage ?? error.message ?? "Verification failed. Please try again.";

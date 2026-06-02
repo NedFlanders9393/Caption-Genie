@@ -1,3 +1,4 @@
 - [ASC API key — secret format & submit debugging](asc-api-key-submit.md) — ASC_API_KEY_CONTENT stores the .p8 with spaces (not newlines); reconstruct PEM before submit; 401 = key revoked, user must regenerate.
 - [Clerk Expo new-device verification](clerk-expo-new-device-verification.md) — sign-in returns needs_second_factor on untrusted devices; handle via mfa email code, not MFA.
 - [Clerk sign-up email code](clerk-future-api-signup-email.md) — Future API password() does NOT auto-send; must call verifications.sendEmailCode() explicitly or no code arrives
+- [Prod DB frozen vs dev](prod-db-frozen-vs-dev.md) — deployed app uses a SEPARATE prod DB; can be frozen (logs: 'endpoint has been disabled'); dev psql working ≠ prod working; unfreeze is a user UI action.

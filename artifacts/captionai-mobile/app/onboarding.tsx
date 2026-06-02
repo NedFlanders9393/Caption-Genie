@@ -73,7 +73,7 @@ const SLIDES: Slide[] = [
     subtitle: "Start free — upgrade anytime when you're ready.",
     bullets: [
       { icon: "gift", text: "Free plan: 10 captions per month" },
-      { icon: "zap", text: "Pro plan: unlimited captions" },
+      { icon: "zap", text: "Pro plan: 150 captions every month" },
       { icon: "user", text: "Set up Brand Voice to personalize every caption" },
     ],
   },

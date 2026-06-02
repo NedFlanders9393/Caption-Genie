@@ -128,7 +128,7 @@ export async function scheduleLowUsageWarning(remaining: number): Promise<void> 
 
   const body =
     remaining === 1
-      ? "You have 1 caption left this month. Upgrade to Pro for unlimited access."
+      ? "You have 1 caption left this month. Upgrade to Pro for 150 captions a month."
       : `You have ${remaining} captions left this month. Upgrade to Pro to keep going.`;
 
   // Fire after a 10-second delay so it feels like a real push

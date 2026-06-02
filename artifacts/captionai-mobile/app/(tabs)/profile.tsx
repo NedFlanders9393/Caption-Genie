@@ -409,7 +409,7 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.upgradeText}>
               <Text style={styles.upgradeTitle}>Upgrade to Pro</Text>
-              <Text style={styles.upgradeSub}>Unlimited captions · $9.99/mo or $99.99/yr</Text>
+              <Text style={styles.upgradeSub}>150 captions a month · $9.99/mo</Text>
             </View>
             <Feather name="chevron-right" size={18} color={PRIMARY} />
           </Pressable>

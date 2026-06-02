@@ -2,8 +2,8 @@
 type ModuleMap = Record<string, () => Promise<Record<string, unknown>>>;
 export const modules: ModuleMap = {
   "./components/mockups/PaywallPreview.tsx": () => import("../components/mockups/PaywallPreview.tsx"),
-  "./components/mockups/font-picker/FontComparison.tsx": () => import("../components/mockups/font-picker/FontComparison.tsx"),
   "./components/mockups/quill-home/Companion.tsx": () => import("../components/mockups/quill-home/Companion.tsx"),
   "./components/mockups/quill-home/Dashboard.tsx": () => import("../components/mockups/quill-home/Dashboard.tsx"),
-  "./components/mockups/quill-home/Studio.tsx": () => import("../components/mockups/quill-home/Studio.tsx")
+  "./components/mockups/quill-home/Studio.tsx": () => import("../components/mockups/quill-home/Studio.tsx"),
+  "./components/mockups/font-picker/FontComparison.tsx": () => import("../components/mockups/font-picker/FontComparison.tsx")
 };

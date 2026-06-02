@@ -1,0 +1,1 @@
+- [Clerk Expo new-device verification](clerk-expo-new-device-verification.md) — fresh-device sign-in returns needs_second_factor; satisfy with email code + finalize(), not setActive.

@@ -1,4 +1,4 @@
-import { useAuth, useClerk, useSignUp } from "@clerk/expo";
+import { useAuth, useSignUp } from "@clerk/expo";
 import { claimFreeCreditsForDevice } from "../../lib/api";
 import { getDeviceId } from "../../lib/deviceId";
 import { Link, useRouter } from "expo-router";
@@ -32,7 +32,6 @@ type Step = "credentials" | "verify";
 
 export default function SignUpPage() {
   const { signUp } = useSignUp();
-  const clerk = useClerk() as any;
   const { isSignedIn, getToken } = useAuth() as any;
   const router = useRouter();
 
@@ -53,7 +52,7 @@ export default function SignUpPage() {
   }, [isSignedIn]);
 
   const completeSignUp = async (su: any) => {
-    await clerk.setActive({ session: su.createdSessionId });
+    await su.finalize();
     try {
       const [deviceId, token] = await Promise.all([getDeviceId(), getToken?.()]);
       if (deviceId && token) claimFreeCreditsForDevice(deviceId, token).catch(() => {});
@@ -87,7 +86,7 @@ export default function SignUpPage() {
         return;
       }
 
-      if (su.status === "complete" && su.createdSessionId) {
+      if (su.status === "complete") {
         await completeSignUp(su);
       } else {
         // Email verification code was sent automatically — show verify step
@@ -124,7 +123,7 @@ export default function SignUpPage() {
         return;
       }
 
-      if (su.status === "complete" && su.createdSessionId) {
+      if (su.status === "complete") {
         await completeSignUp(su);
       } else {
         setGeneralError(`Verification incomplete (status: ${su.status ?? "unknown"}). Please try again.`);
@@ -144,11 +143,10 @@ export default function SignUpPage() {
   const handleResend = async () => {
     if (!signUp) return;
     setGeneralError(null);
-    const email = emailAddress.trim();
     try {
       const su = signUp as any;
-      // Re-trigger password() to resend the verification code
-      const { error } = await su.password({ emailAddress: email, password });
+      // Canonical Future API: resend the verification code
+      const { error } = await su.verifications.sendEmailCode();
       if (error) {
         const msg = error.longMessage ?? error.message ?? "Failed to resend. Please try again.";
         setGeneralError(msg);

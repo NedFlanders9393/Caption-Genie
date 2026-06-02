@@ -1,4 +1,4 @@
-import { useAuth, useClerk, useSignIn } from "@clerk/expo";
+import { useAuth, useSignIn } from "@clerk/expo";
 import { claimFreeCreditsForDevice } from "../../lib/api";
 import { getDeviceId } from "../../lib/deviceId";
 import { Feather } from "@expo/vector-icons";
@@ -29,24 +29,38 @@ const ERROR_COLOR = "#DC2626";
 const ERROR_BG = "#FEF2F2";
 const ERROR_BORDER = "#FECACA";
 
+type Step = "credentials" | "verify";
+
 export default function SignInPage() {
   const { signIn } = useSignIn();
-  const clerk = useClerk() as any;
   const { isSignedIn, getToken } = useAuth() as any;
   const router = useRouter();
 
+  const [step, setStep] = useState<Step>("credentials");
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [codeFocused, setCodeFocused] = useState(false);
 
   useEffect(() => {
     if (isSignedIn) {
       router.replace("/(tabs)/home");
     }
   }, [isSignedIn]);
+
+  // Set the new session as active and finish the sign-in flow.
+  const finalizeAndContinue = async (si: any) => {
+    await si.finalize();
+    try {
+      const [deviceId, token] = await Promise.all([getDeviceId(), getToken?.()]);
+      if (deviceId && token) claimFreeCreditsForDevice(deviceId, token).catch(() => {});
+    } catch {}
+    router.replace("/(tabs)/home");
+  };
 
   const handleSignIn = async () => {
     if (!signIn) {
@@ -63,7 +77,7 @@ export default function SignInPage() {
     try {
       const si = signIn as any;
 
-      // Clerk v6 "Future API": password() does sign-in in one step.
+      // Clerk v6 "Future API": password() verifies the first factor in one step.
       // Returns { error } — actual status lives on the reactive signIn resource.
       const { error } = await si.password({ identifier: email, password });
 
@@ -73,16 +87,32 @@ export default function SignInPage() {
         return;
       }
 
-      if (si.status === "complete" && si.createdSessionId) {
-        await clerk.setActive({ session: si.createdSessionId });
-        try {
-          const [deviceId, token] = await Promise.all([getDeviceId(), getToken?.()]);
-          if (deviceId && token) claimFreeCreditsForDevice(deviceId, token).catch(() => {});
-        } catch {}
-        router.replace("/(tabs)/home");
-      } else {
-        setGeneralError(`Sign-in incomplete (status: ${si.status ?? "unknown"}). Please try again.`);
+      if (si.status === "complete") {
+        await finalizeAndContinue(si);
+        return;
       }
+
+      // New / untrusted device: Clerk requires a second factor. Replit-managed
+      // Clerk uses an email verification code for this. Send it and show the
+      // code-entry step.
+      if (si.status === "needs_second_factor" || si.status === "needs_client_trust") {
+        const factors = (si.supportedSecondFactors ?? []) as Array<{ strategy?: string }>;
+        const hasEmailCode = factors.some((f) => f.strategy === "email_code");
+        if (hasEmailCode || si.status === "needs_client_trust") {
+          const { error: sendError } = await si.mfa.sendEmailCode();
+          if (sendError) {
+            const msg = sendError.longMessage ?? sendError.message ?? "Couldn't send a verification code. Please try again.";
+            setGeneralError(msg);
+            return;
+          }
+          setStep("verify");
+          return;
+        }
+        setGeneralError("This account requires an extra verification step that isn't available. Please contact support.");
+        return;
+      }
+
+      setGeneralError(`Sign-in incomplete (status: ${si.status ?? "unknown"}). Please try again.`);
     } catch (err: unknown) {
       const e = err as any;
       const msg =
@@ -96,7 +126,139 @@ export default function SignInPage() {
     }
   };
 
+  const handleVerify = async () => {
+    if (!signIn) {
+      setGeneralError("Still connecting to authentication service. Please wait a moment and try again.");
+      return;
+    }
+    setGeneralError(null);
+    setIsLoading(true);
+    try {
+      const si = signIn as any;
+
+      const { error } = await si.mfa.verifyEmailCode({ code: code.trim() });
+
+      if (error) {
+        const msg = error.longMessage ?? error.message ?? "Verification failed. Please try again.";
+        setGeneralError(msg);
+        return;
+      }
+
+      if (si.status === "complete") {
+        await finalizeAndContinue(si);
+      } else {
+        setGeneralError(`Verification incomplete (status: ${si.status ?? "unknown"}). Please try again.`);
+      }
+    } catch (err: unknown) {
+      const e = err as any;
+      const msg =
+        e?.errors?.[0]?.longMessage ??
+        e?.errors?.[0]?.message ??
+        e?.message ??
+        "Verification failed. Please try again.";
+      setGeneralError(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!signIn) return;
+    setGeneralError(null);
+    try {
+      const si = signIn as any;
+      const { error } = await si.mfa.sendEmailCode();
+      if (error) {
+        const msg = error.longMessage ?? error.message ?? "Failed to resend. Please try again.";
+        setGeneralError(msg);
+      }
+    } catch (err: any) {
+      const msg = err?.errors?.[0]?.message ?? err?.message ?? "Failed to resend. Please try again.";
+      setGeneralError(msg);
+    }
+  };
+
   if (isSignedIn) return null;
+
+  if (step === "verify") {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.flex}
+        >
+          <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="always">
+            <View style={styles.header}>
+              <View style={styles.logoCircle}>
+                <Feather name="shield" size={32} color="#FFFFFF" />
+              </View>
+              <Text style={styles.title}>Verify it's you</Text>
+              <Text style={styles.subtitle}>
+                For your security, we sent a 6-digit code to{"\n"}
+                <Text style={{ color: PRIMARY, fontFamily: "Nunito_600SemiBold" }}>
+                  {emailAddress}
+                </Text>
+              </Text>
+            </View>
+
+            <View style={styles.form}>
+              {generalError ? (
+                <View style={styles.errorBox}>
+                  <Text style={styles.errorBoxText}>{generalError}</Text>
+                </View>
+              ) : null}
+
+              <View style={styles.field}>
+                <Text style={styles.label}>Verification code</Text>
+                <TextInput
+                  style={[styles.input, codeFocused && styles.inputFocused]}
+                  value={code}
+                  placeholder="000000"
+                  placeholderTextColor={MUTED}
+                  onChangeText={setCode}
+                  keyboardType="number-pad"
+                  autoFocus
+                  onFocus={() => setCodeFocused(true)}
+                  onBlur={() => setCodeFocused(false)}
+                />
+              </View>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.button,
+                  (isLoading || !code) && styles.buttonDisabled,
+                  pressed && !isLoading && styles.buttonPressed,
+                ]}
+                onPress={handleVerify}
+                disabled={isLoading || !code}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.buttonText}>Verify & sign in</Text>
+                )}
+              </Pressable>
+
+              <Pressable style={styles.textButton} onPress={handleResend}>
+                <Text style={styles.textButtonText}>Resend code</Text>
+              </Pressable>
+
+              <Pressable
+                style={styles.textButton}
+                onPress={() => {
+                  setStep("credentials");
+                  setCode("");
+                  setGeneralError(null);
+                }}
+              >
+                <Text style={[styles.textButtonText, { color: MUTED }]}>← Back</Text>
+              </Pressable>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -283,6 +445,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     fontFamily: "Nunito_600SemiBold",
+  },
+  textButton: {
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  textButtonText: {
+    color: PRIMARY,
+    fontSize: 14,
+    fontFamily: "Nunito_500Medium",
   },
   footer: {
     flexDirection: "row",

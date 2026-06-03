@@ -175,6 +175,13 @@ export default function Paywall({ visible, onClose }: Props) {
             </Text>
             <Text style={styles.proPerCredit}>That's just $0.067 per credit</Text>
 
+            <View style={styles.proBenefit}>
+              <Feather name="zap" size={14} color={PRIMARY} />
+              <Text style={styles.proBenefitText}>
+                <Text style={styles.explainerBold}>Our most advanced AI</Text> — sharper, more creative, more on-brand captions
+              </Text>
+            </View>
+
             <Pressable
               style={({ pressed }) => [
                 styles.cta,
@@ -422,6 +429,22 @@ const styles = StyleSheet.create({
     fontFamily: "Nunito_400Regular",
     color: MUTED,
     marginBottom: 10,
+  },
+  proBenefit: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    backgroundColor: AMBER_LIGHT,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 6,
+  },
+  proBenefitText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: "Nunito_400Regular",
+    color: FOREGROUND,
+    lineHeight: 19,
   },
   bestValueBadge: {
     backgroundColor: AMBER_LIGHT,

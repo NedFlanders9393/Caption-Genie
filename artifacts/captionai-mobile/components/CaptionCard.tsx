@@ -118,13 +118,21 @@ export default function CaptionCard({
       ]}
     >
       <View style={styles.header}>
-        <View
-          style={[
-            styles.badge,
-            { backgroundColor: colors.secondary, borderRadius: colors.radius / 2 },
-          ]}
-        >
-          <Text style={[styles.badgeText, { color: colors.primary }]}>#{index + 1}</Text>
+        <View style={styles.headerLeft}>
+          <View
+            style={[
+              styles.badge,
+              { backgroundColor: colors.secondary, borderRadius: colors.radius / 2 },
+            ]}
+          >
+            <Text style={[styles.badgeText, { color: colors.primary }]}>#{index + 1}</Text>
+          </View>
+          {isSubscribed ? (
+            <View style={[styles.premiumBadge, { borderRadius: colors.radius / 2 }]}>
+              <Feather name="zap" size={10} color="#B07B2C" />
+              <Text style={styles.premiumText}>Premium AI</Text>
+            </View>
+          ) : null}
         </View>
         <View style={styles.actions}>
           {onRegenerate && (
@@ -189,9 +197,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 3,
+  },
+  premiumBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    backgroundColor: "#F8EFE4",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  premiumText: {
+    fontSize: 10,
+    fontFamily: "Nunito_700Bold",
+    color: "#B07B2C",
+    letterSpacing: 0.3,
   },
   badgeText: {
     fontSize: 12,

@@ -954,12 +954,25 @@ Always respond with valid JSON only — no markdown, no code blocks, no explanat
     const jsonMatch = rawText.match(/```json\n?([\s\S]*?)\n?```/) || rawText.match(/```\n?([\s\S]*?)\n?```/);
     if (jsonMatch) rawText = jsonMatch[1].trim();
 
-    const parsed_response = JSON.parse(rawText) as {
-      hashtags: string[];
-      grouped: { niche: string[]; trending: string[]; broad: string[] };
+    const raw = JSON.parse(rawText) as {
+      hashtags?: unknown;
+      grouped?: { niche?: unknown; popular?: unknown; trending?: unknown; broad?: unknown };
     };
 
-    res.json(parsed_response);
+    // Normalize into a shape the client can always rely on — every group is guaranteed
+    // to be a string[], and a stray "trending" key is mapped to "popular" so the UI never breaks.
+    const g = raw?.grouped ?? {};
+    const asArr = (v: unknown): string[] =>
+      Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+    const nicheTags = asArr(g.niche);
+    const popularTags = asArr(g.popular).length > 0 ? asArr(g.popular) : asArr(g.trending);
+    const broadTags = asArr(g.broad);
+    const flat = asArr(raw?.hashtags);
+
+    res.json({
+      hashtags: flat.length > 0 ? flat : [...nicheTags, ...popularTags, ...broadTags],
+      grouped: { niche: nicheTags, popular: popularTags, broad: broadTags },
+    });
   } catch (err) {
     req.log.error({ err }, "Hashtag generation failed");
     res.status(500).json({ error: "Failed to generate hashtags" });

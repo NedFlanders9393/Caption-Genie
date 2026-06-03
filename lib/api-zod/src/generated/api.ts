@@ -78,7 +78,7 @@ export const GenerateHashtagsResponse = zod.object({
   hashtags: zod.array(zod.string()),
   grouped: zod.object({
     niche: zod.array(zod.string()),
-    trending: zod.array(zod.string()),
+    popular: zod.array(zod.string()),
     broad: zod.array(zod.string()),
   }),
 });

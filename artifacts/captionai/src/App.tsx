@@ -186,7 +186,7 @@ function CaptionAIApp() {
   const [hashtagTopic, setHashtagTopic] = useState("");
   const [isGeneratingHashtags, setIsGeneratingHashtags] = useState(false);
   const [hashtagResults, setHashtagResults] = useState<{
-    grouped: { niche: string[]; trending: string[]; broad: string[] }
+    grouped: { niche: string[]; popular: string[]; broad: string[] }
   } | null>(null);
 
   // History & Favorites State
@@ -552,7 +552,7 @@ function CaptionAIApp() {
     if (!hashtagResults) return;
     const all = [
       ...hashtagResults.grouped.niche,
-      ...hashtagResults.grouped.trending,
+      ...hashtagResults.grouped.popular,
       ...hashtagResults.grouped.broad
     ].join(" ");
     handleCopy(all, "all-hashtags");
@@ -1031,7 +1031,7 @@ function CaptionAIApp() {
 
                     {[
                       { title: "Targeted (Niche)", data: hashtagResults.grouped.niche, desc: "Highly relevant to your specific offering" },
-                      { title: "Trending", data: hashtagResults.grouped.trending, desc: "Currently popular in your industry" },
+                      { title: "Trending", data: hashtagResults.grouped.popular, desc: "Currently popular in your industry" },
                       { title: "Broad Reach", data: hashtagResults.grouped.broad, desc: "High volume for maximum visibility" }
                     ].map(group => (
                       <div key={group.title} className="bg-card border rounded-xl p-4 flex flex-col gap-3">

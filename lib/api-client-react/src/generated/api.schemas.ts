@@ -51,7 +51,7 @@ export interface GenerateHashtagsBody {
 
 export type GenerateHashtagsResponseGrouped = {
   niche: string[];
-  trending: string[];
+  popular: string[];
   broad: string[];
 };
 

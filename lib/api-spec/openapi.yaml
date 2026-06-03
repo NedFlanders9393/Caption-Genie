@@ -222,7 +222,7 @@ components:
               type: array
               items:
                 type: string
-            trending:
+            popular:
               type: array
               items:
                 type: string
@@ -232,7 +232,7 @@ components:
                 type: string
           required:
             - niche
-            - trending
+            - popular
             - broad
       required:
         - hashtags

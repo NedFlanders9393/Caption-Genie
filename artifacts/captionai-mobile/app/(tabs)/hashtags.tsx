@@ -229,6 +229,8 @@ export default function HashtagsScreen() {
         contentContainerStyle={[styles.content, { paddingTop: topPad, paddingBottom: bottomPad }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        automaticallyAdjustKeyboardInsets
       >
         <View>
           <Text style={[styles.title, { color: colors.foreground }]}>Hashtag Intelligence</Text>

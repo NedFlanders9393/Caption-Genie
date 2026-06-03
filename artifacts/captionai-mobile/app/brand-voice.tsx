@@ -157,6 +157,8 @@ export default function BrandVoiceScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        automaticallyAdjustKeyboardInsets
       >
         {/* Header */}
         <View style={styles.heroCard}>

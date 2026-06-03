@@ -541,8 +541,6 @@ export default function GenerateScreen() {
                     niche,
                     savedAt: Date.now(),
                   }) : undefined}
-                  onRegenerate={async () => {}}
-                  isRegenerating={false}
                 />
               );
             })}

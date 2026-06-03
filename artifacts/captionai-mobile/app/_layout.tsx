@@ -6,7 +6,7 @@ import {
   Nunito_800ExtraBold,
   useFonts,
 } from "@expo-google-fonts/nunito";
-import { ClerkLoaded, ClerkProvider, useUser } from "@clerk/expo";
+import { ClerkLoaded, ClerkProvider, useAuth, useUser } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
@@ -29,6 +29,16 @@ function RevenueCatIdentityLinker() {
       linkRevenueCatIdentity(user.id);
     }
   }, [user?.id]);
+  return null;
+}
+
+// Reports when Clerk has finished restoring the session so the splash can stay
+// on screen until the app is actually ready (instead of fading to a second loader).
+function ClerkReadySignal({ onReady }: { onReady: () => void }) {
+  const { isLoaded } = useAuth();
+  useEffect(() => {
+    if (isLoaded) onReady();
+  }, [isLoaded, onReady]);
   return null;
 }
 
@@ -95,6 +105,7 @@ export default function RootLayout() {
     Nunito_800ExtraBold,
   });
   const [splashDone, setSplashDone] = useState(false);
+  const [clerkReady, setClerkReady] = useState(false);
   const router = useRouter();
   const notifListenerRef = useRef<Notifications.EventSubscription | null>(null);
 
@@ -157,6 +168,7 @@ export default function RootLayout() {
       tokenCache={tokenCache}
       proxyUrl={proxyUrl}
     >
+      <ClerkReadySignal onReady={() => setClerkReady(true)} />
       <ClerkLoaded>
         <RevenueCatIdentityLinker />
         <SafeAreaProvider>
@@ -173,7 +185,9 @@ export default function RootLayout() {
           </ErrorBoundary>
         </SafeAreaProvider>
       </ClerkLoaded>
-      {!splashDone && <AnimatedSplash onFinish={() => setSplashDone(true)} />}
+      {!splashDone && (
+        <AnimatedSplash ready={clerkReady} onFinish={() => setSplashDone(true)} />
+      )}
     </ClerkProvider>
   );
 }

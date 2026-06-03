@@ -9,104 +9,16 @@ export interface HealthStatus {
   status: string;
 }
 
-export type GenerateCaptionsBodyNiche =
-  (typeof GenerateCaptionsBodyNiche)[keyof typeof GenerateCaptionsBodyNiche];
-
-export const GenerateCaptionsBodyNiche = {
-  Real_Estate: "Real Estate",
-  Fitness_Coach: "Fitness Coach",
-  Restaurant: "Restaurant",
-  "Boutique/Shop": "Boutique/Shop",
-  General_Business: "General Business",
-  "Beauty/Salon": "Beauty/Salon",
-  Photography: "Photography",
-  "Coaching/Consulting": "Coaching/Consulting",
-  "Healthcare/Wellness": "Healthcare/Wellness",
-  "E-commerce": "E-commerce",
-  Event_Planning: "Event Planning",
-  Pet_Care: "Pet Care",
-  "Education/Tutoring": "Education/Tutoring",
-  Home_Services: "Home Services",
-  Law_Firm: "Law Firm",
-  Coffee_Shop: "Coffee Shop",
-  Yoga_Studio: "Yoga Studio",
-  Automotive: "Automotive",
-  Marketing_Agency: "Marketing Agency",
-  "Non-Profit": "Non-Profit",
-  "Travel/Tourism": "Travel/Tourism",
-  "Dental/Medical": "Dental/Medical",
-} as const;
-
-export type GenerateCaptionsBodyPlatform =
-  (typeof GenerateCaptionsBodyPlatform)[keyof typeof GenerateCaptionsBodyPlatform];
-
-export const GenerateCaptionsBodyPlatform = {
-  Instagram: "Instagram",
-  Facebook: "Facebook",
-  LinkedIn: "LinkedIn",
-  TikTok: "TikTok",
-  "Twitter/X": "Twitter/X",
-} as const;
-
-export type GenerateCaptionsBodyPostType =
-  (typeof GenerateCaptionsBodyPostType)[keyof typeof GenerateCaptionsBodyPostType];
-
-export const GenerateCaptionsBodyPostType = {
-  Product_Showcase: "Product Showcase",
-  New_Arrival: "New Arrival",
-  "Sale/Promo": "Sale/Promo",
-  Flash_Sale: "Flash Sale",
-  Limited_Time_Offer: "Limited Time Offer",
-  "Giveaway/Contest": "Giveaway/Contest",
-  Behind_the_Scenes: "Behind the Scenes",
-  Day_in_the_Life: "Day in the Life",
-  Team_Spotlight: "Team Spotlight",
-  "Tips_&_Education": "Tips & Education",
-  "How-To/Tutorial": "How-To/Tutorial",
-  "Q&A": "Q&A",
-  Announcement: "Announcement",
-  "Milestone/Celebration": "Milestone/Celebration",
-  "Seasonal/Holiday": "Seasonal/Holiday",
-  Customer_Story: "Customer Story",
-  "Testimonial/Review": "Testimonial/Review",
-  "Before_&_After": "Before & After",
-  Motivational_Quote: "Motivational Quote",
-  Community_Post: "Community Post",
-  "User-Generated_Content": "User-Generated Content",
-} as const;
-
-export type GenerateCaptionsBodyCaptionLength =
-  (typeof GenerateCaptionsBodyCaptionLength)[keyof typeof GenerateCaptionsBodyCaptionLength];
-
-export const GenerateCaptionsBodyCaptionLength = {
-  Short: "Short",
-  Medium: "Medium",
-  Long: "Long",
-} as const;
-
-export type GenerateCaptionsBodyCtaType =
-  (typeof GenerateCaptionsBodyCtaType)[keyof typeof GenerateCaptionsBodyCtaType];
-
-export const GenerateCaptionsBodyCtaType = {
-  None: "None",
-  Shop_Now: "Shop Now",
-  Link_in_Bio: "Link in Bio",
-  DM_Us: "DM Us",
-  Comment_Below: "Comment Below",
-  Tag_a_Friend: "Tag a Friend",
-  Save_This_Post: "Save This Post",
-} as const;
-
 export interface GenerateCaptionsBody {
-  niche: GenerateCaptionsBodyNiche;
+  niche: string;
   postDescription: string;
   /** One or more tones, comma-separated (e.g. "Professional" or "Casual, Witty") */
   tone: string;
-  platform?: GenerateCaptionsBodyPlatform;
-  postType?: GenerateCaptionsBodyPostType;
-  captionLength?: GenerateCaptionsBodyCaptionLength;
+  platform?: string;
+  postType?: string;
+  captionLength?: string;
   includeEmojis?: boolean;
-  ctaType?: GenerateCaptionsBodyCtaType;
+  ctaType?: string;
 }
 
 export interface CaptionItem {

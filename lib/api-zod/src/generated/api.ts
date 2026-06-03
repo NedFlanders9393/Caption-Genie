@@ -19,77 +19,18 @@ export const HealthCheckResponse = zod.object({
  * @summary Generate social media captions using AI
  */
 export const GenerateCaptionsBody = zod.object({
-  niche: zod.enum([
-    "Real Estate",
-    "Fitness Coach",
-    "Restaurant",
-    "Boutique/Shop",
-    "General Business",
-    "Beauty/Salon",
-    "Photography",
-    "Coaching/Consulting",
-    "Healthcare/Wellness",
-    "E-commerce",
-    "Event Planning",
-    "Pet Care",
-    "Education/Tutoring",
-    "Home Services",
-    "Law Firm",
-    "Coffee Shop",
-    "Yoga Studio",
-    "Automotive",
-    "Marketing Agency",
-    "Non-Profit",
-    "Travel/Tourism",
-    "Dental/Medical",
-  ]),
+  niche: zod.string(),
   postDescription: zod.string(),
   tone: zod
     .string()
     .describe(
       'One or more tones, comma-separated (e.g. \"Professional\" or \"Casual, Witty\")',
     ),
-  platform: zod
-    .enum(["Instagram", "Facebook", "LinkedIn", "TikTok", "Twitter/X"])
-    .optional(),
-  postType: zod
-    .enum([
-      "Product Showcase",
-      "New Arrival",
-      "Sale/Promo",
-      "Flash Sale",
-      "Limited Time Offer",
-      "Giveaway/Contest",
-      "Behind the Scenes",
-      "Day in the Life",
-      "Team Spotlight",
-      "Tips & Education",
-      "How-To/Tutorial",
-      "Q&A",
-      "Announcement",
-      "Milestone/Celebration",
-      "Seasonal/Holiday",
-      "Customer Story",
-      "Testimonial/Review",
-      "Before & After",
-      "Motivational Quote",
-      "Community Post",
-      "User-Generated Content",
-    ])
-    .optional(),
-  captionLength: zod.enum(["Short", "Medium", "Long"]).optional(),
+  platform: zod.string().optional(),
+  postType: zod.string().optional(),
+  captionLength: zod.string().optional(),
   includeEmojis: zod.boolean().optional(),
-  ctaType: zod
-    .enum([
-      "None",
-      "Shop Now",
-      "Link in Bio",
-      "DM Us",
-      "Comment Below",
-      "Tag a Friend",
-      "Save This Post",
-    ])
-    .optional(),
+  ctaType: zod.string().optional(),
 });
 
 export const GenerateCaptionsResponse = zod.object({

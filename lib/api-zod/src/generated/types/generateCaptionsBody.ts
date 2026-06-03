@@ -5,20 +5,15 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { GenerateCaptionsBodyCaptionLength } from "./generateCaptionsBodyCaptionLength";
-import type { GenerateCaptionsBodyCtaType } from "./generateCaptionsBodyCtaType";
-import type { GenerateCaptionsBodyNiche } from "./generateCaptionsBodyNiche";
-import type { GenerateCaptionsBodyPlatform } from "./generateCaptionsBodyPlatform";
-import type { GenerateCaptionsBodyPostType } from "./generateCaptionsBodyPostType";
 
 export interface GenerateCaptionsBody {
-  niche: GenerateCaptionsBodyNiche;
+  niche: string;
   postDescription: string;
   /** One or more tones, comma-separated (e.g. "Professional" or "Casual, Witty") */
   tone: string;
-  platform?: GenerateCaptionsBodyPlatform;
-  postType?: GenerateCaptionsBodyPostType;
-  captionLength?: GenerateCaptionsBodyCaptionLength;
+  platform?: string;
+  postType?: string;
+  captionLength?: string;
   includeEmojis?: boolean;
-  ctaType?: GenerateCaptionsBodyCtaType;
+  ctaType?: string;
 }

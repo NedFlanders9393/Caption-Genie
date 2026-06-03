@@ -15,12 +15,9 @@ import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { useAuth } from "@clerk/expo";
 import { useColors } from "@/hooks/useColors";
-import { useSubscription } from "@/lib/revenuecat";
-import { useApp } from "@/context/AppContext";
 import { generateHashtags, type HashtagGroups } from "@/lib/api";
 import { addHashtagHistory } from "@/lib/storage";
 import OptionPicker from "@/components/OptionPicker";
-import Paywall from "@/components/Paywall";
 
 const NICHES = [
   "Real Estate", "Fitness Coach", "Restaurant", "Boutique/Shop",
@@ -142,8 +139,6 @@ export default function HashtagsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { getToken } = useAuth();
-  const { isSubscribed } = useSubscription();
-  const { isOverLimit, consumeGeneration } = useApp();
 
   const [niche, setNiche] = useState("");
   const [platform, setPlatform] = useState("Instagram");
@@ -151,7 +146,6 @@ export default function HashtagsScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [grouped, setGrouped] = useState<HashtagGroups | null>(null);
-  const [showPaywall, setShowPaywall] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [smartMixCopied, setSmartMixCopied] = useState(false);
   const [mixCopied, setMixCopied] = useState(false);
@@ -160,10 +154,6 @@ export default function HashtagsScreen() {
 
   const handleGenerate = async () => {
     if (!canGenerate) return;
-    if (isOverLimit) {
-      setShowPaywall(true);
-      return;
-    }
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     setError(null);
@@ -172,7 +162,6 @@ export default function HashtagsScreen() {
       const token = await getToken();
       const result = await generateHashtags({ niche, topic: topic.trim(), platform }, token);
       setGrouped(result.grouped);
-      if (!isSubscribed) await consumeGeneration();
       // Persist this generation to local hashtag history
       addHashtagHistory({
         id: `ht_${Date.now()}`,
@@ -223,7 +212,6 @@ export default function HashtagsScreen() {
   const topPad = Platform.OS === "web" ? 67 : insets.top + 16;
 
   return (
-    <>
       <ScrollView
         style={[styles.scroll, { backgroundColor: colors.background }]}
         contentContainerStyle={[styles.content, { paddingTop: topPad, paddingBottom: bottomPad }]}
@@ -363,9 +351,6 @@ export default function HashtagsScreen() {
           </View>
         )}
       </ScrollView>
-
-      <Paywall visible={showPaywall} onClose={() => setShowPaywall(false)} />
-    </>
   );
 }
 

@@ -113,6 +113,13 @@ async function enforceUsageLimit(
   const isPro = await isRevenueCatPro(userId);
   const noopRefund = async () => {};
 
+  // Free actions (creditCost === 0, e.g. hashtags) are never gated or counted
+  // against the monthly limit, regardless of which gate is active. Without this,
+  // the legacy monthly_usage path below would still increment/block on cost=0.
+  if (creditCost === 0) {
+    return { allowed: true, isPro, refund: noopRefund };
+  }
+
   // --- Path A: credits as primary gate (post-June 1) ---
   if (CREDITS_ENFORCED) {
     if (creditCost > 0) {

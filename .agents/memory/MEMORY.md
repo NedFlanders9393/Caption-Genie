@@ -8,3 +8,4 @@
 - [Mobile picker vs API enum mismatch](mobile-api-enum-mismatch.md) — /api/captions/generate 400'd when a picker option (e.g. CTA "Book Now") wasn't in the zod enum; relaxed those fields to plain strings. Prefer string over enum for LLM-fed fields.
 - [AI-output JSON contract keys](ai-json-contract-keys.md) — hashtag grouped key drifted (popular vs trending); normalize LLM JSON server-side, keep prompt/spec/clients in lockstep; api-zod barrel exports Response names as TYPE only (no safeParse).
 - [Mobile cold-start splash](mobile-splash-startup.md) — perceived slow launch was TWO stacked loaders (fixed-timer AnimatedSplash → Clerk/onboarding spinner); hold ONE splash until app ready, don't pad with timers.
+- [Free actions dual gate](free-action-dual-gate.md) — a cost=0 feature (e.g. hashtags) is only truly free if enforceUsageLimit early-returns before the legacy monthly_usage path AND the mobile screen drops isOverLimit/consumeGeneration; the two layers drift.

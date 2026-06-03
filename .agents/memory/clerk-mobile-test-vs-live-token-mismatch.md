@@ -28,14 +28,23 @@ DB are correct. Often shows as an auth redirect (302 to `/`) or 401.
   server is confirmed correct, suspect this mismatch.
 - Fixing it requires a NEW mobile build (gated by user approval in this project).
 
-## The fix (verified)
+## The fix (verified) — pk_live AND the proxy are BOTH required
 - Set the production EAS profile's `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` to the
-  **live** key. Check production `CLERK_PROXY_URL`: if unset (no proxy), do NOT set
-  `EXPO_PUBLIC_CLERK_PROXY_URL` — the live key already encodes the FAPI domain
-  (e.g. `clerk.<deployment-domain>`), so the app connects directly.
-- `eas.json` env values are baked into the native binary; the live `pk_live` is a
-  PUBLIC key, safe to commit there. `build.js` only governs the hosted Expo Go
-  static deploy, not the EAS native build.
+  **live** key AND `EXPO_PUBLIC_CLERK_PROXY_URL` to
+  `https://<deployment-domain>/api/__clerk`. BOTH are required together.
+- **Do NOT trust `viewEnvVars` showing `CLERK_PROXY_URL` as unset to mean "no
+  proxy."** Replit-managed Clerk in production routes the frontend API through a
+  server proxy at `/api/__clerk`. The live key encodes a FAPI domain like
+  `clerk.<deployment-domain>` that is NOT publicly resolvable (curl → connection
+  refused / 000), so pk_live ALONE makes ClerkProvider hang forever → if the app
+  gates UI on `<ClerkLoaded>`, the result is a permanent WHITE SCREEN on launch.
+- Verify the proxy exists: `curl https://<domain>/api/__clerk/v1/environment` → 200.
+- The clerk-auth skill says `proxyUrl` must be passed UNCONDITIONALLY; the same
+  wiring runs in dev (env empty) and prod (env populated). Don't gate on NODE_ENV.
+- `eas.json` env values are baked into the native binary; `pk_live` and the proxy
+  URL are PUBLIC, safe to commit. `build.js` governs only the hosted Expo Go static
+  deploy, but it is the source of truth for the EXACT prod values (pk + proxy) —
+  mirror what it bakes.
 
 ## How to obtain pk_live without it being readable in dev
 - `viewEnvVars({environment:"production"})` returns secrets as booleans only —

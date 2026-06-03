@@ -4,3 +4,4 @@
 - [Prod DB frozen vs dev](prod-db-frozen-vs-dev.md) — deployed app uses a SEPARATE prod DB; can be frozen (logs: 'endpoint has been disabled'); dev psql working ≠ prod working; unfreeze is a user UI action.
 - [Clerk mobile test vs live token mismatch](clerk-mobile-test-vs-live-token-mismatch.md) — published API uses LIVE Clerk; a pk_test mobile build sends dev tokens that the live API rejects; prod builds need pk_live.
 - [EAS iOS build/submit gotchas](eas-ios-submit-gotchas.md) — appVersionSource "local" means buildNumber is NOT auto-incremented; a duplicate build number makes eas submit ERROR right after "Scheduled" (error/logsUrl null). Bump & rebuild. Run long EAS cmds via a temp workflow, not nohup.
+- [RevenueCat iOS purchase validation](revenuecat-ios-purchase-validation.md) — offering can be fully wired & prices show, but Buy fails if RC iOS app has no In-App Purchase Key / shared secret (subscription_key_configured:false). User must add it.

@@ -27,3 +27,21 @@ DB are correct. Often shows as an auth redirect (302 to `/`) or 401.
   Server-side curl can't prove it (no valid token). If it still fails after the
   server is confirmed correct, suspect this mismatch.
 - Fixing it requires a NEW mobile build (gated by user approval in this project).
+
+## The fix (verified)
+- Set the production EAS profile's `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` to the
+  **live** key. Check production `CLERK_PROXY_URL`: if unset (no proxy), do NOT set
+  `EXPO_PUBLIC_CLERK_PROXY_URL` — the live key already encodes the FAPI domain
+  (e.g. `clerk.<deployment-domain>`), so the app connects directly.
+- `eas.json` env values are baked into the native binary; the live `pk_live` is a
+  PUBLIC key, safe to commit there. `build.js` only governs the hosted Expo Go
+  static deploy, not the EAS native build.
+
+## How to obtain pk_live without it being readable in dev
+- `viewEnvVars({environment:"production"})` returns secrets as booleans only —
+  cannot read the live key value that way.
+- Reliable source: fetch the **deployed mobile Expo bundle** (build.js bakes
+  `CLERK_PUBLISHABLE_KEY`=pk_live into it in prod). GET the artifact root with an
+  `expo-platform: ios` header → manifest JSON → `launchAsset.url` → fetch that
+  bundle → regex `pk_live_[A-Za-z0-9]+`. The deployed web SPA homepage usually
+  does NOT contain it (lazy-chunked).

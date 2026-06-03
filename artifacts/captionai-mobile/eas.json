@@ -36,7 +36,7 @@
         "buildConfiguration": "Release"
       },
       "env": {
-        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_cmVuZXdlZC1saW9uZXNzLTI0LmNsZXJrLmFjY291bnRzLmRldiQ",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsuY2FwdHVyYS5yZXBsaXQuYXBwJA",
         "EXPO_PUBLIC_DOMAIN": "captura.replit.app",
         "EXPO_PUBLIC_REVENUECAT_TEST_API_KEY": "test_SBsUveLtZHOnhupWppsOLcwvNUy",
         "EXPO_PUBLIC_REVENUECAT_IOS_API_KEY": "appl_BEirusqbRZCeREjnTGcCptsYeio",

@@ -3,3 +3,4 @@
 - [Clerk sign-up email code](clerk-future-api-signup-email.md) — Future API password() does NOT auto-send; must call verifications.sendEmailCode() explicitly or no code arrives
 - [Prod DB frozen vs dev](prod-db-frozen-vs-dev.md) — deployed app uses a SEPARATE prod DB; can be frozen (logs: 'endpoint has been disabled'); dev psql working ≠ prod working; unfreeze is a user UI action.
 - [Clerk mobile test vs live token mismatch](clerk-mobile-test-vs-live-token-mismatch.md) — published API uses LIVE Clerk; a pk_test mobile build sends dev tokens that the live API rejects; prod builds need pk_live.
+- [EAS iOS build/submit gotchas](eas-ios-submit-gotchas.md) — appVersionSource "local" means buildNumber is NOT auto-incremented; a duplicate build number makes eas submit ERROR right after "Scheduled" (error/logsUrl null). Bump & rebuild. Run long EAS cmds via a temp workflow, not nohup.

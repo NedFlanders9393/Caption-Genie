@@ -33,6 +33,7 @@ import {
   Heart, RefreshCw, Share, Clock, Hash, ChevronDown, ChevronUp
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { PrivacyPolicyPage, TermsPage } from "@/pages/legal";
 
 const queryClient = new QueryClient();
 
@@ -1188,6 +1189,8 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={CaptionAIApp} />
+      <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+      <Route path="/terms" component={TermsPage} />
       <Route path="/*" component={CaptionAIApp} />
     </Switch>
   );

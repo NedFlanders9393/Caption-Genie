@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useSubscription } from "@/lib/revenuecat";
 
 interface Props {
@@ -50,7 +51,13 @@ const TOP_UP_PACKS: {
 ];
 
 export default function Paywall({ visible, onClose }: Props) {
+  const router = useRouter();
   const { offerings, purchase, restore, isPurchasing, isRestoring, isNativeAvailable } = useSubscription();
+
+  const openLegal = (path: "/terms" | "/privacy-policy") => {
+    onClose();
+    router.push(path);
+  };
 
   const currentOffering = offerings?.current;
   const packages = currentOffering?.availablePackages ?? [];
@@ -274,6 +281,16 @@ export default function Paywall({ visible, onClose }: Props) {
             Captly Pro auto-renews monthly. Cancel anytime in your App Store account settings.
             Credit packs are one-time purchases.
           </Text>
+
+          <View style={styles.legalLinks}>
+            <Pressable onPress={() => openLegal("/terms")} hitSlop={8}>
+              <Text style={styles.legalLinkText}>Terms of Use</Text>
+            </Pressable>
+            <Text style={styles.legalDot}>•</Text>
+            <Pressable onPress={() => openLegal("/privacy-policy")} hitSlop={8}>
+              <Text style={styles.legalLinkText}>Privacy Policy</Text>
+            </Pressable>
+          </View>
 
           {!isNativeAvailable ? (
             <Text style={styles.devNote}>
@@ -569,6 +586,23 @@ const styles = StyleSheet.create({
     color: MUTED,
     textAlign: "center",
     lineHeight: 16,
+  },
+  legalLinks: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginTop: 2,
+  },
+  legalLinkText: {
+    fontSize: 12,
+    fontFamily: "Nunito_600SemiBold",
+    color: PRIMARY,
+    textDecorationLine: "underline",
+  },
+  legalDot: {
+    fontSize: 12,
+    color: MUTED,
   },
   devNote: {
     fontSize: 11,

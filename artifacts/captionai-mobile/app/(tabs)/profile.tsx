@@ -23,7 +23,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import Paywall from "@/components/Paywall";
 import { useSubscription } from "@/lib/revenuecat";
-import { fetchCreditBalance, type CreditBalance } from "@/lib/api";
+import { fetchCreditBalance, deleteAccount, type CreditBalance } from "@/lib/api";
 
 const BASE_URL = process.env.EXPO_PUBLIC_DOMAIN
   ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
@@ -58,7 +58,7 @@ export default function ProfileScreen() {
   const { user } = useUser();
   const { signOut, getToken } = useAuth();
   const router = useRouter();
-  const { usageCount: generationCount, freeLimit: FREE_LIMIT } = useApp();
+  const { usageCount: generationCount, freeLimit: FREE_LIMIT, wipeAllUserData } = useApp();
   const { isSubscribed, restore, isRestoring } = useSubscription();
   const [paywallVisible, setPaywallVisible] = useState(false);
   const [bugModalVisible, setBugModalVisible] = useState(false);
@@ -69,6 +69,7 @@ export default function ProfileScreen() {
   const [credits, setCredits] = useState<CreditBalance | null>(null);
   const [creditsLoading, setCreditsLoading] = useState(false);
   const [creditsError, setCreditsError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const spinAnim = useRef(new Animated.Value(0)).current;
   const spinLoop = useRef<Animated.CompositeAnimation | null>(null);
 
@@ -143,6 +144,51 @@ export default function ProfileScreen() {
         },
       },
     ]);
+  };
+
+  const performDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      const token = await getToken();
+      await deleteAccount(token);
+      try {
+        await wipeAllUserData();
+      } catch {
+        // Local wipe is best-effort; the account is already deleted server-side.
+      }
+      await signOut();
+      router.replace("/(auth)/sign-in");
+    } catch (err: any) {
+      setIsDeleting(false);
+      Alert.alert(
+        "Couldn't delete account",
+        err?.message ?? "Something went wrong. Please try again."
+      );
+    }
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Delete account?",
+      "This permanently deletes your account, your saved captions, and any remaining credits. This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            Alert.alert(
+              "Are you absolutely sure?",
+              "Your account and all your data will be permanently erased. If you have an active Pro subscription, remember to cancel it separately in your App Store settings.",
+              [
+                { text: "Keep my account", style: "cancel" },
+                { text: "Delete forever", style: "destructive", onPress: performDeleteAccount },
+              ]
+            );
+          },
+        },
+      ]
+    );
   };
 
   const handleRestore = async () => {
@@ -463,6 +509,19 @@ export default function ProfileScreen() {
         >
           <Feather name="log-out" size={16} color={DANGER} />
           <Text style={styles.signOutText}>Sign out</Text>
+        </Pressable>
+
+        {/* Delete account (Apple requirement for apps with sign-up) */}
+        <Pressable
+          style={({ pressed }) => [styles.deleteAccountButton, pressed && styles.deleteAccountPressed]}
+          onPress={handleDeleteAccount}
+          disabled={isDeleting}
+        >
+          {isDeleting ? (
+            <ActivityIndicator size="small" color={MUTED} />
+          ) : (
+            <Text style={styles.deleteAccountText}>Delete account</Text>
+          )}
         </Pressable>
       </ScrollView>
 
@@ -804,6 +863,21 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: DANGER,
     fontFamily: "Nunito_600SemiBold",
+  },
+  deleteAccountButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    marginTop: 4,
+  },
+  deleteAccountPressed: {
+    opacity: 0.6,
+  },
+  deleteAccountText: {
+    fontSize: 14,
+    color: MUTED,
+    fontFamily: "Nunito_600SemiBold",
+    textDecorationLine: "underline",
   },
   flex1: { flex: 1 },
   proText: {

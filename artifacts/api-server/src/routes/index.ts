@@ -9,6 +9,7 @@ import favoritesRouter from "./favorites";
 import creditsRouter from "./credits";
 import revenuecatWebhookRouter from "./revenuecatWebhook";
 import authRouter from "./auth";
+import accountRouter from "./account";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(favoritesRouter);
 router.use(creditsRouter);
 router.use(revenuecatWebhookRouter);
 router.use(authRouter);
+router.use(accountRouter);
 
 export default router;

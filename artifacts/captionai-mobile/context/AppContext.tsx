@@ -15,6 +15,7 @@ import {
   addFavorite,
   removeFavorite,
   setFavorites as setFavoritesLocal,
+  clearHashtagHistory,
   type HistoryEntry,
   type FavoriteEntry,
 } from "@/lib/storage";
@@ -49,6 +50,7 @@ interface AppContextValue {
   addToHistory: (entry: HistoryEntry) => Promise<void>;
   removeFromHistory: (id: string) => Promise<void>;
   wipeHistory: () => Promise<void>;
+  wipeAllUserData: () => Promise<void>;
   consumeGeneration: () => Promise<boolean>;
   refreshUsage: () => Promise<void>;
 }
@@ -157,6 +159,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setUsageCount(u);
   }, []);
 
+  /**
+   * Clears ALL locally-cached user content (history, favorites, hashtag
+   * history) and resets in-memory state. Used by account deletion so that
+   * deleted-account data cannot be re-uploaded to a different account if
+   * someone signs in on the same device afterward. Local-only; the server
+   * has already wiped its rows by the time this runs.
+   */
+  const wipeAllUserData = useCallback(async () => {
+    await Promise.allSettled([
+      clearHistory(),
+      setFavoritesLocal([]),
+      clearHashtagHistory(),
+    ]);
+    setHistory([]);
+    setFavorites([]);
+    setUsageCount(0);
+    setStreak(0);
+  }, []);
+
   const toggleFavorite = useCallback(async (entry: FavoriteEntry) => {
     const alreadySaved = favorites.some((f) => f.id === entry.id);
     if (alreadySaved) {
@@ -219,6 +240,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         addToHistory,
         removeFromHistory,
         wipeHistory,
+        wipeAllUserData,
         consumeGeneration,
         refreshUsage,
       }}

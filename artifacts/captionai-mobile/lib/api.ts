@@ -325,6 +325,27 @@ export async function claimFreeCreditsForDevice(
   return data ?? { granted: 0, alreadyClaimed: false };
 }
 
+// ─── Account ──────────────────────────────────────────────────────────────
+
+/**
+ * Permanently delete the signed-in user's account and all server-side data.
+ * Required by Apple for apps that support account creation.
+ */
+export async function deleteAccount(token: string | null): Promise<void> {
+  if (!token || !BASE) {
+    throw new Error("You must be signed in to delete your account.");
+  }
+  const res = await fetchWithTimeout(
+    `${BASE}/api/account`,
+    { method: "DELETE", headers: authHeaders(token) },
+    15_000,
+  );
+  if (!res.ok) {
+    const err = await safeJson(res);
+    throw new Error(err?.error ?? "Failed to delete account. Please try again.");
+  }
+}
+
 export async function generateHashtags(
   params: HashtagParams,
   token: string | null = null

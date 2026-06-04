@@ -47,7 +47,7 @@ const TOP_UP_PACKS: {
 }[] = [
   { id: "small", credits: 20, fallbackPrice: "$3.99", perCredit: "$0.20 / credit" },
   { id: "medium", credits: 50, fallbackPrice: "$8.99", perCredit: "$0.18 / credit", badge: "POPULAR" },
-  { id: "large", credits: 100, fallbackPrice: "$14.99", perCredit: "$0.15 / credit", badge: "BEST VALUE" },
+  { id: "large", credits: 200, fallbackPrice: "$24.99", perCredit: "$0.12 / credit", badge: "BEST VALUE" },
 ];
 
 export default function Paywall({ visible, onClose }: Props) {

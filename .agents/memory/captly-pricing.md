@@ -10,8 +10,16 @@ Packs are deliberately small "top-ups" priced *higher per credit* than the Pro
 subscription, so any regular poster is nudged to subscribe ($9.99/mo). Don't "fix"
 packs to be a better per-credit deal than Pro — that would cannibalize the subscription.
 
-**Economics:** 1 credit = 1 generation = 3 captions. Pro = 150 credits/month.
-Packs: 20 / 50 / 100 credits at $3.99 / $8.99 / $14.99.
+**Economics:** 1 credit = 1 generation = 3 captions. Pro = 150 credits/month for $9.99.
+Packs: 20 / 50 / 200 credits at $3.99 / $8.99 / $24.99.
+
+**Pack sanity rule (learned):** the small packs must be both *cheaper* and *smaller*
+than the monthly sub so they read as no-commitment top-ups (a pack that costs MORE
+for FEWER credits than Pro looks broken — that's why 100/$14.99 was dropped). The one
+"big stash" pack (200) is allowed to be bigger than the sub, but only if its per-credit
+price stays clearly above the sub's (~12¢ vs ~7¢) so Pro is still the best deal.
+Owner declined keeping Pro at $14.99 — wants $9.99 to maximize launch signups/reviews,
+raise later.
 
 **Legacy product-ID trap:** the App Store consumable IDs are
 `com.captionai.app.credits.50/.200/.500`. Apple product IDs can't be renamed once

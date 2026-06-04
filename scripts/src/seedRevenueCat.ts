@@ -99,13 +99,13 @@ const CREDIT_PACKS = [
   {
     label: "Credits500",
     storeId: "com.captionai.app.credits.500",
-    displayName: "100 Captly Credits",
-    title: "100 Captly Credits",
+    displayName: "200 Captly Credits",
+    title: "200 Captly Credits",
     packageId: "credits_500",
-    packageName: "100 Credits – $14.99",
+    packageName: "200 Credits – $24.99",
     prices: [
-      { amount_micros: 14990000, currency: "USD" },
-      { amount_micros: 14990000, currency: "EUR" },
+      { amount_micros: 24990000, currency: "USD" },
+      { amount_micros: 24990000, currency: "EUR" },
     ],
   },
 ] as const;

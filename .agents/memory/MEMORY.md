@@ -2,4 +2,5 @@
 - [Account deletion local wipe](account-deletion-local-wipe.md) — deleting an account must clear local AsyncStorage too, or loadData re-uploads old data to the next account on the device.
 - [Captly pricing & credits](captly-pricing.md) — packs are small top-ups priced above Pro to drive subscriptions; product-ID numbers are legacy labels ≠ granted credits; keep PRO_MONTHLY_LIMIT == PRO_MONTHLY_CREDITS (150) and 3 sync points aligned.
 - [Captly EAS iOS builds](captly-eas-builds.md) — must use EAS_NO_VCS=1 + foreground + re-stage ASC key in same call; bump app.json buildNumber each time.
+- [ASC + RevenueCat API quirks](captly-asc-rc-apis.md) — wrong endpoint paths/fields falsely look "empty"; ASC list = /v1/apps/{id}/inAppPurchasesV2, RC packages need expand=items.product → products.items[].product.
 - [Captly App Store Connect REST API](captly-asc-api.md) — sign ASC JWT with dsaEncoding ieee-p1363; privacyPolicyUrl lives on appInfoLocalizations not the version; attaching a build is explicit (TestFlight ≠ attached).

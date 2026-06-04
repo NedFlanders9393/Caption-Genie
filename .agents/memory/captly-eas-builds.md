@@ -27,3 +27,9 @@ Run from `artifacts/captionai-mobile`. Standing directive: **never build/submit 
 
 ## Auth
 - `EXPO_TOKEN` secret authenticates EAS CLI non-interactively. iOS signing credentials are already stored on EAS.
+
+## ASC API key (.p8) staging — CRITICAL
+- The `ASC_API_KEY_CONTENT` secret stores the .p8 with its **newlines stripped** (it keeps the `BEGIN/END` markers but the base64 body is one run with no line breaks). Writing it verbatim to `/tmp/AuthKey_<KeyID>.p8` produces a malformed PEM.
+- A malformed .p8 makes the EAS iOS **submit** (fastlane pilot / spaceship) crash with `invalid curve name (OpenSSL::PKey::ECError)` in `spaceship/connect_api/token.rb` → submission ERRORED even though the **build FINISHED**. The build is fine; only the upload-to-Apple step dies.
+- Fix before staging: extract the base64 between the BEGIN/END markers, strip all whitespace, re-wrap at 64 chars, write back as proper PEM. Verify with `crypto.createPrivateKey(pem)` (Node) — it throws if still malformed.
+- A bare `eas submit --platform ios --id <BUILD_ID> --profile production --non-interactive` (no git needed) re-uploads an already-FINISHED build to TestFlight; no rebuild required. Works from the main agent sandbox (submit doesn't touch git), but the correctly-formatted key file must be staged in the SAME bash call (`/tmp` clears between calls).

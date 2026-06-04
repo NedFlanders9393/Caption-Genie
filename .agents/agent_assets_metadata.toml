@@ -59,3 +59,33 @@ id = "aNJPdgaqT8Nd8UM08Y_gK"
 uri = "file://app-store-screenshots/05-features.png"
 type = "image"
 title = "5 — Everything you need"
+
+[[outputs]]
+id = "w4JlDSAxKqphuLif7oO4H"
+uri = "file://app-store-screenshots/captly-01-home-1284x2778.png"
+type = "image"
+title = "1 — Home (upload first)"
+
+[[outputs]]
+id = "iD-vf-IBC8g3gITssYqBf"
+uri = "file://app-store-screenshots/captly-02-captions-1284x2778.png"
+type = "image"
+title = "2 — Three captions"
+
+[[outputs]]
+id = "FL8Gi9OCSxyrXwNVqsfLh"
+uri = "file://app-store-screenshots/captly-03-hashtags-1284x2778.png"
+type = "image"
+title = "3 — Hashtags"
+
+[[outputs]]
+id = "I1IHIC-SUEu8KSfk5BFY8"
+uri = "file://app-store-screenshots/captly-04-pricing-1284x2778.png"
+type = "image"
+title = "4 — Pricing"
+
+[[outputs]]
+id = "sGq-MDcGSZsw5ZSXtQbVm"
+uri = "file://app-store-screenshots/captly-05-features-1284x2778.png"
+type = "image"
+title = "5 — Features"

@@ -33,6 +33,7 @@ const AMBER_LIGHT = "#F8EFE4";
 // scripts/src/seedRevenueCat.ts (CREDIT_PACKS[].storeId) and the webhook map
 // in artifacts/api-server/src/routes/revenuecatWebhook.ts.
 const TOP_UP_PACK_IDS = {
+  mini: "com.captionai.app.credits.10",
   small: "com.captionai.app.credits.50",
   medium: "com.captionai.app.credits.200",
   large: "com.captionai.app.credits.500",
@@ -45,6 +46,7 @@ const TOP_UP_PACKS: {
   perCredit: string;
   badge?: string;
 }[] = [
+  { id: "mini", credits: 10, fallbackPrice: "$1.99", perCredit: "$0.20 / credit" },
   { id: "small", credits: 20, fallbackPrice: "$3.99", perCredit: "$0.20 / credit" },
   { id: "medium", credits: 50, fallbackPrice: "$8.99", perCredit: "$0.18 / credit", badge: "POPULAR" },
   { id: "large", credits: 200, fallbackPrice: "$24.99", perCredit: "$0.12 / credit", badge: "BEST VALUE" },

@@ -39,9 +39,10 @@ const PRO_MONTHLY_CREDITS = 150;
 // store_identifier). Keep in sync with scripts/src/seedRevenueCat.ts.
 const CREDIT_PACK_PRODUCTS: Record<string, number> = {
   // NOTE: the number in the product ID is a legacy label, NOT the credits granted.
-  // Packs were retuned to small "top-ups" (20/50/200) to drive repeat purchases
+  // Packs were retuned to small "top-ups" (10/20/50/200) to drive repeat purchases
   // and steer regular users to the Pro subscription. Keep these grant amounts in
   // sync with Paywall.tsx (TOP_UP_PACKS) and seedRevenueCat.ts (CREDIT_PACKS).
+  "com.captionai.app.credits.10": 10,
   "com.captionai.app.credits.50": 20,
   "com.captionai.app.credits.200": 50,
   "com.captionai.app.credits.500": 200,

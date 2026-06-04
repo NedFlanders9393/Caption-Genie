@@ -73,6 +73,18 @@ const ANNUAL_PRICES = [
 //   - artifacts/captionai-mobile/components/Paywall.tsx    → TOP_UP_PACK_IDS
 const CREDIT_PACKS = [
   {
+    label: "Credits10",
+    storeId: "com.captionai.app.credits.10",
+    displayName: "10 Captly Credits",
+    title: "10 Captly Credits",
+    packageId: "credits_10",
+    packageName: "10 Credits – $1.99",
+    prices: [
+      { amount_micros: 1990000, currency: "USD" },
+      { amount_micros: 1990000, currency: "EUR" },
+    ],
+  },
+  {
     label: "Credits50",
     storeId: "com.captionai.app.credits.50",
     displayName: "20 Captly Credits",

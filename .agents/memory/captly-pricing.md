@@ -11,7 +11,10 @@ subscription, so any regular poster is nudged to subscribe ($9.99/mo). Don't "fi
 packs to be a better per-credit deal than Pro — that would cannibalize the subscription.
 
 **Economics:** 1 credit = 1 generation = 3 captions. Pro = 150 credits/month for $9.99.
-Packs: 20 / 50 / 200 credits at $3.99 / $8.99 / $24.99.
+Packs: 10 / 20 / 50 / 200 credits at $1.99 / $3.99 / $8.99 / $24.99. The 10/$1.99
+is a 4th "impulse" tier on a NEW product ID `com.captionai.app.credits.10` (its
+number actually matches the grant). A 500/$49.99 pack was rejected — 500 credits
+lasts an active poster ~a year, which cannibalizes the recurring sub at the top end.
 
 **Pack sanity rule (learned):** the small packs must be both *cheaper* and *smaller*
 than the monthly sub so they read as no-commitment top-ups (a pack that costs MORE

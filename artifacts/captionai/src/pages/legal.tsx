@@ -274,3 +274,47 @@ export function TermsPage() {
     </LegalLayout>
   );
 }
+
+export function SupportPage() {
+  return (
+    <LegalLayout title="Support">
+      <Section title="Get Help with Captly">
+        {"We're here to help. If you have a question, run into a problem, or want to share feedback, email us and we'll get back to you within 1–2 business days:\n\n"}
+        <ContactEmail />
+      </Section>
+
+      <Section title="Frequently Asked Questions">
+        <Bullet label="How do I generate a caption?">
+          Open the app, choose your industry, post type, and tone, describe your post, and tap
+          Generate. Captly creates three distinct caption options you can copy or refine.
+        </Bullet>
+        <Bullet label="What's included in the free plan?">
+          The free plan includes up to 10 caption generations per month. Pro unlocks up to 150
+          generations per month plus advanced features.
+        </Bullet>
+        <Bullet label="How do I upgrade to Pro?">
+          Tap the upgrade option in the app. Billing is handled securely through Apple's In-App
+          Purchase system.
+        </Bullet>
+        <Bullet label="How do I manage or cancel my subscription?">
+          Go to your iPhone Settings → tap your name → Subscriptions → Captly. From there you can
+          change or cancel your plan. Apple handles all billing and refunds.
+        </Bullet>
+        <Bullet label="How do I delete my account?">
+          Open the Profile screen in the app and tap Delete Account. This permanently removes your
+          account, saved captions, and any remaining credits.
+        </Bullet>
+        <Bullet label="My captions don't sound right — what can I do?">
+          Try adjusting the tone selections or adding more detail to your post description. You can
+          also use the Remix options to make a caption shorter, longer, funnier, or more
+          professional.
+        </Bullet>
+      </Section>
+
+      <Section title="Still Need Help?">
+        {"If your question isn't answered above, reach out any time and we'll help you out:\n\n"}
+        <ContactEmail />
+      </Section>
+    </LegalLayout>
+  );
+}

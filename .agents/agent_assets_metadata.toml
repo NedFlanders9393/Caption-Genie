@@ -23,3 +23,9 @@ id = "ZwwQ2jaCQWxGIMHsS6DNC"
 uri = "file://artifacts/captionai-mobile/assets/images/icon.png"
 type = "image"
 title = "New App Icon"
+
+[[outputs]]
+id = "BuhHNo1_K-ZEVZvJcnlYW"
+uri = "file://screenshots/paywall-pricing-full.jpg"
+type = "image"
+title = "Captly Paywall — Full Pricing"

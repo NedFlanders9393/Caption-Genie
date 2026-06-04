@@ -318,7 +318,7 @@ function HistoryItem({
         styles.card,
         {
           backgroundColor: colors.card,
-          borderColor: colors.border,
+          borderColor: colors.input,
           borderRadius: colors.radius,
         },
       ]}
@@ -627,7 +627,7 @@ export default function HistoryScreen() {
         renderItem={({ item }) => (
           <HistoryItem item={item} onDelete={removeFromHistory} colors={colors} />
         )}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -656,6 +656,11 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     padding: 14,
     gap: 10,
+    shadowColor: "#3A3129",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
   },
   cardHeader: {
     flexDirection: "row",

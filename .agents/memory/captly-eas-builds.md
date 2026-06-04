@@ -8,10 +8,13 @@ description: How to successfully queue an EAS iOS build + TestFlight auto-submit
 Run from `artifacts/captionai-mobile`. Standing directive: **never build/submit without explicit user approval.**
 
 ## The command that works
-```
-EAS_NO_VCS=1 eas build --platform ios --profile production --auto-submit --non-interactive --no-wait
-```
-- Builds + auto-submits to TestFlight (App Store Connect) in the cloud; returns after queueing.
+- **Isolated task environment (git allowed):** commit the buildNumber bump first, then run the git-based build WITHOUT NO_VCS:
+  ```
+  eas build --platform ios --profile production --auto-submit --non-interactive --no-wait
+  ```
+  Here `EAS_NO_VCS=1` is wrong: it omits the monorepo root `pnpm-lock.yaml` so EAS falls back to `yarn install --frozen-lockfile` and fails at "Install dependencies". Let EAS use git (archives the committed tree).
+- **Main agent sandbox (git blocked):** use `EAS_NO_VCS=1` (see gotchas) since git index ops are blocked there.
+- Both build + auto-submit to TestFlight (App Store Connect) in the cloud; return after queueing.
 
 ## Non-obvious gotchas (each caused a failure)
 - **`EAS_NO_VCS=1` is required.** Without it, EAS tries to touch `.git/index.lock` and the sandbox blocks it with "Destructive git operations are not allowed in the main agent" → build never queues. NO_VCS makes EAS archive the working dir directly (uncommitted changes like a build-number bump are included — desirable).

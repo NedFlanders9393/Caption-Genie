@@ -57,7 +57,7 @@ export default function PrivacyPolicyScreen() {
             The captions and hashtags you generate are stored in your account history so you can access them later.
           </BulletItem>
           <BulletItem label="Usage data">
-            We track how many captions you generate per month to enforce your plan limits (10/month free, 500/month Pro).
+            We track how many captions you generate per month to enforce your plan limits (10/month free, 150/month Pro).
           </BulletItem>
           <BulletItem label="Device information">
             Basic device and platform information (iOS version, app version) included when you submit a bug report.

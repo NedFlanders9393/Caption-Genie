@@ -111,7 +111,7 @@ export function PrivacyPolicyPage() {
         </Bullet>
         <Bullet label="Usage data">
           We track how many captions you generate per month to enforce your plan limits (10/month
-          free, 500/month Pro).
+          free, 150/month Pro).
         </Bullet>
         <Bullet label="Device information">
           Basic device and platform information (iOS version, app version) included when you submit a
@@ -199,7 +199,7 @@ export function TermsPage() {
       <Section title="Description of Service">
         Captly is an AI-powered caption generation tool for social media. We provide free and Pro
         subscription tiers. The free tier includes up to 10 caption generations per month. The Pro
-        tier provides up to 500 generations per month and is billed through Apple's In-App Purchase
+        tier provides up to 150 generations per month and is billed through Apple's In-App Purchase
         system.
       </Section>
 

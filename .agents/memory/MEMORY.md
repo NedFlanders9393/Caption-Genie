@@ -1,2 +1,3 @@
 - [Expo Router typed routes](expo-router-typed-routes.md) — new screen fails typecheck with Href union error until the expo workflow restarts to regenerate route types.
 - [Account deletion local wipe](account-deletion-local-wipe.md) — deleting an account must clear local AsyncStorage too, or loadData re-uploads old data to the next account on the device.
+- [Captly pricing & credits](captly-pricing.md) — packs are small top-ups priced above Pro to drive subscriptions; product-ID numbers are legacy labels ≠ granted credits; keep PRO_MONTHLY_LIMIT == PRO_MONTHLY_CREDITS (150) and 3 sync points aligned.

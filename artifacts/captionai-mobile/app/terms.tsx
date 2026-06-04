@@ -47,7 +47,7 @@ export default function TermsScreen() {
         </Section>
 
         <Section title="Description of Service">
-          Captly is an AI-powered caption generation tool for social media. We provide free and Pro subscription tiers. The free tier includes up to 10 caption generations per month. The Pro tier provides up to 500 generations per month and is billed through Apple's In-App Purchase system.
+          Captly is an AI-powered caption generation tool for social media. We provide free and Pro subscription tiers. The free tier includes up to 10 caption generations per month. The Pro tier provides up to 150 generations per month and is billed through Apple's In-App Purchase system.
         </Section>
 
         <Section title="Subscriptions & Billing">

@@ -8,7 +8,11 @@ import { sql } from "drizzle-orm";
 import { spendCredits, canSpend, grantPurchasedCredits } from "../services/credits.js";
 
 const FREE_MONTHLY_LIMIT = 10;
-const PRO_MONTHLY_LIMIT = 500;
+// Kept in sync with PRO_MONTHLY_CREDITS (revenuecatWebhook.ts) and the 150/month
+// figure in our legal copy. This only gates the legacy monthly_usage path (Path B,
+// used when CREDITS_ENFORCED is not "true"); pinning it to 150 prevents Pro from
+// silently reverting to 500/month if the credits flag is ever misconfigured.
+const PRO_MONTHLY_LIMIT = 150;
 
 /**
  * When `CREDITS_ENFORCED=true`, the credit ledger becomes the primary gate
@@ -168,7 +172,7 @@ async function enforceUsageLimit(
     res.status(429).json({
       error: isPro
         ? `Monthly generation limit reached (${PRO_MONTHLY_LIMIT}/month for Pro). Resets on the 1st.`
-        : `Free tier limit reached (${FREE_MONTHLY_LIMIT}/month). Upgrade to Pro for 500 generations/month.`,
+        : `Free tier limit reached (${FREE_MONTHLY_LIMIT}/month). Upgrade to Pro for 150 generations/month.`,
       limit,
       isPro,
     });

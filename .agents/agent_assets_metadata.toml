@@ -29,3 +29,33 @@ id = "BuhHNo1_K-ZEVZvJcnlYW"
 uri = "file://screenshots/paywall-pricing-full.jpg"
 type = "image"
 title = "Captly Paywall — Full Pricing"
+
+[[outputs]]
+id = "qWYA-17N3pcB2peEeL9-_"
+uri = "file://app-store-screenshots/01-home.png"
+type = "image"
+title = "1 — Home / Your pocket caption studio"
+
+[[outputs]]
+id = "K0e9rxxBM1FRmCwHXISq6"
+uri = "file://app-store-screenshots/02-captions.png"
+type = "image"
+title = "2 — Three captions, instantly"
+
+[[outputs]]
+id = "4BvVxZXv6oQcLLD2UKLL2"
+uri = "file://app-store-screenshots/03-hashtags.png"
+type = "image"
+title = "3 — Hashtags that get you found"
+
+[[outputs]]
+id = "0awtvm0dFOtBC-52-u_ON"
+uri = "file://app-store-screenshots/04-pricing.png"
+type = "image"
+title = "4 — Fair pricing / credits"
+
+[[outputs]]
+id = "aNJPdgaqT8Nd8UM08Y_gK"
+uri = "file://app-store-screenshots/05-features.png"
+type = "image"
+title = "5 — Everything you need"

@@ -7,17 +7,18 @@ description: How to successfully queue an EAS iOS build + TestFlight auto-submit
 
 Run from `artifacts/captionai-mobile`. Standing directive: **never build/submit without explicit user approval.**
 
-## The command that works
-- **Isolated task environment (git allowed):** commit the buildNumber bump first, then run the git-based build WITHOUT NO_VCS:
-  ```
-  eas build --platform ios --profile production --auto-submit --non-interactive --no-wait
-  ```
-  Here `EAS_NO_VCS=1` is wrong: it omits the monorepo root `pnpm-lock.yaml` so EAS falls back to `yarn install --frozen-lockfile` and fails at "Install dependencies". Let EAS use git (archives the committed tree).
-- **Main agent sandbox (git blocked):** use `EAS_NO_VCS=1` (see gotchas) since git index ops are blocked there.
-- Both build + auto-submit to TestFlight (App Store Connect) in the cloud; return after queueing.
+## The command that works (CORRECTED)
+The reliable command from the **main agent sandbox** is the git-based build WITHOUT NO_VCS, run on a **clean, committed working tree**:
+```
+eas build --platform ios --profile production --non-interactive --no-wait
+```
+**Why git, not NO_VCS:** `EAS_NO_VCS=1` archives only `artifacts/captionai-mobile`, omitting the monorepo root `pnpm-lock.yaml` + `pnpm-workspace.yaml`, so EAS falls back to `yarn install --frozen-lockfile` and ERRORS at "Install dependencies" (this app depends on `workspace:*`/`catalog:` and can't install standalone). The git path archives the whole committed repo tree → pnpm install works.
+
+**Why a clean tree matters:** the old "git is blocked in the main agent / must use NO_VCS" note was wrong-ish. Git **read-only** ops (`git archive`/`ls-files`) work fine here. The `.git/index.lock` "Destructive git operations not allowed" block only happens when there are **uncommitted changes** (EAS tries to stash/add). So: do NOT bump buildNumber in the same turn (that's an uncommitted edit). Reuse the current committed buildNumber if the last build with that number ERRORED (it never reached Apple, so the number is free). If you must bump, the bump has to be committed first (e.g. let the platform's end-of-turn checkpoint commit it, then build next turn).
 
 ## Non-obvious gotchas (each caused a failure)
-- **`EAS_NO_VCS=1` is required.** Without it, EAS tries to touch `.git/index.lock` and the sandbox blocks it with "Destructive git operations are not allowed in the main agent" → build never queues. NO_VCS makes EAS archive the working dir directly (uncommitted changes like a build-number bump are included — desirable).
+- **The "Computing project fingerprint" step is slow** and can exceed a short bash timeout, killing the command before the build queues (looks like a hang with no output, esp. when piped to `tail`). Give it the full ~120s and stream output (no `| tail`). Set `EAS_SKIP_AUTO_FINGERPRINT=1` to skip it and queue faster.
+- **Archive is ~172 MB** (no `.easignore`); upload still only takes a few seconds, fingerprint is the slow part.
 - **Run in the FOREGROUND.** Backgrounding with `nohup ... &` gets the child killed when the bash tool returns — no build queues, log is empty.
 - **`/tmp` is cleared between tool calls.** The ASC API key file (`/tmp/AuthKey_<KeyID>.p8`, written from the `ASC_API_KEY_CONTENT` secret) must be re-staged in the SAME bash call that runs the build, or auto-submit can't find it.
 - **`.git/index.lock` may be left stale** after a blocked attempt; the main agent cannot remove it (sandbox blocks rm too). The platform's end-of-task commit clears it.

@@ -5,6 +5,7 @@
 - [Captly store screenshots](captly-store-screenshots.md) — render HTML via REPLIT_PLAYWRIGHT_CHROMIUM_EXECUTABLE + puppeteer-core at exact px; ASC 6.5" slot wants 1284×2778 (not 1290×2796), flatten alpha; App Privacy is web-UI only.
 - [ASC + RevenueCat API quirks](captly-asc-rc-apis.md) — wrong endpoint paths/fields falsely look "empty"; ASC list = /v1/apps/{id}/inAppPurchasesV2, RC packages need expand=items.product → products.items[].product.
 - [Captly App Store Connect REST API](captly-asc-api.md) — sign ASC JWT with dsaEncoding ieee-p1363; privacyPolicyUrl lives on appInfoLocalizations not the version; attaching a build is explicit (TestFlight ≠ attached).
+- [Captly iOS pod install fix](captly-pod-install-google.md) — @clerk/expo's native Google Sign-In pod breaks static-library linking; fix via modular_headers config plugin. Real pod error lives in build logFiles GCS URL via Expo GraphQL.
 - [Captly startup blank-screen gap](captly-startup-blank-screen.md) — splash must stay until clerkReady + always render a ClerkLoading branded fallback, or ClerkLoaded's null gate flashes white; real latency is Clerk proxy cold-start.
 - [Captly App Store resubmission](captly-asc-resubmission.md) — IAPs aren't auto-reviewed; add each as a reviewSubmissionItem alongside the version, clear the old UNRESOLVED_ISSUES submission first, then PATCH submitted:true.
 - [Captly guest mode (Apple 5.1.1)](captly-guest-mode.md) — core caption features must work signed-out; server identifies guests by X-Device-Id header, only purchases require sign-in.

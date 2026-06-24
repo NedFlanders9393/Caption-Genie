@@ -4,7 +4,7 @@ import { db } from "@workspace/db";
 import { creditTransactions } from "@workspace/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { getBalance, claimFreeCredits, ensureMonthlyFreeAllowance } from "../services/credits.js";
-import { isRevenueCatPro } from "./captions.js";
+import { getProStatus } from "./captions.js";
 import { clerkClient } from "@clerk/express";
 
 const router: IRouter = Router();
@@ -21,9 +21,10 @@ router.get("/credits/balance", requireAuth(), async (req, res) => {
 
   try {
     // Refresh the monthly free allowance so a free user sees their fresh 10
-    // at the start of a new month even before they generate (no-op for Pro).
-    const isPro = await isRevenueCatPro(userId);
-    await ensureMonthlyFreeAllowance(userId, isPro);
+    // at the start of a new month even before they generate (no-op for Pro,
+    // and a safe no-op when RevenueCat status is unknown).
+    const proStatus = await getProStatus(userId);
+    await ensureMonthlyFreeAllowance(userId, proStatus);
     const balance = await getBalance(userId);
     return res.json({
       subscription: balance.subscription,

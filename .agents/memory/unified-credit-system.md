@@ -26,14 +26,23 @@ one-allowance-per-device. Signed-in users still get their initial grant via
 **Why:** core caption features must work signed-out (Apple Guideline 5.1.1).
 
 ## Trap 2 — RevenueCat outage can clobber a Pro balance
-`isRevenueCatPro` returns `false` on any fetch error. If a Pro user hits a month
-boundary during an RC outage, the free-reset path would overwrite their 150 with
-10.
+A boolean `isPro` collapses "definitely free" and "couldn't reach RevenueCat"
+into the same `false`. If a Pro user hits a month boundary during an RC outage,
+a boolean-driven free-reset overwrites their 150 with 10 — and a `> free
+allowance` guard alone does NOT save a Pro user who has already spent down to
+<=10 credits.
 
-**Rule:** never reset a subscription bucket whose balance is greater than the
-free allowance — a free account never exceeds FREE_MONTHLY_CREDITS, so a larger
-balance means a (possibly mis-detected) Pro user. This guard is defense-in-depth
-on top of the `isPro` early-return.
+**Rule:** Pro detection must be tri-state — `getProStatus -> "pro" | "free" |
+"unknown"`. `"unknown"` is returned on any RC fetch error / non-OK response. The
+monthly free reset only mutates credits when status is a CONFIDENT `"free"`;
+`"pro"` and `"unknown"` are both skipped. Guests short-circuit to `"free"` (they
+can never be Pro, and it also avoids a Clerk getUser call that throws on the
+synthetic guest id). No-RC-configured is a confident `"free"`. Keep the legacy
+`isRevenueCatPro` boolean as a thin `=== "pro"` wrapper for model-selection /
+messaging callers; the `> FREE_MONTHLY_CREDITS` guard stays as defense-in-depth.
+
+**Why:** "assume free on error" silently downgrades paying users — fail safe by
+never mutating credits when entitlement is uncertain.
 
 ## How to apply
 Keep all three sync points aligned (server FREE_MONTHLY_CREDITS=10, mobile

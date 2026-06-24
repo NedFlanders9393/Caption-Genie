@@ -29,6 +29,14 @@ export interface CreditBalance {
   lifetimePurchased: number;
 }
 
+/**
+ * Confidence-aware Pro status. "unknown" means we could NOT determine the
+ * user's subscription state (e.g. a RevenueCat lookup error). Callers that
+ * mutate credits must treat "unknown" like "pro" and do nothing, so a
+ * transient outage can never downgrade a paying user.
+ */
+export type ProStatus = "pro" | "free" | "unknown";
+
 export type SpendReason = "generation" | "hashtags" | "remix" | string;
 export type GrantReason =
   | "subscription_renewal"
@@ -216,9 +224,13 @@ function isGuestUser(userId: string): boolean {
  */
 export async function ensureMonthlyFreeAllowance(
   userId: string,
-  isPro: boolean,
+  proStatus: ProStatus,
 ): Promise<void> {
-  if (!userId || isPro) return;
+  if (!userId) return;
+  // Only mutate credits when we are CONFIDENT the user is free. "pro" is
+  // skipped (RevenueCat manages their 150/month), and "unknown" is skipped so
+  // a transient RevenueCat outage can never reset a paying user to 10.
+  if (proStatus !== "free") return;
 
   const isGuest = isGuestUser(userId);
   const nowYm = yearMonthUTC(new Date());

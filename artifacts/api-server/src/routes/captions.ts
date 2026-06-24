@@ -5,7 +5,7 @@ import { anthropic } from "@workspace/integrations-anthropic-ai";
 import { GenerateCaptionsBody, RegenerateOneCaptionBody, GenerateHashtagsBody } from "@workspace/api-zod";
 import { db } from "@workspace/db";
 import { sql } from "drizzle-orm";
-import { spendCredits, canSpend, grantPurchasedCredits, ensureMonthlyFreeAllowance } from "../services/credits.js";
+import { spendCredits, canSpend, grantPurchasedCredits, ensureMonthlyFreeAllowance, type ProStatus } from "../services/credits.js";
 
 const FREE_MONTHLY_LIMIT = 10;
 // Kept in sync with PRO_MONTHLY_CREDITS (revenuecatWebhook.ts) and the 150/month
@@ -58,12 +58,22 @@ async function isProOverride(userId: string): Promise<boolean> {
   return !!email && allowed.includes(email.toLowerCase());
 }
 
-export async function isRevenueCatPro(userId: string): Promise<boolean> {
+/**
+ * Confidence-aware Pro lookup. Returns "unknown" when RevenueCat can't be
+ * reached so credit-mutating callers can fail safe instead of treating a
+ * paying user as free (which would reset their 150 credits to 10).
+ */
+export async function getProStatus(userId: string): Promise<ProStatus> {
+  // Guests can never be Pro — skip the lookup entirely (and avoid a Clerk
+  // getUser call that would throw on a synthetic guest id).
+  if (userId.startsWith("guest_")) return "free";
+
   // Owner / dev override — checked first so it's instant even without a subscription
-  if (await isProOverride(userId)) return true;
+  if (await isProOverride(userId)) return "pro";
 
   const secretKey = process.env.REVENUECAT_SECRET_KEY;
-  if (!secretKey) return false;
+  // No RevenueCat configured → Pro is impossible, so this is a confident "free".
+  if (!secretKey) return "free";
   try {
     const res = await fetch(`https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(userId)}`, {
       headers: {
@@ -71,12 +81,17 @@ export async function isRevenueCatPro(userId: string): Promise<boolean> {
         "X-Platform": "ios",
       },
     });
-    if (!res.ok) return false;
+    // Any non-OK response is inconclusive — don't assume free.
+    if (!res.ok) return "unknown";
     const data = await res.json() as { subscriber?: { entitlements?: { active?: Record<string, unknown> } } };
-    return !!data.subscriber?.entitlements?.active?.["pro"];
+    return data.subscriber?.entitlements?.active?.["pro"] ? "pro" : "free";
   } catch {
-    return false;
+    return "unknown";
   }
+}
+
+export async function isRevenueCatPro(userId: string): Promise<boolean> {
+  return (await getProStatus(userId)) === "pro";
 }
 
 /**
@@ -114,7 +129,8 @@ async function enforceUsageLimit(
   res: Response,
   creditCost: number = 1,
 ): Promise<UsageResult> {
-  const isPro = await isRevenueCatPro(userId);
+  const proStatus = await getProStatus(userId);
+  const isPro = proStatus === "pro";
   const noopRefund = async () => {};
 
   // Free actions (creditCost === 0, e.g. hashtags) are never gated or counted
@@ -128,8 +144,9 @@ async function enforceUsageLimit(
   if (CREDITS_ENFORCED) {
     if (creditCost > 0) {
       // Top up the free monthly allowance first so free users get their fresh
-      // 10 credits when a new calendar month rolls over (no-op for Pro).
-      await ensureMonthlyFreeAllowance(userId, isPro);
+      // 10 credits when a new calendar month rolls over (no-op for Pro, and a
+      // safe no-op when RevenueCat status is unknown).
+      await ensureMonthlyFreeAllowance(userId, proStatus);
       const result = await spendCredits(userId, creditCost, "generation");
       if (!result.ok) {
         res.status(402).json({

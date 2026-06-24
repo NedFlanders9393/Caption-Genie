@@ -6,6 +6,14 @@ import { GenerateCaptionsBody, RegenerateOneCaptionBody, GenerateHashtagsBody } 
 import { db } from "@workspace/db";
 import { sql } from "drizzle-orm";
 import { spendCredits, canSpend, grantPurchasedCredits, ensureMonthlyFreeAllowance, type ProStatus } from "../services/credits.js";
+import {
+  checkSpendCap,
+  recordAiCost,
+  resolveTier,
+  extractUsage,
+  type AiAction,
+} from "../services/costGuard.js";
+import { consumeMeteredAction } from "../services/meteredActions.js";
 
 const FREE_MONTHLY_LIMIT = 10;
 // Kept in sync with PRO_MONTHLY_CREDITS (revenuecatWebhook.ts) and the 150/month
@@ -244,6 +252,47 @@ async function enforceUsageLimit(
 // Helper to suppress unused-import lint warnings if canSpend isn't used yet.
 // Exposed so other routes can pre-check balance without spending.
 export { canSpend as canSpendCredits };
+
+/**
+ * Master spend-cap gate. Returns true and sends a friendly 503 if the app's
+ * accumulated AI spend has hit the owner's ceiling. Call this FIRST in every
+ * AI route — before charging credits or metering — so a blocked request
+ * consumes none of the user's allowance.
+ */
+async function isSpendCapped(req: Request, res: Response): Promise<boolean> {
+  try {
+    const cap = await checkSpendCap();
+    if (cap.blocked) {
+      req.log.warn({ scope: cap.scope }, "AI spend cap reached — pausing generation");
+      res.status(503).json({
+        error: "temporarily_unavailable",
+        message:
+          "Caption generation is taking a short break and will be back soon. Please try again later.",
+      });
+      return true;
+    }
+  } catch (err) {
+    // Fail open: never let a spend-check hiccup take the whole app down.
+    req.log.error({ err }, "Spend cap check failed — allowing request");
+  }
+  return false;
+}
+
+/** Fire-and-forget cost recording so it never blocks the response. */
+function logAiCost(
+  identity: string,
+  action: AiAction,
+  isPro: boolean,
+  model: string,
+  message: { usage?: { input_tokens?: number; output_tokens?: number } },
+  req: Request,
+): void {
+  const { inputTokens, outputTokens } = extractUsage(message);
+  void recordAiCost(
+    { identity, action, tier: resolveTier(identity, isPro), model, inputTokens, outputTokens },
+    req,
+  );
+}
 
 /**
  * Resolve the identity for usage tracking + Pro detection.
@@ -831,6 +880,8 @@ captionsRouter.post("/captions/generate", async (req, res) => {
     res.status(401).json({ error: "Authentication required" });
     return;
   }
+  // Circuit breaker FIRST — a capped request must consume no credits.
+  if (await isSpendCapped(req, res)) return;
   const { allowed, isPro, refund } = await enforceUsageLimit(userId, req, res, 1);
   if (!allowed) return;
 
@@ -842,9 +893,10 @@ captionsRouter.post("/captions/generate", async (req, res) => {
     : brandVoice?.sampleCaption ? [brandVoice.sampleCaption] : [];
   const hasSamplesOrDescription = allSamples.length > 0 || !!brandVoice?.voiceDescription;
 
+  const model = isPro ? PRO_MODEL : FREE_MODEL;
   try {
     const message = await anthropic.messages.create({
-      model: isPro ? PRO_MODEL : FREE_MODEL,
+      model,
       max_tokens: 8192,
       system: buildSystemPrompt(hasSamplesOrDescription),
       messages: [
@@ -865,6 +917,7 @@ captionsRouter.post("/captions/generate", async (req, res) => {
         },
       ],
     });
+    logAiCost(userId, "generate", isPro, model, message, req);
 
     const block = message.content[0];
     if (block.type !== "text") {
@@ -904,6 +957,8 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
     res.status(401).json({ error: "Authentication required" });
     return;
   }
+  // Circuit breaker FIRST — a capped request must consume no credits.
+  if (await isSpendCapped(req, res)) return;
   const { allowed, isPro, refund } = await enforceUsageLimit(userId, req, res, 1);
   if (!allowed) return;
 
@@ -915,9 +970,10 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
     : brandVoice?.sampleCaption ? [brandVoice.sampleCaption] : [];
   const hasSamplesOrDescriptionRegen = allSamplesRegen.length > 0 || !!brandVoice?.voiceDescription;
 
+  const model = isPro ? PRO_MODEL : FREE_MODEL;
   try {
     const message = await anthropic.messages.create({
-      model: isPro ? PRO_MODEL : FREE_MODEL,
+      model,
       max_tokens: 8192,
       system: buildSystemPrompt(hasSamplesOrDescriptionRegen),
       messages: [
@@ -939,6 +995,7 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
         },
       ],
     });
+    logAiCost(userId, "regenerate", isPro, model, message, req);
 
     const block = message.content[0];
     if (block.type !== "text") {
@@ -978,15 +1035,27 @@ captionsRouter.post("/captions/hashtags", async (req, res) => {
     res.status(401).json({ error: "Authentication required" });
     return;
   }
-  // Hashtags are FREE in the new credit model — pass cost=0.
-  const { allowed, isPro } = await enforceUsageLimit(userId, req, res, 0);
-  if (!allowed) return;
+  // Circuit breaker FIRST.
+  if (await isSpendCapped(req, res)) return;
+  // Hashtags don't cost a credit, but they DO call the AI — so they have
+  // their own per-user monthly cap to stop unlimited abuse.
+  const isPro = await isRevenueCatPro(userId);
+  const meter = await consumeMeteredAction(userId, "hashtags", isPro);
+  if (!meter.allowed) {
+    res.status(429).json({
+      error: "hashtag_limit_reached",
+      message: `You've used all ${meter.cap} free hashtag sets this month. They reset on the 1st.`,
+      cap: meter.cap,
+    });
+    return;
+  }
 
   const { niche, topic, platform } = parsed.data;
 
+  const model = isPro ? PRO_MODEL : FREE_MODEL;
   try {
     const message = await anthropic.messages.create({
-      model: isPro ? PRO_MODEL : FREE_MODEL,
+      model,
       max_tokens: 8192,
       system: `You are the world's leading social media hashtag strategist — part data scientist, part cultural analyst. You've studied millions of posts across every major platform and know exactly which hashtags drive real discoverability vs. which ones burn reach on over-saturated, algorithm-penalized tags.
 
@@ -1011,6 +1080,7 @@ Always respond with valid JSON only — no markdown, no code blocks, no explanat
         },
       ],
     });
+    logAiCost(userId, "hashtags", isPro, model, message, req);
 
     const block = message.content[0];
     if (block.type !== "text") {
@@ -1042,6 +1112,8 @@ Always respond with valid JSON only — no markdown, no code blocks, no explanat
       grouped: { niche: nicheTags, popular: popularTags, broad: broadTags },
     });
   } catch (err) {
+    // AI failed after we metered the action — give the allowance back.
+    await meter.rollback();
     req.log.error({ err }, "Hashtag generation failed");
     res.status(500).json({ error: "Failed to generate hashtags" });
   }
@@ -1064,7 +1136,19 @@ captionsRouter.post("/captions/remix", async (req, res) => {
     res.status(401).json({ error: "Authentication required" });
     return;
   }
+  // Circuit breaker FIRST.
+  if (await isSpendCapped(req, res)) return;
   const isPro = await isRevenueCatPro(userId);
+  // Remix is free of credits but AI-backed — apply its own monthly cap.
+  const meter = await consumeMeteredAction(userId, "remix", isPro);
+  if (!meter.allowed) {
+    res.status(429).json({
+      error: "remix_limit_reached",
+      message: `You've used all ${meter.cap} free remixes this month. They reset on the 1st.`,
+      cap: meter.cap,
+    });
+    return;
+  }
 
   const directionGuide: Record<string, string> = {
     "Make it shorter": "Compress to the punchiest possible version — keep only the highest-impact words. Target under 100 characters for the caption body.",
@@ -1106,13 +1190,15 @@ RESPOND IN THIS EXACT JSON FORMAT:
   "hashtags": "#hashtag1 #hashtag2 #hashtag3"
 }`;
 
+  const model = isPro ? PRO_MODEL : FREE_MODEL;
   try {
     const message = await anthropic.messages.create({
-      model: isPro ? PRO_MODEL : FREE_MODEL,
+      model,
       max_tokens: 8192,
       system: "You are the world's best social media copywriter. Always respond with valid JSON only — no markdown fences, no code blocks, no extra commentary.",
       messages: [{ role: "user", content: prompt }],
     });
+    logAiCost(userId, "remix", isPro, model, message, req);
 
     const block = message.content[0];
     if (block.type !== "text") {
@@ -1132,6 +1218,8 @@ RESPOND IN THIS EXACT JSON FORMAT:
 
     res.json(parsed_response);
   } catch (err) {
+    // AI failed after we metered the action — give the allowance back.
+    await meter.rollback();
     req.log.error({ err }, "Caption remix failed");
     res.status(500).json({ error: "Failed to remix caption" });
   }

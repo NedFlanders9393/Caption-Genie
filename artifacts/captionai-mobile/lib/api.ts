@@ -153,7 +153,7 @@ export async function generateCaptions(params: CaptionParams, token: string | nu
         !!err?.isPro,
       );
     }
-    throw new Error(err?.error ?? "Failed to generate captions");
+    throw new Error(err?.message ?? err?.error ?? "Failed to generate captions");
   }
   const data = await safeJson(res);
   if (!data || !Array.isArray(data.captions)) {
@@ -193,7 +193,7 @@ export async function regenerateOneCaption(
         !!err?.isPro,
       );
     }
-    throw new Error(err?.error ?? "Failed to regenerate caption");
+    throw new Error(err?.message ?? err?.error ?? "Failed to regenerate caption");
   }
   const data = await safeJson(res);
   if (!data || typeof data.caption !== "string") {
@@ -213,7 +213,7 @@ export async function remixCaption(
   });
   if (!res.ok) {
     const err = await safeJson(res);
-    throw new Error(err?.error ?? "Failed to remix caption");
+    throw new Error(err?.message ?? err?.error ?? "Failed to remix caption");
   }
   const data = await safeJson(res);
   if (!data || typeof data.caption !== "string") {
@@ -405,7 +405,7 @@ export async function generateHashtags(
   }, 20_000);
   if (!res.ok) {
     const err = await safeJson(res);
-    throw new Error(err?.error ?? "Failed to generate hashtags");
+    throw new Error(err?.message ?? err?.error ?? "Failed to generate hashtags");
   }
   const data = await safeJson(res);
   if (!data || !data.grouped) {

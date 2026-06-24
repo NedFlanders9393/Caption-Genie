@@ -163,7 +163,7 @@ export default function Paywall({ visible, onClose }: Props) {
             <View style={styles.explainerRow}>
               <View style={styles.bulletDot} />
               <Text style={styles.explainerText}>
-                <Text style={styles.explainerBold}>Hashtags are always free</Text> — no credits used
+                <Text style={styles.explainerBold}>Hashtags &amp; remixes are free</Text> — no credits used, with a generous monthly allowance
               </Text>
             </View>
             <View style={styles.explainerRow}>

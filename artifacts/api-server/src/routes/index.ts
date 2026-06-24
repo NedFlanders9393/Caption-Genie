@@ -10,6 +10,7 @@ import creditsRouter from "./credits";
 import revenuecatWebhookRouter from "./revenuecatWebhook";
 import authRouter from "./auth";
 import accountRouter from "./account";
+import adminRouter from "./admin";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(creditsRouter);
 router.use(revenuecatWebhookRouter);
 router.use(authRouter);
 router.use(accountRouter);
+router.use(adminRouter);
 
 export default router;

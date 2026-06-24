@@ -120,6 +120,19 @@ Allows users to generate captions without leaving Instagram, TikTok, Facebook, e
 2. Register bundle ID `com.captionai.app.ShareExtension` in Apple Developer portal
 3. Run `eas build --platform ios --profile production` from `artifacts/captionai-mobile`
 
+## Cost Guardrails
+
+Keeps AI spend bounded so the app stays profitable. See `artifacts/api-server/COST_MARGINS.md` for the full margin review.
+
+- **Per-call cost recording**: every Claude call writes token usage + computed dollar cost (micro-dollars) to `ai_cost_events`. Pricing rates live in ONE place: `MODEL_PRICING` in `artifacts/api-server/src/services/costGuard.ts`.
+- **Master spend cap (circuit breaker)**: before each AI call, `checkSpendCap()` compares accumulated UTC day/month spend to owner caps. Over the cap → friendly 503, no credits/allowance consumed. Fails open on DB error.
+  - Env: `AI_DAILY_SPEND_CAP_USD` (default 25), `AI_MONTHLY_SPEND_CAP_USD` (default 300). `0` disables.
+- **Metered free actions**: hashtags + remix cost no credit but are AI-backed, so they have per-user monthly caps in `metered_action_usage` (rollback on AI failure).
+  - Env: `HASHTAGS_MONTHLY_CAP_FREE`/`_PRO`, `REMIX_MONTHLY_CAP_FREE`/`_PRO` (defaults 25 free / 300 pro). `0` disables the action.
+- **Owner cost dashboard**: `GET /api/admin/costs` (HTML) and `/api/admin/costs.json`. Access = signed-in owner email (`PRO_OVERRIDE_EMAILS`/`ADMIN_EMAILS`) OR `?token=COST_DASHBOARD_TOKEN`. Fails closed in production.
+
+Key files: `lib/db/src/schema/ai_cost.ts`, `artifacts/api-server/src/services/costGuard.ts`, `artifacts/api-server/src/services/meteredActions.ts`, `artifacts/api-server/src/routes/admin.ts`.
+
 ## Caption Generation Engine
 
 Deep prompt system in `artifacts/api-server/src/routes/captions.ts`:

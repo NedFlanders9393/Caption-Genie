@@ -30,6 +30,20 @@ async function aiHeaders(token: string | null): Promise<HeadersInit> {
   return headers;
 }
 
+/**
+ * Thrown when the server rejects a paid action (HTTP 402) because the user is
+ * out of credits. Callers can detect this with `instanceof` and open the
+ * paywall instead of showing a generic error.
+ */
+export class InsufficientCreditsError extends Error {
+  isPro: boolean;
+  constructor(message: string, isPro = false) {
+    super(message);
+    this.name = "InsufficientCreditsError";
+    this.isPro = isPro;
+  }
+}
+
 function isNetworkError(err: unknown): boolean {
   if (err instanceof TypeError) {
     const msg = (err.message ?? "").toLowerCase();
@@ -133,6 +147,12 @@ export async function generateCaptions(params: CaptionParams, token: string | nu
   });
   if (!res.ok) {
     const err = await safeJson(res);
+    if (res.status === 402) {
+      throw new InsufficientCreditsError(
+        err?.message ?? "You're out of credits.",
+        !!err?.isPro,
+      );
+    }
     throw new Error(err?.error ?? "Failed to generate captions");
   }
   const data = await safeJson(res);
@@ -167,6 +187,12 @@ export async function regenerateOneCaption(
   });
   if (!res.ok) {
     const err = await safeJson(res);
+    if (res.status === 402) {
+      throw new InsufficientCreditsError(
+        err?.message ?? "You're out of credits.",
+        !!err?.isPro,
+      );
+    }
     throw new Error(err?.error ?? "Failed to regenerate caption");
   }
   const data = await safeJson(res);

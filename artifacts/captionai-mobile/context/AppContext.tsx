@@ -197,34 +197,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const consumeGeneration = useCallback(async (): Promise<boolean> => {
-    if (isBetaTester) {
-      const s = await updateStreak();
-      setStreak(s);
-      // Schedule streak reminder if notifications are on
-      notificationsEnabled().then((ok) => {
-        if (ok) scheduleDailyStreakReminder(s);
-      });
-      return true;
-    }
-    if (usageCount >= FREE_LIMIT) return false;
-    const [next, s] = await Promise.all([incrementUsage(), updateStreak()]);
-    setUsageCount(next);
+    // Usage limits are enforced server-side via the credit ledger now
+    // (free = 10/mo, Pro = 150/mo, 1 credit per caption set). This only
+    // records the daily streak and schedules its reminder.
+    const s = await updateStreak();
     setStreak(s);
-    // Schedule streak reminder (fire-and-forget)
     notificationsEnabled().then((ok) => {
       if (ok) scheduleDailyStreakReminder(s);
     });
-    // Warn when 3 captions or 1 caption remain on the free plan
-    const remaining = FREE_LIMIT - next;
-    if (remaining === 3 || remaining === 1) {
-      notificationsEnabled().then((ok) => {
-        if (ok) scheduleLowUsageWarning(remaining);
-      });
-    }
     return true;
-  }, [usageCount, isBetaTester]);
+  }, []);
 
-  const isOverLimit = isBetaTester ? false : usageCount >= FREE_LIMIT;
+  // Retained for backwards compatibility with older builds; the server is the
+  // real gate now, so the local counter never blocks generation.
+  const isOverLimit = false;
 
   return (
     <AppContext.Provider

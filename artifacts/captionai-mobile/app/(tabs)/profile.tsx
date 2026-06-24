@@ -37,6 +37,25 @@ const CARD_BG = "#FFFFFF";
 const CARD_BORDER = "#F0E3D3";
 const DANGER = "#DC2626";
 
+const FREE_MONTHLY_CREDITS = 10;
+const PRO_MONTHLY_CREDITS = 150;
+
+/**
+ * When the user's monthly credits next refresh. Free accounts reset on the 1st
+ * of each calendar month; Pro accounts renew ~one month after their last grant.
+ */
+function renewDateText(isSubscribed: boolean, lastResetISO: string): string {
+  let d: Date;
+  if (isSubscribed) {
+    d = new Date(lastResetISO);
+    d.setMonth(d.getMonth() + 1);
+  } else {
+    const now = new Date();
+    d = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  }
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
 type BrandVoice = {
   brandName?: string;
   personality?: string[];
@@ -58,7 +77,7 @@ export default function ProfileScreen() {
   const { user } = useUser();
   const { signOut, getToken, isSignedIn } = useAuth();
   const router = useRouter();
-  const { usageCount: generationCount, freeLimit: FREE_LIMIT, wipeAllUserData } = useApp();
+  const { wipeAllUserData } = useApp();
   const { isSubscribed, restore, isRestoring } = useSubscription();
   const [paywallVisible, setPaywallVisible] = useState(false);
   const [bugModalVisible, setBugModalVisible] = useState(false);
@@ -207,9 +226,6 @@ export default function ProfileScreen() {
     }
   };
 
-  const usagePercent = Math.min((generationCount / FREE_LIMIT) * 100, 100);
-  const remaining = Math.max(FREE_LIMIT - generationCount, 0);
-
   const handleSubmitBug = async () => {
     if (bugDescription.trim().length < 5) {
       Alert.alert("Too short", "Please describe the bug in a bit more detail.");
@@ -356,7 +372,9 @@ export default function ProfileScreen() {
               <View style={styles.creditsBreakdown}>
                 <View style={styles.creditsBreakdownItem}>
                   <Text style={styles.creditsBreakdownValue}>{credits.subscription}</Text>
-                  <Text style={styles.creditsBreakdownLabel}>From Pro</Text>
+                  <Text style={styles.creditsBreakdownLabel}>
+                    {isSubscribed ? "Pro plan" : "Monthly"}
+                  </Text>
                 </View>
                 <View style={styles.creditsBreakdownDivider} />
                 <View style={styles.creditsBreakdownItem}>
@@ -369,37 +387,22 @@ export default function ProfileScreen() {
                   Couldn't refresh: {creditsError}
                 </Text>
               ) : (
-                <Text style={styles.usageSub}>
-                  {credits.lifetimeUsed} used all-time · 1 credit per caption set
-                </Text>
+                <>
+                  <Text style={styles.usageSub}>
+                    {isSubscribed
+                      ? `${PRO_MONTHLY_CREDITS} credits/month · 1 per caption set`
+                      : `${FREE_MONTHLY_CREDITS} free credits/month · 1 per caption set`}
+                  </Text>
+                  <Text style={styles.usageSub}>
+                    {isSubscribed ? "Renews " : "Free credits renew "}
+                    {renewDateText(isSubscribed, credits.monthlyCreditsResetAt)}
+                  </Text>
+                </>
               )}
             </>
           ) : null}
         </View>
         )}
-
-        {/* Usage */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Monthly usage</Text>
-          <View style={styles.usageRow}>
-            <Text style={styles.usageLabel}>Free generations used</Text>
-            <Text style={styles.usageCount}>
-              {generationCount} / {FREE_LIMIT}
-            </Text>
-          </View>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${usagePercent}%` as any }]} />
-          </View>
-          {remaining > 0 ? (
-            <Text style={styles.usageSub}>
-              {remaining} generation{remaining !== 1 ? "s" : ""} remaining this month
-            </Text>
-          ) : (
-            <Text style={[styles.usageSub, { color: DANGER }]}>
-              Monthly limit reached
-            </Text>
-          )}
-        </View>
 
         {/* Brand Voice */}
         {isSignedIn && (

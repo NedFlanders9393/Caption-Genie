@@ -26,6 +26,7 @@ import {
   generateCaptions,
   generateMultiPlatform,
   regenerateOneCaption,
+  InsufficientCreditsError,
   type CaptionParams,
   type CaptionItem,
   type MultiPlatformResult,
@@ -93,7 +94,7 @@ export default function GenerateScreen() {
   const router = useRouter();
   const { user } = useUser();
   const { getToken } = useAuth();
-  const { addToHistory, consumeGeneration, isOverLimit, history, streak, toggleFavorite, isFavorited } = useApp();
+  const { addToHistory, consumeGeneration, history, streak, toggleFavorite, isFavorited } = useApp();
   const { isSubscribed } = useSubscription();
 
   // Deep-link params sent by the Share Extension fallback
@@ -182,11 +183,6 @@ export default function GenerateScreen() {
   const handleGenerate = useCallback(async () => {
     if (!canGenerate) return;
 
-    if (!isSubscribed && isOverLimit) {
-      setShowPaywall(true);
-      return;
-    }
-
     if (Platform.OS !== "web") { try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch {} }
     setLoading(true);
     setError(null);
@@ -241,18 +237,19 @@ export default function GenerateScreen() {
         if (canReview) StoreReview.requestReview();
       }
     } catch (e: any) {
-      setError(e?.message ?? "Something went wrong. Try again.");
+      // Out of credits → open the paywall instead of a generic error.
+      if (e instanceof InsufficientCreditsError) {
+        setShowPaywall(true);
+      } else {
+        setError(e?.message ?? "Something went wrong. Try again.");
+      }
     } finally {
       setLoading(false);
     }
-  }, [canGenerate, isSubscribed, isOverLimit, multiPlatform, buildParams, niche, description, tones, platforms, postType, captionLength, addToHistory, consumeGeneration, history.length]);
+  }, [canGenerate, isSubscribed, multiPlatform, buildParams, niche, description, tones, platforms, postType, captionLength, addToHistory, consumeGeneration, history.length]);
 
   const handleRegenerate = useCallback(
     async (idx: number) => {
-      if (!isSubscribed && isOverLimit) {
-        setShowPaywall(true);
-        return;
-      }
       setRegeneratingIdx(idx);
       try {
         const token = await getToken();
@@ -268,12 +265,17 @@ export default function GenerateScreen() {
         });
         if (!isSubscribed) await consumeGeneration();
       } catch (e: any) {
-        setError(e?.message ?? "Regeneration failed.");
+        // Out of credits → open the paywall instead of a generic error.
+        if (e instanceof InsufficientCreditsError) {
+          setShowPaywall(true);
+        } else {
+          setError(e?.message ?? "Regeneration failed.");
+        }
       } finally {
         setRegeneratingIdx(null);
       }
     },
-    [captions, isSubscribed, isOverLimit, buildParams, consumeGeneration, getToken]
+    [captions, isSubscribed, buildParams, consumeGeneration, getToken]
   );
 
   const toggleTone = useCallback((t: string) => {

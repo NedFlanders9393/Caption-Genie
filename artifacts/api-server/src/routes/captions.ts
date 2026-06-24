@@ -5,7 +5,7 @@ import { anthropic } from "@workspace/integrations-anthropic-ai";
 import { GenerateCaptionsBody, RegenerateOneCaptionBody, GenerateHashtagsBody } from "@workspace/api-zod";
 import { db } from "@workspace/db";
 import { sql } from "drizzle-orm";
-import { spendCredits, canSpend, grantPurchasedCredits } from "../services/credits.js";
+import { spendCredits, canSpend, grantPurchasedCredits, ensureMonthlyFreeAllowance } from "../services/credits.js";
 
 const FREE_MONTHLY_LIMIT = 10;
 // Kept in sync with PRO_MONTHLY_CREDITS (revenuecatWebhook.ts) and the 150/month
@@ -15,14 +15,14 @@ const FREE_MONTHLY_LIMIT = 10;
 const PRO_MONTHLY_LIMIT = 150;
 
 /**
- * When `CREDITS_ENFORCED=true`, the credit ledger becomes the primary gate
- * and the old monthly_usage limits are bypassed. Flip this on June 1 once
- * the new mobile build (with credit UI + 402 handling) is in users' hands.
+ * The credit ledger is the single source of truth for usage limits:
+ * free = 10 credits/month, Pro = 150/month, 1 credit per caption set.
  *
- * Until then, monthly_usage is the gate and we spend credits in parallel
- * (best-effort) so the ledger is populated for everyone.
+ * This is enabled by default. `CREDITS_ENFORCED=false` is a kill-switch that
+ * falls back to the legacy monthly_usage gate (Path B) if the ledger ever
+ * needs to be disabled in an emergency.
  */
-const CREDITS_ENFORCED = process.env.CREDITS_ENFORCED === "true";
+const CREDITS_ENFORCED = process.env.CREDITS_ENFORCED !== "false";
 
 const FREE_MODEL = "claude-haiku-4-5";
 const PRO_MODEL = "claude-sonnet-4-6";
@@ -58,7 +58,7 @@ async function isProOverride(userId: string): Promise<boolean> {
   return !!email && allowed.includes(email.toLowerCase());
 }
 
-async function isRevenueCatPro(userId: string): Promise<boolean> {
+export async function isRevenueCatPro(userId: string): Promise<boolean> {
   // Owner / dev override — checked first so it's instant even without a subscription
   if (await isProOverride(userId)) return true;
 
@@ -124,9 +124,12 @@ async function enforceUsageLimit(
     return { allowed: true, isPro, refund: noopRefund };
   }
 
-  // --- Path A: credits as primary gate (post-June 1) ---
+  // --- Path A: credits as primary gate ---
   if (CREDITS_ENFORCED) {
     if (creditCost > 0) {
+      // Top up the free monthly allowance first so free users get their fresh
+      // 10 credits when a new calendar month rolls over (no-op for Pro).
+      await ensureMonthlyFreeAllowance(userId, isPro);
       const result = await spendCredits(userId, creditCost, "generation");
       if (!result.ok) {
         res.status(402).json({

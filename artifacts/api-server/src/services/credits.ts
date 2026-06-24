@@ -36,9 +36,22 @@ export type GrantReason =
   | "purchase"
   | "refund"
   | "manual_grant"
-  | "signup_bonus";
+  | "signup_bonus"
+  | "free_monthly_reset";
 
 const FREE_SIGNUP_CREDITS = 10;
+
+/**
+ * Free accounts get this many credits at the start of each calendar month.
+ * No rollover — the subscription bucket is RESET (not added to) each month.
+ * Kept equal to FREE_SIGNUP_CREDITS so the first month and every renewal
+ * month grant the same free allowance.
+ */
+export const FREE_MONTHLY_CREDITS = 10;
+
+function yearMonthUTC(d: Date): string {
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+}
 
 /**
  * Look up the credits row for a user, creating it on first access with
@@ -166,6 +179,129 @@ const DISPOSABLE_EMAIL_DOMAINS = new Set([
   "mailexpire.com", "inboxalias.com", "cool.fr.nf", "jetable.fr.nf", "nospam.ze.tc",
   "nomail.xl.cx", "mega.zik.dj", "speed.1s.fr", "courriel.fr.nf", "moncourrier.fr.nf",
 ]);
+
+/** Guest identities are derived from the device id (see resolveIdentity). */
+function isGuestUser(userId: string): boolean {
+  return userId.startsWith("guest_");
+}
+
+/**
+ * Ensure a non-Pro user's monthly free allowance is current.
+ *
+ * Free accounts get FREE_MONTHLY_CREDITS in the subscription bucket each
+ * calendar month with NO rollover. We detect a new month by comparing the
+ * stored monthlyCreditsResetAt to "now" (UTC); on a new month we RESET the
+ * subscription bucket to the free allowance and stamp the reset time. The
+ * purchased bucket is never touched.
+ *
+ * Two identity classes are handled differently:
+ *  - GUESTS (`guest_<deviceId>`): caption generation works without an account
+ *    (Apple 5.1.1). The identity already embeds the device id, so it is
+ *    inherently one-allowance-per-device — no separate device_free_credits
+ *    claim is needed. We grant the initial allowance the first time the row is
+ *    created and reset it each new calendar month.
+ *  - SIGNED-IN users: this is a RENEWAL, not an initial grant. New rows are
+ *    stamped defaultNow(), so an account created this month is already
+ *    "current" and is NOT topped up here — the one-time signup bonus flows
+ *    through claimFreeCredits() with its device-fingerprint check. We only
+ *    renew accounts that actually claimed the signup bonus (have a
+ *    device_free_credits row), so a second account farmed on a device that
+ *    already claimed can't pick up a free 10 a month later.
+ *
+ * Pro users are skipped: their 150/month is managed by the RevenueCat
+ * renewal webhook (grantSubscriptionCredits). As defense-in-depth, we also
+ * refuse to reset any subscription bucket holding more than the free allowance,
+ * so a transient RevenueCat outage mis-classifying a Pro user as free can't
+ * clobber their balance.
+ */
+export async function ensureMonthlyFreeAllowance(
+  userId: string,
+  isPro: boolean,
+): Promise<void> {
+  if (!userId || isPro) return;
+
+  const isGuest = isGuestUser(userId);
+  const nowYm = yearMonthUTC(new Date());
+
+  await db.transaction(async (tx) => {
+    // Ensure the row exists and detect whether THIS call created it. Guests
+    // need their initial allowance here; signed-in users get it via
+    // claimFreeCredits, so for them a freshly-created row is left untouched.
+    const inserted = await tx
+      .insert(userCredits)
+      .values({
+        userId,
+        subscriptionCredits: 0,
+        purchasedCredits: 0,
+        lifetimeCreditsUsed: 0,
+        lifetimeCreditsPurchased: 0,
+      })
+      .onConflictDoNothing()
+      .returning({ userId: userCredits.userId });
+    const justCreated = inserted.length > 0;
+
+    const locked = await tx.execute(
+      sql`SELECT subscription_credits, monthly_credits_reset_at
+          FROM user_credits
+          WHERE user_id = ${userId}
+          FOR UPDATE`
+    );
+    const row = locked.rows[0] as
+      | { subscription_credits: number; monthly_credits_reset_at: string | Date }
+      | undefined;
+    if (!row) return;
+
+    // Never clobber a Pro-sized balance: a free account's subscription bucket
+    // is only ever SET to FREE_MONTHLY_CREDITS and drained, so anything larger
+    // means this is really a Pro user (possibly mis-detected as free because
+    // the RevenueCat lookup failed).
+    if (row.subscription_credits > FREE_MONTHLY_CREDITS) return;
+
+    const resetAt = new Date(row.monthly_credits_reset_at);
+    const sameMonth = yearMonthUTC(resetAt) === nowYm;
+
+    if (isGuest) {
+      // Guests are anti-farmed by their device-derived identity (one identity
+      // per device), so grant directly — no device_free_credits claim needed.
+      // Grant on first creation; otherwise only on a new calendar month.
+      if (!justCreated && sameMonth) return;
+    } else {
+      // Signed-in: renewal only (initial grant flows through claimFreeCredits).
+      // Skip if already current month, and only renew accounts that claimed
+      // the signup bonus (have a device_free_credits row).
+      if (sameMonth) return;
+      const claim = await tx
+        .select({ deviceId: deviceFreeCredits.deviceId })
+        .from(deviceFreeCredits)
+        .where(eq(deviceFreeCredits.userId, userId))
+        .limit(1);
+      if (claim.length === 0) return;
+    }
+
+    const now = new Date();
+    await tx
+      .update(userCredits)
+      .set({
+        subscriptionCredits: FREE_MONTHLY_CREDITS,
+        monthlyCreditsResetAt: now,
+        updatedAt: now,
+      })
+      .where(eq(userCredits.userId, userId));
+
+    const after = await tx.select().from(userCredits).where(eq(userCredits.userId, userId)).limit(1);
+    const total = (after[0]?.subscriptionCredits ?? 0) + (after[0]?.purchasedCredits ?? 0);
+
+    await tx.insert(creditTransactions).values({
+      userId,
+      delta: FREE_MONTHLY_CREDITS,
+      reason: isGuest && justCreated ? "signup_bonus" : "free_monthly_reset",
+      bucket: "subscription",
+      source: null,
+      balanceAfter: total,
+      metadata: { previousResetAt: resetAt.toISOString(), guest: isGuest },
+    });
+  });
+}
 
 export async function getBalance(userId: string): Promise<CreditBalance> {
   const row = await getOrCreateUserCredits(userId);

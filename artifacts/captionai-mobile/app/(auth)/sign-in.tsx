@@ -270,6 +270,16 @@ export default function SignInPage() {
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="always"
         >
+          {router.canGoBack() ? (
+            <Pressable
+              style={styles.dismissButton}
+              onPress={() => router.back()}
+              hitSlop={12}
+            >
+              <Feather name="x" size={22} color={MUTED} />
+            </Pressable>
+          ) : null}
+
           <View style={styles.header}>
             <View style={styles.logoCircle}>
               <Feather name="feather" size={32} color="#FFFFFF" />
@@ -352,6 +362,11 @@ export default function SignInPage() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
   flex: { flex: 1 },
+  dismissButton: {
+    alignSelf: "flex-end",
+    padding: 8,
+    marginBottom: -8,
+  },
   container: {
     flexGrow: 1,
     paddingHorizontal: 24,

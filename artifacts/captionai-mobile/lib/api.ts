@@ -1,3 +1,5 @@
+import { getDeviceId } from "./deviceId";
+
 const BASE = process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : "";
 
 const AI_TIMEOUT_MS = 30_000;
@@ -7,6 +9,25 @@ function authHeaders(token: string | null): HeadersInit {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
+}
+
+/**
+ * Headers for guest-accessible AI endpoints. Always includes the device id so
+ * the server can track usage / enforce the free tier when no auth token is
+ * present (guest mode — caption generation works without signing in).
+ */
+async function aiHeaders(token: string | null): Promise<HeadersInit> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+  try {
+    const deviceId = await getDeviceId();
+    if (deviceId) headers["X-Device-Id"] = deviceId;
+  } catch {
+    // Device id is best-effort; signed-in requests still work via the token.
+  }
+  return headers;
 }
 
 function isNetworkError(err: unknown): boolean {
@@ -107,7 +128,7 @@ export interface HashtagGroups {
 export async function generateCaptions(params: CaptionParams, token: string | null = null): Promise<CaptionItem[]> {
   const res = await fetchWithTimeout(`${BASE}/api/captions/generate`, {
     method: "POST",
-    headers: authHeaders(token),
+    headers: await aiHeaders(token),
     body: JSON.stringify(params),
   });
   if (!res.ok) {
@@ -141,7 +162,7 @@ export async function regenerateOneCaption(
 ): Promise<CaptionItem> {
   const res = await fetchWithTimeout(`${BASE}/api/captions/regenerate-one`, {
     method: "POST",
-    headers: authHeaders(token),
+    headers: await aiHeaders(token),
     body: JSON.stringify(params),
   });
   if (!res.ok) {
@@ -161,7 +182,7 @@ export async function remixCaption(
 ): Promise<CaptionItem> {
   const res = await fetchWithTimeout(`${BASE}/api/captions/remix`, {
     method: "POST",
-    headers: authHeaders(token),
+    headers: await aiHeaders(token),
     body: JSON.stringify(params),
   });
   if (!res.ok) {
@@ -352,7 +373,7 @@ export async function generateHashtags(
 ): Promise<{ hashtags: string[]; grouped: HashtagGroups }> {
   const res = await fetchWithTimeout(`${BASE}/api/captions/hashtags`, {
     method: "POST",
-    headers: authHeaders(token),
+    headers: await aiHeaders(token),
     body: JSON.stringify(params),
     // Hashtags are faster, but still give a reasonable window
   }, 20_000);

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useAuth } from "@clerk/expo";
 import { useSubscription } from "@/lib/revenuecat";
 
 interface Props {
@@ -54,11 +55,21 @@ const TOP_UP_PACKS: {
 
 export default function Paywall({ visible, onClose }: Props) {
   const router = useRouter();
+  const { isSignedIn } = useAuth();
   const { offerings, purchase, restore, isPurchasing, isRestoring, isNativeAvailable } = useSubscription();
 
   const openLegal = (path: "/terms" | "/privacy-policy") => {
     onClose();
     router.push(path);
+  };
+
+  // Purchases require an account (guests can generate captions for free, but
+  // Pro / credit packs are tied to a signed-in user). Route guests to sign-in.
+  const requireSignIn = (): boolean => {
+    if (isSignedIn) return false;
+    onClose();
+    router.push("/(auth)/sign-in");
+    return true;
   };
 
   const currentOffering = offerings?.current;
@@ -76,6 +87,7 @@ export default function Paywall({ visible, onClose }: Props) {
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
 
   const handlePurchasePro = async () => {
+    if (requireSignIn()) return;
     if (!monthlyPkg) return;
     setPurchasingId("pro");
     try {
@@ -89,6 +101,7 @@ export default function Paywall({ visible, onClose }: Props) {
   };
 
   const handlePurchaseTopUp = async (productId: string) => {
+    if (requireSignIn()) return;
     const pkg = findTopUpPkg(productId);
     if (!pkg) return;
     setPurchasingId(productId);

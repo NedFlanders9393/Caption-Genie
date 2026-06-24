@@ -1,5 +1,5 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { requireAuth, getAuth, clerkClient } from "@clerk/express";
+import { getAuth, clerkClient } from "@clerk/express";
 import rateLimit from "express-rate-limit";
 import { anthropic } from "@workspace/integrations-anthropic-ai";
 import { GenerateCaptionsBody, RegenerateOneCaptionBody, GenerateHashtagsBody } from "@workspace/api-zod";
@@ -225,21 +225,46 @@ async function enforceUsageLimit(
 // Exposed so other routes can pre-check balance without spending.
 export { canSpend as canSpendCredits };
 
+/**
+ * Resolve the identity for usage tracking + Pro detection.
+ *
+ * Caption generation is available WITHOUT signing in (Apple Guideline 5.1.1(v):
+ * apps may not force registration for features that aren't account-based).
+ *
+ *  - Signed-in users → their Clerk userId (can be Pro, history syncs, etc.)
+ *  - Guests          → a `guest_<deviceId>` key derived from the stable
+ *                      `X-Device-Id` header. Guests are always free tier
+ *                      (isRevenueCatPro returns false for these synthetic ids,
+ *                      since no RC subscriber / override matches), and their
+ *                      free monthly allowance is enforced per device.
+ *
+ * Returns null only when neither a session nor a device id is present, which
+ * indicates a malformed client request.
+ */
+function resolveIdentity(req: Request): string | null {
+  const userId = getAuth(req).userId;
+  if (userId) return userId;
+  const deviceId = req.header("x-device-id")?.trim();
+  if (deviceId) return `guest_${deviceId}`;
+  return null;
+}
+
 const captionsRouter: IRouter = Router();
 
-// Rate limiter: max 30 requests per 10 minutes per user (identified by Clerk userId)
+// Rate limiter: max 30 requests per 10 minutes per identity (Clerk userId for
+// signed-in users, device id for guests, IP as a final fallback).
 const captionRateLimit = rateLimit({
   windowMs: 10 * 60 * 1000,
   limit: 30,
-  keyGenerator: (req) => getAuth(req).userId ?? "anonymous",
+  keyGenerator: (req) => getAuth(req).userId ?? req.header("x-device-id")?.trim() ?? "anonymous",
   validate: { xForwardedForHeader: false },
   standardHeaders: "draft-8",
   legacyHeaders: false,
   message: { error: "Too many requests. Please wait a few minutes and try again." },
 });
 
-// Apply auth + rate limiting only to caption routes (scoped to /captions prefix)
-captionsRouter.use("/captions", requireAuth({ signInUrl: "/api/unauthorized" }));
+// Caption routes are guest-accessible (no requireAuth gate). Identity is
+// resolved per-request via resolveIdentity. Rate limiting still applies.
 captionsRouter.use("/captions", captionRateLimit);
 
 const SYSTEM_PROMPT_COPYWRITER = `You are the world's best social media copywriter — a rare combination of direct-response copywriter, behavioral psychologist, and platform algorithm expert. You've written viral content for thousands of small businesses across every industry. You know what stops the scroll, drives saves, earns shares, and converts browsers into buyers.
@@ -781,7 +806,11 @@ captionsRouter.post("/captions/generate", async (req, res) => {
     return;
   }
 
-  const userId = getAuth(req).userId ?? "";
+  const userId = resolveIdentity(req);
+  if (!userId) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
   const { allowed, isPro, refund } = await enforceUsageLimit(userId, req, res, 1);
   if (!allowed) return;
 
@@ -850,7 +879,11 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
     return;
   }
 
-  const userId = getAuth(req).userId ?? "";
+  const userId = resolveIdentity(req);
+  if (!userId) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
   const { allowed, isPro, refund } = await enforceUsageLimit(userId, req, res, 1);
   if (!allowed) return;
 
@@ -920,7 +953,11 @@ captionsRouter.post("/captions/hashtags", async (req, res) => {
     return;
   }
 
-  const userId = getAuth(req).userId ?? "";
+  const userId = resolveIdentity(req);
+  if (!userId) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
   // Hashtags are FREE in the new credit model — pass cost=0.
   const { allowed, isPro } = await enforceUsageLimit(userId, req, res, 0);
   if (!allowed) return;
@@ -1002,7 +1039,11 @@ captionsRouter.post("/captions/remix", async (req, res) => {
     return;
   }
 
-  const userId = getAuth(req).userId ?? "";
+  const userId = resolveIdentity(req);
+  if (!userId) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
   const isPro = await isRevenueCatPro(userId);
 
   const directionGuide: Record<string, string> = {

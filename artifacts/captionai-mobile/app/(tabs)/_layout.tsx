@@ -1,6 +1,6 @@
 import { useAuth } from "@clerk/expo";
 import { BlurView } from "expo-blur";
-import { Redirect, Tabs, useRouter } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { Feather } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
@@ -114,30 +114,29 @@ function ClassicTabLayout() {
 }
 
 export default function TabLayout() {
-  const { isSignedIn, isLoaded } = useAuth();
+  // Guest mode: caption generation is available without signing in (Apple
+  // Guideline 5.1.1(v)). The tabs are reachable by everyone; paid features
+  // (Pro / credit packs) prompt sign-in at the point of purchase.
+  const { isLoaded } = useAuth();
   const router = useRouter();
   const [onboardingChecked, setOnboardingChecked] = useState(false);
 
   useEffect(() => {
-    if (!isLoaded || !isSignedIn) return;
+    if (!isLoaded) return;
     AsyncStorage.getItem(ONBOARDING_KEY).then((val) => {
       if (!val) {
         router.replace("/onboarding");
       }
       setOnboardingChecked(true);
     });
-  }, [isLoaded, isSignedIn]);
+  }, [isLoaded]);
 
-  if (!isLoaded || (isSignedIn && !onboardingChecked)) {
+  if (!isLoaded || !onboardingChecked) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#FFFDF9" }}>
         <ActivityIndicator size="large" color={AMBER} />
       </View>
     );
-  }
-
-  if (!isSignedIn) {
-    return <Redirect href="/(auth)/sign-in" />;
   }
 
   return <ClassicTabLayout />;

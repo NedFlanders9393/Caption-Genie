@@ -56,7 +56,7 @@ type UserMeta = {
 
 export default function ProfileScreen() {
   const { user } = useUser();
-  const { signOut, getToken } = useAuth();
+  const { signOut, getToken, isSignedIn } = useAuth();
   const router = useRouter();
   const { usageCount: generationCount, freeLimit: FREE_LIMIT, wipeAllUserData } = useApp();
   const { isSubscribed, restore, isRestoring } = useSubscription();
@@ -108,11 +108,12 @@ export default function ProfileScreen() {
     }
   }, [getToken, startSpin, stopSpin]);
 
-  // Load credits once on mount only.
+  // Load credits once on mount (signed-in users only — guests have no account
+  // and therefore no server-side credit balance).
   useEffect(() => {
-    void loadCredits();
+    if (isSignedIn) void loadCredits();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isSignedIn]);
 
   const meta = (user?.unsafeMetadata ?? {}) as UserMeta;
 
@@ -258,16 +259,38 @@ export default function ProfileScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.pageTitle}>Profile</Text>
-          <Pressable
-            style={({ pressed }) => [styles.editButton, pressed && styles.editButtonPressed]}
-            onPress={() => router.push("/edit-profile")}
-          >
-            <Feather name="edit-2" size={15} color={PRIMARY} />
-            <Text style={styles.editButtonText}>Edit</Text>
-          </Pressable>
+          {isSignedIn && (
+            <Pressable
+              style={({ pressed }) => [styles.editButton, pressed && styles.editButtonPressed]}
+              onPress={() => router.push("/edit-profile")}
+            >
+              <Feather name="edit-2" size={15} color={PRIMARY} />
+              <Text style={styles.editButtonText}>Edit</Text>
+            </Pressable>
+          )}
         </View>
 
+        {/* Guest sign-in CTA */}
+        {!isSignedIn && (
+          <View style={styles.guestCard}>
+            <View style={styles.guestIcon}>
+              <Feather name="user-plus" size={22} color={PRIMARY} />
+            </View>
+            <Text style={styles.guestTitle}>You're using Captly as a guest</Text>
+            <Text style={styles.guestSub}>
+              Sign in to upgrade to Pro, buy credit packs, and sync your captions across devices.
+            </Text>
+            <Pressable
+              style={({ pressed }) => [styles.guestButton, pressed && styles.guestButtonPressed]}
+              onPress={() => router.push("/(auth)/sign-in")}
+            >
+              <Text style={styles.guestButtonText}>Sign in or create account</Text>
+            </Pressable>
+          </View>
+        )}
+
         {/* Avatar + Name */}
+        {isSignedIn && (
         <View style={styles.avatarCard}>
           <Pressable onPress={() => router.push("/edit-profile")}>
             {user?.hasImage && imageUrl ? (
@@ -300,8 +323,10 @@ export default function ProfileScreen() {
             </View>
           ) : null}
         </View>
+        )}
 
         {/* Credits */}
+        {isSignedIn && (
         <View style={styles.card}>
           <View style={styles.creditsHeader}>
             <Text style={styles.cardTitle}>Credits</Text>
@@ -351,6 +376,7 @@ export default function ProfileScreen() {
             </>
           ) : null}
         </View>
+        )}
 
         {/* Usage */}
         <View style={styles.card}>
@@ -376,6 +402,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Brand Voice */}
+        {isSignedIn && (
         <Pressable
           style={({ pressed }) => [styles.card, styles.brandVoiceCard, pressed && styles.brandVoiceCardPressed]}
           onPress={() => router.push("/brand-voice")}
@@ -404,8 +431,10 @@ export default function ProfileScreen() {
             </View>
           )}
         </Pressable>
+        )}
 
         {/* Account */}
+        {isSignedIn && (
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Account</Text>
           <View style={styles.infoRow}>
@@ -443,6 +472,7 @@ export default function ProfileScreen() {
             </Text>
           </Pressable>
         </View>
+        )}
 
         {/* Upgrade to Pro banner — only for free users */}
         {!isSubscribed && (
@@ -502,27 +532,31 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
-        {/* Sign out */}
-        <Pressable
-          style={({ pressed }) => [styles.signOutButton, pressed && styles.signOutPressed]}
-          onPress={handleSignOut}
-        >
-          <Feather name="log-out" size={16} color={DANGER} />
-          <Text style={styles.signOutText}>Sign out</Text>
-        </Pressable>
+        {/* Sign out + delete (signed-in users only) */}
+        {isSignedIn && (
+          <>
+            <Pressable
+              style={({ pressed }) => [styles.signOutButton, pressed && styles.signOutPressed]}
+              onPress={handleSignOut}
+            >
+              <Feather name="log-out" size={16} color={DANGER} />
+              <Text style={styles.signOutText}>Sign out</Text>
+            </Pressable>
 
-        {/* Delete account (Apple requirement for apps with sign-up) */}
-        <Pressable
-          style={({ pressed }) => [styles.deleteAccountButton, pressed && styles.deleteAccountPressed]}
-          onPress={handleDeleteAccount}
-          disabled={isDeleting}
-        >
-          {isDeleting ? (
-            <ActivityIndicator size="small" color={MUTED} />
-          ) : (
-            <Text style={styles.deleteAccountText}>Delete account</Text>
-          )}
-        </Pressable>
+            {/* Delete account (Apple requirement for apps with sign-up) */}
+            <Pressable
+              style={({ pressed }) => [styles.deleteAccountButton, pressed && styles.deleteAccountPressed]}
+              onPress={handleDeleteAccount}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <ActivityIndicator size="small" color={MUTED} />
+              ) : (
+                <Text style={styles.deleteAccountText}>Delete account</Text>
+              )}
+            </Pressable>
+          </>
+        )}
       </ScrollView>
 
       <Paywall visible={paywallVisible} onClose={() => setPaywallVisible(false)} />
@@ -664,6 +698,57 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: PRIMARY,
+    fontFamily: "Nunito_600SemiBold",
+  },
+  guestCard: {
+    backgroundColor: CARD_BG,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: CARD_BORDER,
+    padding: 24,
+    alignItems: "center",
+    gap: 8,
+  },
+  guestIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "#F8EFE4",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  guestTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: FOREGROUND,
+    fontFamily: "Nunito_700Bold",
+    textAlign: "center",
+  },
+  guestSub: {
+    fontSize: 14,
+    color: MUTED,
+    fontFamily: "Nunito_400Regular",
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: 4,
+  },
+  guestButton: {
+    backgroundColor: PRIMARY,
+    borderRadius: 12,
+    paddingVertical: 13,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "stretch",
+  },
+  guestButtonPressed: {
+    opacity: 0.88,
+  },
+  guestButtonText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#FFFFFF",
     fontFamily: "Nunito_600SemiBold",
   },
   avatarCard: {

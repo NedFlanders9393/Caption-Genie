@@ -6,16 +6,40 @@ import {
   Nunito_800ExtraBold,
   useFonts,
 } from "@expo-google-fonts/nunito";
-import { ClerkLoaded, ClerkProvider, useAuth, useUser } from "@clerk/expo";
+import { ClerkLoaded, ClerkLoading, ClerkProvider, useAuth, useUser } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import * as Notifications from "expo-notifications";
 import React, { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AnimatedSplash from "@/components/AnimatedSplash";
+
+const BG = "#FFFDF9";
+const AMBER = "#E8B669";
+
+// Branded fallback shown if Clerk is still restoring the session after the
+// animated splash has dismissed. Guarantees a cream branded screen instead of a
+// blank white flash on slow networks / cold proxy starts.
+function BrandedLoader() {
+  return (
+    <View style={loaderStyles.fill}>
+      <ActivityIndicator size="large" color={AMBER} />
+    </View>
+  );
+}
+
+const loaderStyles = StyleSheet.create({
+  fill: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: BG,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppProvider } from "@/context/AppContext";
@@ -169,6 +193,9 @@ export default function RootLayout() {
       proxyUrl={proxyUrl}
     >
       <ClerkReadySignal onReady={() => setClerkReady(true)} />
+      <ClerkLoading>
+        <BrandedLoader />
+      </ClerkLoading>
       <ClerkLoaded>
         <RevenueCatIdentityLinker />
         <SafeAreaProvider>
@@ -186,7 +213,11 @@ export default function RootLayout() {
         </SafeAreaProvider>
       </ClerkLoaded>
       {!splashDone && (
-        <AnimatedSplash ready={clerkReady} onFinish={() => setSplashDone(true)} />
+        <AnimatedSplash
+          ready={clerkReady}
+          onFinish={() => setSplashDone(true)}
+          maxDurationMs={12000}
+        />
       )}
     </ClerkProvider>
   );

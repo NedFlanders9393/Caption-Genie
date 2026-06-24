@@ -2,6 +2,7 @@
 - [Account deletion local wipe](account-deletion-local-wipe.md) — deleting an account must clear local AsyncStorage too, or loadData re-uploads old data to the next account on the device.
 - [Captly pricing & credits](captly-pricing.md) — packs are small top-ups priced above Pro to drive subscriptions; product-ID numbers are legacy labels ≠ granted credits; keep PRO_MONTHLY_LIMIT == PRO_MONTHLY_CREDITS (150) and 3 sync points aligned.
 - [Unified credit system](unified-credit-system.md) — credit ledger is the only gate (CREDITS_ENFORCED on by default); guests must be granted free credits off their device identity or 402-blocked; never reset a >free-allowance balance (RC-outage Pro safety).
+- [api-server testing](api-server-testing.md) — Vitest against the real dev Postgres; prefix+cleanup ids, single-file pool.end(), fileParallelism off (FOR UPDATE deadlocks); route tests mount router + clerkMiddleware and hit as guest via X-Device-Id.
 - [Captly EAS iOS builds](captly-eas-builds.md) — must use EAS_NO_VCS=1 + foreground + re-stage ASC key in same call; bump app.json buildNumber each time.
 - [Captly store screenshots](captly-store-screenshots.md) — render HTML via REPLIT_PLAYWRIGHT_CHROMIUM_EXECUTABLE + puppeteer-core at exact px; ASC 6.5" slot wants 1284×2778 (not 1290×2796), flatten alpha; App Privacy is web-UI only.
 - [ASC + RevenueCat API quirks](captly-asc-rc-apis.md) — wrong endpoint paths/fields falsely look "empty"; ASC list = /v1/apps/{id}/inAppPurchasesV2, RC packages need expand=items.product → products.items[].product.

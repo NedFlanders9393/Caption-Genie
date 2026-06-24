@@ -9,3 +9,4 @@
 - [Captly startup blank-screen gap](captly-startup-blank-screen.md) — splash must stay until clerkReady + always render a ClerkLoading branded fallback, or ClerkLoaded's null gate flashes white; real latency is Clerk proxy cold-start.
 - [Captly App Store resubmission](captly-asc-resubmission.md) — IAPs aren't auto-reviewed; add each as a reviewSubmissionItem alongside the version, clear the old UNRESOLVED_ISSUES submission first, then PATCH submitted:true.
 - [Captly guest mode (Apple 5.1.1)](captly-guest-mode.md) — core caption features must work signed-out; server identifies guests by X-Device-Id header, only purchases require sign-in.
+- [Clerk app name in emails](clerk-app-name-emails.md) — Replit-managed Clerk has no dashboard + Backend API can't rename the app; rebrand {{app.name}} by editing email templates via Backend API (billing templates locked). No rebuild needed.

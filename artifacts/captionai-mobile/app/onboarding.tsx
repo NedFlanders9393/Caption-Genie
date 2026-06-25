@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ONBOARDING_KEY } from "@/lib/storage";
@@ -100,9 +100,14 @@ const SLIDES: Slide[] = [
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [activeIndex, setActiveIndex] = useState(0);
+  const { slide: slideParam } = useLocalSearchParams<{ slide?: string }>();
+  const initialIndex = Math.min(
+    Math.max(parseInt(slideParam ?? "0", 10) || 0, 0),
+    SLIDES.length - 1
+  );
+  const [activeIndex, setActiveIndex] = useState(initialIndex);
   const flatListRef = useRef<FlatList>(null);
-  const scrollX = useRef(new Animated.Value(0)).current;
+  const scrollX = useRef(new Animated.Value(initialIndex * width)).current;
 
   const handleNext = () => {
     if (activeIndex < SLIDES.length - 1) {
@@ -153,6 +158,12 @@ export default function OnboardingScreen() {
           keyExtractor={(item) => item.id}
           horizontal
           pagingEnabled
+          initialScrollIndex={initialIndex}
+          getItemLayout={(_, i) => ({
+            length: width,
+            offset: width * i,
+            index: i,
+          })}
           showsHorizontalScrollIndicator={false}
           scrollEventThrottle={16}
           onScroll={Animated.event(

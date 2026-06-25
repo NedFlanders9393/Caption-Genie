@@ -311,7 +311,9 @@ export interface CreditTransaction {
 export async function fetchCreditBalance(token: string | null): Promise<CreditBalance> {
   const res = await fetchWithTimeout(
     `${BASE}/api/credits/balance`,
-    { method: "GET", headers: authHeaders(token) },
+    // Use aiHeaders (not authHeaders) so the X-Device-Id is included: guests
+    // have no token and are identified purely by their device id.
+    { method: "GET", headers: await aiHeaders(token) },
     10_000,
   );
   if (!res.ok) {

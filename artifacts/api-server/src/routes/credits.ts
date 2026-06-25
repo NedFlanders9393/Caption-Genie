@@ -13,8 +13,14 @@ const router: IRouter = Router();
  * GET /api/credits/balance
  * Returns current credit balance for the authenticated user.
  */
-router.get("/credits/balance", requireAuth(), async (req, res) => {
-  const { userId } = getAuth(req);
+router.get("/credits/balance", async (req, res) => {
+  // Guest-accessible (Apple 5.1.1(v)): guests buy packs + get a free monthly
+  // allowance, so they must be able to see their balance. Identity resolves to
+  // the Clerk userId when signed in, else a `guest_<deviceId>` key from the
+  // stable X-Device-Id header — the same scheme caption generation uses.
+  const authedUserId = getAuth(req).userId;
+  const deviceId = req.header("x-device-id")?.trim();
+  const userId = authedUserId ?? (deviceId ? `guest_${deviceId}` : null);
   if (!userId) {
     return res.status(401).json({ error: "unauthorized" });
   }

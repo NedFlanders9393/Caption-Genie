@@ -26,6 +26,15 @@ gates had to go. Subscription cross-device restore rides the Apple ID via
   Init is async (awaits getDeviceId), so linkRevenueCatIdentity buffers the
   clerk id if it arrives before configure() finishes (pendingLinkUserId), or it
   would be silently dropped.
+- A guest-accessible endpoint has TWO sides that must BOTH allow guests, or the
+  feature silently fails for signed-out users: (1) the server route must resolve
+  identity as `getAuth().userId ?? guest_<deviceId>` and NOT sit behind Clerk
+  `requireAuth()` (which 401s guests); (2) the mobile caller must send headers
+  via the async `aiHeaders(token)` (includes `X-Device-Id`), NOT the sync
+  `authHeaders(token)` which only sets the bearer token and omits the device id —
+  so a guest request carries no identity at all. The credit-balance counter was
+  invisible to guests because BOTH were guest-hostile (requireAuth + authHeaders)
+  on top of the UI card being gated on `isSignedIn`.
 - `getProStatus()` must NOT short-circuit `guest_*` to "free" — a guest who
   subscribes has an active "pro" RC entitlement under `guest_<deviceId>`, so the
   RevenueCat REST lookup has to run for guests too. Trade-off: every guest AI

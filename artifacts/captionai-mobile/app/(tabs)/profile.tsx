@@ -131,10 +131,11 @@ export default function ProfileScreen() {
     }
   }, [getToken, startSpin, stopSpin]);
 
-  // Load credits once on mount (signed-in users only — guests have no account
-  // and therefore no server-side credit balance).
+  // Load credits on mount for everyone. Guests have a server-side balance too,
+  // keyed by their device id (free monthly allowance + any purchased packs), so
+  // they can see how many credits they have left without signing in.
   useEffect(() => {
-    if (isSignedIn) void loadCredits();
+    void loadCredits();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSignedIn]);
 
@@ -387,7 +388,6 @@ export default function ProfileScreen() {
         )}
 
         {/* Credits */}
-        {isSignedIn && (
         <View style={styles.card}>
           <View style={styles.creditsHeader}>
             <Text style={styles.cardTitle}>Credits</Text>
@@ -447,7 +447,6 @@ export default function ProfileScreen() {
             </>
           ) : null}
         </View>
-        )}
 
         {/* Brand Voice */}
         {isSignedIn && (

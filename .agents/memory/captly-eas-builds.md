@@ -35,6 +35,9 @@ EAS runs an internal `git status` to check the tree, which tries to **write** `.
 ## Auth
 - `EXPO_TOKEN` secret authenticates EAS CLI non-interactively. iOS signing credentials are already stored on EAS.
 
+## Build ↔ backend coupling (easy to forget)
+- The production EAS profile (`eas.json` env) points the app at the **deployed prod backend** (`captura.replit.app`), NOT dev. So any backend change a new TestFlight build depends on (e.g. the guest `/api/credits/balance` endpoint) is invisible to testers until the API server is **republished** (Publish button / `suggestDeploy`). Committing the backend change is not enough. Whenever a build relies on new server behavior, ship the build AND publish the backend together, or the feature 401s/breaks in TestFlight while looking fine in dev.
+
 ## ASC API key (.p8) staging — CRITICAL
 - The `ASC_API_KEY_CONTENT` secret stores the .p8 with its **newlines stripped** (it keeps the `BEGIN/END` markers but the base64 body is one run with no line breaks). Writing it verbatim to `/tmp/AuthKey_<KeyID>.p8` produces a malformed PEM.
 - A malformed .p8 makes the EAS iOS **submit** (fastlane pilot / spaceship) crash with `invalid curve name (OpenSSL::PKey::ECError)` in `spaceship/connect_api/token.rb` → submission ERRORED even though the **build FINISHED**. The build is fine; only the upload-to-Apple step dies.

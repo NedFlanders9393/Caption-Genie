@@ -19,6 +19,13 @@ Use the Clerk Backend API with `CLERK_SECRET_KEY` (available as an env var in th
    - echo back `name`, `delivered_by_clerk`, `reply_to_email_name`.
 3. Verify: re-GET and assert 0 occurrences of `{{app.name}}` and the old name.
 
+## The dev-vs-prod instance trap (most common reason "we already fixed this" fails)
+Replit-managed Clerk has **two separate instances**: development (`*.clerk.accounts.dev`, `pk_test`/`sk_test`) and production (`clerk.<app>.replit.app`, `pk_live`/`sk_live`). They have **independent** email templates and application names — editing one does NOT touch the other. `GET /v1/instance` reports `environment_type` so you can tell which one your `CLERK_SECRET_KEY` points at; in the dev workspace it is the **development** instance.
+
+A native build made with the EAS `production` profile (pk_live) sends auth emails from the **production** instance. So if you only ran the template rebrand from the dev workspace, TestFlight/App Store users still see the old name. The production secret (`sk_live`) is **not** present in the dev environment — Replit injects it only into the **deployed** server (it auto-swaps test→live keys on publish).
+
+To fix production without a dashboard or the prod secret in hand: run the rebrand **from inside the deployed server**, which has `sk_live` as `process.env.CLERK_SECRET_KEY`. An idempotent boot-time pass (`rebrandClerkEmails()` wired in `api-server/src/index.ts`, only PUTs templates that still contain an old name) does this safely; the owner just has to Republish once, then confirm via deployment logs (`Clerk email rebrand complete environment:"production" changed:N`). It is a no-op on every later boot.
+
 ## Gotchas
 - **Billing/commerce templates are locked**: `billing_*` and `commerce_gateway_*` PUTs return 400 `"Template body cannot be modified"`. Skip them — they're irrelevant if the app uses RevenueCat/Stripe (not Clerk billing) and will never be sent.
 - Template editing is **not** plan-gated on the Replit-managed dev instance (PUT returns 200).

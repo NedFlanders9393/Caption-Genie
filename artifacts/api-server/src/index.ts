@@ -1,5 +1,6 @@
 import app from "./app.js";
 import { logger } from "./lib/logger.js";
+import { rebrandClerkEmails } from "./services/clerkEmailBrand.js";
 
 const rawPort = process.env["PORT"];
 
@@ -51,4 +52,9 @@ app.listen(port, (err) => {
     process.exit(1);
   }
   logger.info({ port }, "Server listening");
+
+  // One-time, idempotent rebrand of Clerk email templates ("Caption Genie" →
+  // "Captly"). No-op once templates are already clean. Fire-and-forget so it
+  // never blocks startup.
+  void rebrandClerkEmails();
 });

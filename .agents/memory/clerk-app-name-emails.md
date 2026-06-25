@@ -26,6 +26,16 @@ A native build made with the EAS `production` profile (pk_live) sends auth email
 
 To fix production without a dashboard or the prod secret in hand: run the rebrand **from inside the deployed server**, which has `sk_live` as `process.env.CLERK_SECRET_KEY`. An idempotent boot-time pass (`rebrandClerkEmails()` wired in `api-server/src/index.ts`, only PUTs templates that still contain an old name) does this safely; the owner just has to Republish once, then confirm via deployment logs (`Clerk email rebrand complete environment:"production" changed:N`). It is a no-op on every later boot.
 
+## The name ALSO leaks via two partials (not just `{{app.name}}`)
+Replacing `{{app.name}}` in the body is **not enough**. Clerk renders the app name a second and third time through two **partials** that the body includes:
+- `{{> app_logo}}` → renders the big bold header text = the application name.
+- `{{> footer}}` → renders the copyright line, e.g. "© 2026 <AppName>".
+
+These partials are expanded at send time, so a body that no longer literally contains the old name can STILL render it twice. The fix (in `api-server/src/services/clerkEmailBrand.ts` `scrub()`): also replace the literal strings `{{> app_logo}}` → the brand name and `{{> footer}}` → a hardcoded footer HTML, and include both partial tokens in `needsRebrand()` detection. **Verify by rendering** the template via Clerk's preview endpoint (not just static grep) and assert the OLD name count == 0 in the *rendered* output.
+
+## The sender DISPLAY name is NOT changeable via API (be honest with the user)
+`from_email_name` only sets the **local-part** of the address (→ `<Name>@accounts.dev`). The name shown by the inbox as the sender ("From: <AppName>") = the application name, which Replit-managed Clerk does **not** expose a rename endpoint for (`/v1/instance` returns only id/object/environment_type/allowed_origins). So the inbox sender label may still show the old app name even after a full template+partial rebrand. This does **not** block Apple review — the email *content* is fully rebranded; only the sender label is stuck.
+
 ## Gotchas
 - **Billing/commerce templates are locked**: `billing_*` and `commerce_gateway_*` PUTs return 400 `"Template body cannot be modified"`. Skip them — they're irrelevant if the app uses RevenueCat/Stripe (not Clerk billing) and will never be sent.
 - Template editing is **not** plan-gated on the Replit-managed dev instance (PUT returns 200).

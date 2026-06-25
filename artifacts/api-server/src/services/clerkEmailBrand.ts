@@ -22,6 +22,16 @@ const REBRAND_TO = "Captly";
 const OLD_NAMES = ["Caption Genie", "CaptionAI", "Caption AI"];
 const APP_NAME_VAR = "{{app.name}}";
 
+// Clerk partials that render the (stale, unrenamable) application name at SEND
+// time, so plain text scrubbing never touches them. `{{> app_logo}}` prints the
+// app name as the email's main header when no logo is uploaded; `{{> footer}}`
+// prints "© <year> <app name>". We replace both partials with literal Captly
+// branding so the rendered email no longer shows the old name.
+const APP_LOGO_PARTIAL = "{{> app_logo}}";
+const FOOTER_PARTIAL = "{{> footer}}";
+const FOOTER_REPLACEMENT =
+  '<p style="padding:0;margin:0;font-family:Helvetica,Arial,sans-serif;color:#9ca3af;font-size:12px;line-height:18px;">&copy; Captly</p>';
+
 const CLERK_API = "https://api.clerk.com";
 
 interface EmailTemplate {
@@ -61,13 +71,17 @@ async function clerkFetch(
 
 function scrub(value: string | undefined): string | undefined {
   if (typeof value !== "string") return value;
-  let out = value.split(APP_NAME_VAR).join(REBRAND_TO);
+  let out = value.split(APP_LOGO_PARTIAL).join(REBRAND_TO);
+  out = out.split(FOOTER_PARTIAL).join(FOOTER_REPLACEMENT);
+  out = out.split(APP_NAME_VAR).join(REBRAND_TO);
   for (const old of OLD_NAMES) out = out.split(old).join(REBRAND_TO);
   return out;
 }
 
 function needsRebrand(t: EmailTemplate): boolean {
   const blob = `${t.subject ?? ""}\n${t.body ?? ""}\n${t.markup ?? ""}`;
+  if (blob.includes(APP_LOGO_PARTIAL)) return true;
+  if (blob.includes(FOOTER_PARTIAL)) return true;
   if (blob.includes(APP_NAME_VAR)) return true;
   if (OLD_NAMES.some((n) => blob.includes(n))) return true;
   // Enforce the sender display name on every editable template. When

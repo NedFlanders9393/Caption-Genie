@@ -29,7 +29,7 @@ const ERROR_COLOR = "#DC2626";
 const ERROR_BG = "#FEF2F2";
 const ERROR_BORDER = "#FECACA";
 
-type Step = "credentials" | "verify";
+type Step = "credentials" | "verify" | "reset_request" | "reset_verify";
 
 export default function SignInPage() {
   const { signIn } = useSignIn();
@@ -45,6 +45,10 @@ export default function SignInPage() {
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [codeFocused, setCodeFocused] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordFocused, setNewPasswordFocused] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   useEffect(() => {
     if (isSignedIn) {
@@ -178,6 +182,131 @@ export default function SignInPage() {
     }
   };
 
+  // ---- Forgot password (reset via emailed code) ----
+  const startReset = () => {
+    setGeneralError(null);
+    setCode("");
+    setNewPassword("");
+    setStep("reset_request");
+  };
+
+  const handleSendReset = async () => {
+    if (!signIn) {
+      setGeneralError("Still connecting to authentication service. Please wait a moment and try again.");
+      return;
+    }
+    const email = emailAddress.trim();
+    if (!email) {
+      setGeneralError("Please enter your email address.");
+      return;
+    }
+    setGeneralError(null);
+    setIsLoading(true);
+    try {
+      const si = signIn as any;
+      // Establish the sign-in attempt with the identifier, then send a
+      // password-reset code to the account's email (Clerk v6 Future API).
+      const { error: createError } = await si.create({ identifier: email });
+      if (createError) {
+        const msg = createError.longMessage ?? createError.message ?? "Couldn't start password reset. Please try again.";
+        setGeneralError(msg);
+        return;
+      }
+      const { error } = await si.resetPasswordEmailCode.sendCode();
+      if (error) {
+        const msg = error.longMessage ?? error.message ?? "Couldn't send a reset code. Please try again.";
+        setGeneralError(msg);
+        return;
+      }
+      setStep("reset_verify");
+    } catch (err: unknown) {
+      const e = err as any;
+      const msg =
+        e?.errors?.[0]?.longMessage ?? e?.errors?.[0]?.message ?? e?.message ?? "Something went wrong. Please try again.";
+      setGeneralError(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetVerify = async () => {
+    if (!signIn) {
+      setGeneralError("Still connecting to authentication service. Please wait a moment and try again.");
+      return;
+    }
+    if (!code.trim()) {
+      setGeneralError("Please enter the reset code from your email.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setGeneralError("Your new password must be at least 8 characters.");
+      return;
+    }
+    setGeneralError(null);
+    setIsLoading(true);
+    try {
+      const si = signIn as any;
+      // 1) Verify the emailed code (status -> needs_new_password)
+      const { error: verifyError } = await si.resetPasswordEmailCode.verifyCode({ code: code.trim() });
+      if (verifyError) {
+        const msg = verifyError.longMessage ?? verifyError.message ?? "That code didn't work. Please try again.";
+        setGeneralError(msg);
+        return;
+      }
+      // 2) Submit the new password (status -> complete)
+      const { error: submitError } = await si.resetPasswordEmailCode.submitPassword({ password: newPassword });
+      if (submitError) {
+        const msg = submitError.longMessage ?? submitError.message ?? "Couldn't set your new password. Please try again.";
+        setGeneralError(msg);
+        return;
+      }
+      if (si.status === "complete") {
+        await finalizeAndContinue(si);
+        return;
+      }
+
+      // Account has 2FA enabled (or device needs trust): Clerk requires a
+      // second factor even after a reset. Send the email code and reuse the
+      // shared MFA verify step.
+      if (si.status === "needs_second_factor" || si.status === "needs_client_trust") {
+        const { error: sendError } = await si.mfa.sendEmailCode();
+        if (sendError) {
+          const msg = sendError.longMessage ?? sendError.message ?? "Couldn't send a verification code. Please try again.";
+          setGeneralError(msg);
+          return;
+        }
+        setCode("");
+        setStep("verify");
+        return;
+      }
+
+      setGeneralError(`Reset incomplete (status: ${si.status ?? "unknown"}). Please try again.`);
+    } catch (err: unknown) {
+      const e = err as any;
+      const msg =
+        e?.errors?.[0]?.longMessage ?? e?.errors?.[0]?.message ?? e?.message ?? "Something went wrong. Please try again.";
+      setGeneralError(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetResend = async () => {
+    if (!signIn) return;
+    setGeneralError(null);
+    try {
+      const si = signIn as any;
+      const { error } = await si.resetPasswordEmailCode.sendCode();
+      if (error) {
+        const msg = error.longMessage ?? error.message ?? "Failed to resend. Please try again.";
+        setGeneralError(msg);
+      }
+    } catch (err: any) {
+      const msg = err?.errors?.[0]?.message ?? err?.message ?? "Failed to resend. Please try again.";
+      setGeneralError(msg);
+    }
+  };
+
   if (isSignedIn) return null;
 
   if (step === "verify") {
@@ -260,6 +389,188 @@ export default function SignInPage() {
     );
   }
 
+  if (step === "reset_request") {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.flex}
+        >
+          <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="always">
+            <View style={styles.header}>
+              <View style={styles.logoCircle}>
+                <Feather name="lock" size={32} color="#FFFFFF" />
+              </View>
+              <Text style={styles.title}>Reset password</Text>
+              <Text style={styles.subtitle}>
+                Enter your email and we'll send you a code to reset your password.
+              </Text>
+            </View>
+
+            <View style={styles.form}>
+              {generalError ? (
+                <View style={styles.errorBox}>
+                  <Text style={styles.errorBoxText}>{generalError}</Text>
+                </View>
+              ) : null}
+
+              <View style={styles.field}>
+                <Text style={styles.label}>Email</Text>
+                <TextInput
+                  style={[styles.input, emailFocused && styles.inputFocused]}
+                  autoCapitalize="none"
+                  value={emailAddress}
+                  placeholder="you@example.com"
+                  placeholderTextColor={MUTED}
+                  onChangeText={setEmailAddress}
+                  keyboardType="email-address"
+                  autoComplete="email"
+                  textContentType="emailAddress"
+                  autoFocus
+                  onFocus={() => setEmailFocused(true)}
+                  onBlur={() => setEmailFocused(false)}
+                />
+              </View>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.button,
+                  (isLoading || !emailAddress) && styles.buttonDisabled,
+                  pressed && !isLoading && styles.buttonPressed,
+                ]}
+                onPress={handleSendReset}
+                disabled={isLoading || !emailAddress}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.buttonText}>Send reset code</Text>
+                )}
+              </Pressable>
+
+              <Pressable
+                style={styles.textButton}
+                onPress={() => {
+                  setStep("credentials");
+                  setGeneralError(null);
+                }}
+              >
+                <Text style={[styles.textButtonText, { color: MUTED }]}>← Back to sign in</Text>
+              </Pressable>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    );
+  }
+
+  if (step === "reset_verify") {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.flex}
+        >
+          <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="always">
+            <View style={styles.header}>
+              <View style={styles.logoCircle}>
+                <Feather name="lock" size={32} color="#FFFFFF" />
+              </View>
+              <Text style={styles.title}>Create new password</Text>
+              <Text style={styles.subtitle}>
+                Enter the 6-digit code we sent to{"\n"}
+                <Text style={{ color: PRIMARY, fontFamily: "Nunito_600SemiBold" }}>
+                  {emailAddress}
+                </Text>
+                {"\n"}and choose a new password.
+              </Text>
+            </View>
+
+            <View style={styles.form}>
+              {generalError ? (
+                <View style={styles.errorBox}>
+                  <Text style={styles.errorBoxText}>{generalError}</Text>
+                </View>
+              ) : null}
+
+              <View style={styles.field}>
+                <Text style={styles.label}>Reset code</Text>
+                <TextInput
+                  style={[styles.input, codeFocused && styles.inputFocused]}
+                  value={code}
+                  placeholder="000000"
+                  placeholderTextColor={MUTED}
+                  onChangeText={setCode}
+                  keyboardType="number-pad"
+                  autoFocus
+                  onFocus={() => setCodeFocused(true)}
+                  onBlur={() => setCodeFocused(false)}
+                />
+              </View>
+
+              <View style={styles.field}>
+                <Text style={styles.label}>New password</Text>
+                <View style={styles.passwordWrap}>
+                  <TextInput
+                    style={[styles.input, styles.passwordInput, newPasswordFocused && styles.inputFocused]}
+                    value={newPassword}
+                    placeholder="At least 8 characters"
+                    placeholderTextColor={MUTED}
+                    secureTextEntry={!showNewPassword}
+                    onChangeText={setNewPassword}
+                    autoComplete="new-password"
+                    textContentType="newPassword"
+                    onFocus={() => setNewPasswordFocused(true)}
+                    onBlur={() => setNewPasswordFocused(false)}
+                  />
+                  <Pressable
+                    style={styles.eyeButton}
+                    onPress={() => setShowNewPassword((v) => !v)}
+                    hitSlop={8}
+                  >
+                    <Feather name={showNewPassword ? "eye-off" : "eye"} size={20} color={MUTED} />
+                  </Pressable>
+                </View>
+              </View>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.button,
+                  (isLoading || !code || !newPassword) && styles.buttonDisabled,
+                  pressed && !isLoading && styles.buttonPressed,
+                ]}
+                onPress={handleResetVerify}
+                disabled={isLoading || !code || !newPassword}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.buttonText}>Reset password & sign in</Text>
+                )}
+              </Pressable>
+
+              <Pressable style={styles.textButton} onPress={handleResetResend}>
+                <Text style={styles.textButtonText}>Resend code</Text>
+              </Pressable>
+
+              <Pressable
+                style={styles.textButton}
+                onPress={() => {
+                  setStep("credentials");
+                  setCode("");
+                  setNewPassword("");
+                  setGeneralError(null);
+                }}
+              >
+                <Text style={[styles.textButtonText, { color: MUTED }]}>← Back to sign in</Text>
+              </Pressable>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
@@ -314,18 +625,30 @@ export default function SignInPage() {
 
             <View style={styles.field}>
               <Text style={styles.label}>Password</Text>
-              <TextInput
-                style={[styles.input, passwordFocused && styles.inputFocused]}
-                value={password}
-                placeholder="Your password"
-                placeholderTextColor={MUTED}
-                secureTextEntry
-                onChangeText={setPassword}
-                autoComplete="password"
-                textContentType="password"
-                onFocus={() => setPasswordFocused(true)}
-                onBlur={() => setPasswordFocused(false)}
-              />
+              <View style={styles.passwordWrap}>
+                <TextInput
+                  style={[styles.input, styles.passwordInput, passwordFocused && styles.inputFocused]}
+                  value={password}
+                  placeholder="Your password"
+                  placeholderTextColor={MUTED}
+                  secureTextEntry={!showPassword}
+                  onChangeText={setPassword}
+                  autoComplete="password"
+                  textContentType="password"
+                  onFocus={() => setPasswordFocused(true)}
+                  onBlur={() => setPasswordFocused(false)}
+                />
+                <Pressable
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword((v) => !v)}
+                  hitSlop={8}
+                >
+                  <Feather name={showPassword ? "eye-off" : "eye"} size={20} color={MUTED} />
+                </Pressable>
+              </View>
+              <Pressable style={styles.forgotButton} onPress={startReset} hitSlop={8}>
+                <Text style={styles.forgotText}>Forgot password?</Text>
+              </Pressable>
             </View>
 
             <Pressable
@@ -439,6 +762,31 @@ const styles = StyleSheet.create({
   },
   inputFocused: {
     borderColor: INPUT_BORDER_FOCUS,
+  },
+  passwordWrap: {
+    position: "relative",
+    justifyContent: "center",
+  },
+  passwordInput: {
+    paddingRight: 48,
+  },
+  eyeButton: {
+    position: "absolute",
+    right: 8,
+    top: 0,
+    bottom: 0,
+    width: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  forgotButton: {
+    alignSelf: "flex-end",
+    paddingVertical: 4,
+  },
+  forgotText: {
+    fontSize: 13,
+    color: PRIMARY,
+    fontFamily: "Nunito_600SemiBold",
   },
   button: {
     height: 52,

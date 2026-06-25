@@ -1,6 +1,7 @@
 import { useAuth, useSignUp } from "@clerk/expo";
 import { claimFreeCreditsForDevice } from "../../lib/api";
 import { getDeviceId } from "../../lib/deviceId";
+import { Feather } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -44,6 +45,7 @@ export default function SignUpPage() {
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [codeFocused, setCodeFocused] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (isSignedIn) {
@@ -296,18 +298,27 @@ export default function SignUpPage() {
 
             <View style={styles.field}>
               <Text style={styles.label}>Password</Text>
-              <TextInput
-                style={[styles.input, passwordFocused && styles.inputFocused]}
-                value={password}
-                placeholder="At least 8 characters"
-                placeholderTextColor={MUTED}
-                secureTextEntry
-                onChangeText={setPassword}
-                autoComplete="new-password"
-                textContentType="newPassword"
-                onFocus={() => setPasswordFocused(true)}
-                onBlur={() => setPasswordFocused(false)}
-              />
+              <View style={styles.passwordWrap}>
+                <TextInput
+                  style={[styles.input, styles.passwordInput, passwordFocused && styles.inputFocused]}
+                  value={password}
+                  placeholder="At least 8 characters"
+                  placeholderTextColor={MUTED}
+                  secureTextEntry={!showPassword}
+                  onChangeText={setPassword}
+                  autoComplete="new-password"
+                  textContentType="newPassword"
+                  onFocus={() => setPasswordFocused(true)}
+                  onBlur={() => setPasswordFocused(false)}
+                />
+                <Pressable
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword((v) => !v)}
+                  hitSlop={8}
+                >
+                  <Feather name={showPassword ? "eye-off" : "eye"} size={20} color={MUTED} />
+                </Pressable>
+              </View>
             </View>
 
             <Pressable
@@ -419,6 +430,22 @@ const styles = StyleSheet.create({
   },
   inputFocused: {
     borderColor: INPUT_BORDER_FOCUS,
+  },
+  passwordWrap: {
+    position: "relative",
+    justifyContent: "center",
+  },
+  passwordInput: {
+    paddingRight: 48,
+  },
+  eyeButton: {
+    position: "absolute",
+    right: 8,
+    top: 0,
+    bottom: 0,
+    width: 40,
+    alignItems: "center",
+    justifyContent: "center",
   },
   button: {
     height: 52,

@@ -406,8 +406,21 @@ export default function ProfileScreen() {
           </View>
           {creditsLoading && !credits ? (
             <ActivityIndicator size="small" color={PRIMARY} style={{ marginVertical: 12 }} />
-          ) : creditsError && !credits ? (
-            <Text style={[styles.usageSub, { color: DANGER }]}>{creditsError}</Text>
+          ) : !credits ? (
+            <TouchableOpacity
+              onPress={loadCredits}
+              disabled={creditsLoading}
+              activeOpacity={0.7}
+              style={styles.creditsFallback}
+              accessibilityRole="button"
+              accessibilityLabel="Refresh credits"
+            >
+              <Feather name="refresh-cw" size={16} color={PRIMARY} />
+              <View style={styles.creditsFallbackTextWrap}>
+                <Text style={styles.creditsFallbackTitle}>Credits will appear here</Text>
+                <Text style={styles.creditsFallbackSub}>Tap to refresh</Text>
+              </View>
+            </TouchableOpacity>
           ) : credits ? (
             <>
               <View style={styles.creditsTotalRow}>
@@ -428,8 +441,8 @@ export default function ProfileScreen() {
                 </View>
               </View>
               {creditsError ? (
-                <Text style={[styles.usageSub, { color: DANGER }]}>
-                  Couldn't refresh: {creditsError}
+                <Text style={[styles.usageSub, { color: MUTED }]}>
+                  Showing your last saved balance.
                 </Text>
               ) : (
                 <>
@@ -1055,6 +1068,31 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: MUTED,
     fontFamily: "Nunito_400Regular",
+  },
+  creditsFallback: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: "#FBF4E9",
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    marginTop: 8,
+  },
+  creditsFallbackTextWrap: {
+    flex: 1,
+  },
+  creditsFallbackTitle: {
+    fontSize: 14,
+    color: FOREGROUND,
+    fontFamily: "Nunito_600SemiBold",
+    fontWeight: "600",
+  },
+  creditsFallbackSub: {
+    fontSize: 12,
+    color: MUTED,
+    fontFamily: "Nunito_400Regular",
+    marginTop: 1,
   },
   infoRow: {
     flexDirection: "row",

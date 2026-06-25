@@ -10,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
   Share,
+  RefreshControl,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -518,8 +519,18 @@ export default function HistoryScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { history, removeFromHistory, wipeHistory, favorites } = useApp();
+  const { history, removeFromHistory, wipeHistory, favorites, refresh } = useApp();
   const [activeFilter, setActiveFilter] = useState<"all" | "favorites">("all");
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refresh();
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const handleClearAll = () => {
     if (Platform.OS === "web") {
@@ -629,6 +640,14 @@ export default function HistoryScreen() {
         )}
         ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#E8B669"
+            colors={["#E8B669"]}
+          />
+        }
       />
     </View>
   );

@@ -405,10 +405,14 @@ export default function GenerateScreen() {
             placeholderTextColor={colors.mutedForeground}
             multiline
             numberOfLines={4}
+            maxLength={500}
             textAlignVertical="top"
             value={description}
             onChangeText={setDescription}
           />
+          <Text style={[styles.charCount, { color: colors.mutedForeground }]}>
+            {description.length}/500
+          </Text>
         </View>
 
         <View style={[styles.section, styles.row]}>
@@ -623,6 +627,12 @@ const styles = StyleSheet.create({
     fontFamily: "Nunito_400Regular",
     minHeight: 100,
     lineHeight: 22,
+  },
+  charCount: {
+    fontSize: 12,
+    fontFamily: "Nunito_400Regular",
+    textAlign: "right",
+    marginTop: 6,
   },
   emojiRow: {
     flexDirection: "row",

@@ -53,6 +53,7 @@ interface AppContextValue {
   wipeAllUserData: () => Promise<void>;
   consumeGeneration: () => Promise<boolean>;
   refreshUsage: () => Promise<void>;
+  refresh: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -229,6 +230,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         wipeAllUserData,
         consumeGeneration,
         refreshUsage,
+        refresh: loadData,
       }}
     >
       {children}

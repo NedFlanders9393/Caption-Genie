@@ -3,7 +3,7 @@ import { claimFreeCreditsForDevice } from "../../lib/api";
 import { getDeviceId } from "../../lib/deviceId";
 import { Feather } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -46,6 +46,7 @@ export default function SignUpPage() {
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [codeFocused, setCodeFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const passwordRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (isSignedIn) {
@@ -213,6 +214,10 @@ export default function SignUpPage() {
                   placeholderTextColor={MUTED}
                   onChangeText={setCode}
                   keyboardType="number-pad"
+                  autoComplete="one-time-code"
+                  textContentType="oneTimeCode"
+                  returnKeyType="done"
+                  onSubmitEditing={handleVerify}
                   autoFocus
                   onFocus={() => setCodeFocused(true)}
                   onBlur={() => setCodeFocused(false)}
@@ -291,6 +296,8 @@ export default function SignUpPage() {
                 keyboardType="email-address"
                 autoComplete="email"
                 textContentType="emailAddress"
+                returnKeyType="next"
+                onSubmitEditing={() => passwordRef.current?.focus()}
                 onFocus={() => setEmailFocused(true)}
                 onBlur={() => setEmailFocused(false)}
               />
@@ -300,6 +307,7 @@ export default function SignUpPage() {
               <Text style={styles.label}>Password</Text>
               <View style={styles.passwordWrap}>
                 <TextInput
+                  ref={passwordRef}
                   style={[styles.input, styles.passwordInput, passwordFocused && styles.inputFocused]}
                   value={password}
                   placeholder="At least 8 characters"
@@ -308,6 +316,8 @@ export default function SignUpPage() {
                   onChangeText={setPassword}
                   autoComplete="new-password"
                   textContentType="newPassword"
+                  returnKeyType="go"
+                  onSubmitEditing={handleSubmit}
                   onFocus={() => setPasswordFocused(true)}
                   onBlur={() => setPasswordFocused(false)}
                 />

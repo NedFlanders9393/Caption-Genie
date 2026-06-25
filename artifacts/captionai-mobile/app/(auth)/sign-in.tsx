@@ -3,7 +3,7 @@ import { claimFreeCreditsForDevice } from "../../lib/api";
 import { getDeviceId } from "../../lib/deviceId";
 import { Feather } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -49,6 +49,8 @@ export default function SignInPage() {
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordFocused, setNewPasswordFocused] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const passwordRef = useRef<TextInput>(null);
+  const newPasswordRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (isSignedIn) {
@@ -346,6 +348,10 @@ export default function SignInPage() {
                   placeholderTextColor={MUTED}
                   onChangeText={setCode}
                   keyboardType="number-pad"
+                  autoComplete="one-time-code"
+                  textContentType="oneTimeCode"
+                  returnKeyType="done"
+                  onSubmitEditing={handleVerify}
                   autoFocus
                   onFocus={() => setCodeFocused(true)}
                   onBlur={() => setCodeFocused(false)}
@@ -426,6 +432,8 @@ export default function SignInPage() {
                   keyboardType="email-address"
                   autoComplete="email"
                   textContentType="emailAddress"
+                  returnKeyType="send"
+                  onSubmitEditing={handleSendReset}
                   autoFocus
                   onFocus={() => setEmailFocused(true)}
                   onBlur={() => setEmailFocused(false)}
@@ -502,6 +510,10 @@ export default function SignInPage() {
                   placeholderTextColor={MUTED}
                   onChangeText={setCode}
                   keyboardType="number-pad"
+                  autoComplete="one-time-code"
+                  textContentType="oneTimeCode"
+                  returnKeyType="next"
+                  onSubmitEditing={() => newPasswordRef.current?.focus()}
                   autoFocus
                   onFocus={() => setCodeFocused(true)}
                   onBlur={() => setCodeFocused(false)}
@@ -512,6 +524,7 @@ export default function SignInPage() {
                 <Text style={styles.label}>New password</Text>
                 <View style={styles.passwordWrap}>
                   <TextInput
+                    ref={newPasswordRef}
                     style={[styles.input, styles.passwordInput, newPasswordFocused && styles.inputFocused]}
                     value={newPassword}
                     placeholder="At least 8 characters"
@@ -520,6 +533,8 @@ export default function SignInPage() {
                     onChangeText={setNewPassword}
                     autoComplete="new-password"
                     textContentType="newPassword"
+                    returnKeyType="done"
+                    onSubmitEditing={handleResetVerify}
                     onFocus={() => setNewPasswordFocused(true)}
                     onBlur={() => setNewPasswordFocused(false)}
                   />
@@ -618,6 +633,8 @@ export default function SignInPage() {
                 keyboardType="email-address"
                 autoComplete="email"
                 textContentType="emailAddress"
+                returnKeyType="next"
+                onSubmitEditing={() => passwordRef.current?.focus()}
                 onFocus={() => setEmailFocused(true)}
                 onBlur={() => setEmailFocused(false)}
               />
@@ -627,6 +644,7 @@ export default function SignInPage() {
               <Text style={styles.label}>Password</Text>
               <View style={styles.passwordWrap}>
                 <TextInput
+                  ref={passwordRef}
                   style={[styles.input, styles.passwordInput, passwordFocused && styles.inputFocused]}
                   value={password}
                   placeholder="Your password"
@@ -635,6 +653,8 @@ export default function SignInPage() {
                   onChangeText={setPassword}
                   autoComplete="password"
                   textContentType="password"
+                  returnKeyType="go"
+                  onSubmitEditing={handleSignIn}
                   onFocus={() => setPasswordFocused(true)}
                   onBlur={() => setPasswordFocused(false)}
                 />

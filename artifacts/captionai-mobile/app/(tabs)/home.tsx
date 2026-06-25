@@ -82,13 +82,21 @@ export default function HomeScreen() {
             </View>
             <Text style={styles.logoText}>Captly</Text>
           </View>
-          {user?.hasImage && avatarUrl ? (
-            <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatar, styles.avatarFallback]}>
-              <Text style={styles.avatarInitial}>{firstName[0]?.toUpperCase()}</Text>
-            </View>
-          )}
+          <TouchableOpacity
+            onPress={() => router.navigate("/(tabs)/profile")}
+            accessibilityRole="button"
+            accessibilityLabel="Open your profile"
+            hitSlop={10}
+            activeOpacity={0.7}
+          >
+            {user?.hasImage && avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, styles.avatarFallback]}>
+                <Text style={styles.avatarInitial}>{firstName[0]?.toUpperCase()}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
 
         {/* ── Greeting + Streak ────────────────────────────────────────────── */}

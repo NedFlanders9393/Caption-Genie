@@ -85,6 +85,10 @@ export default function ProfileScreen() {
   const [bugExpected, setBugExpected] = useState("");
   const [bugSubmitting, setBugSubmitting] = useState(false);
   const [bugSubmitted, setBugSubmitted] = useState(false);
+  const [suggestionModalVisible, setSuggestionModalVisible] = useState(false);
+  const [suggestionText, setSuggestionText] = useState("");
+  const [suggestionSubmitting, setSuggestionSubmitting] = useState(false);
+  const [suggestionSubmitted, setSuggestionSubmitted] = useState(false);
   const [credits, setCredits] = useState<CreditBalance | null>(null);
   const [creditsLoading, setCreditsLoading] = useState(false);
   const [creditsError, setCreditsError] = useState<string | null>(null);
@@ -260,6 +264,47 @@ export default function ProfileScreen() {
     } finally {
       setBugSubmitting(false);
     }
+  };
+
+  const handleSubmitSuggestion = async () => {
+    if (suggestionText.trim().length < 5) {
+      Alert.alert("Too short", "Please share a little more detail about your idea.");
+      return;
+    }
+    setSuggestionSubmitting(true);
+    try {
+      const token = await getToken();
+      const res = await fetch(`${BASE_URL}/api/bugs`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          type: "suggestion",
+          description: suggestionText.trim(),
+          platform: Platform.OS,
+          appVersion: "1.0.0",
+          userEmail: email,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as any)?.error ?? `Server error ${res.status}`);
+      }
+      setSuggestionSubmitted(true);
+      setSuggestionText("");
+    } catch (err: any) {
+      Alert.alert("Error", err?.message ?? "Could not submit your suggestion. Please try again.");
+    } finally {
+      setSuggestionSubmitting(false);
+    }
+  };
+
+  const handleCloseSuggestionModal = () => {
+    setSuggestionModalVisible(false);
+    setSuggestionSubmitted(false);
+    setSuggestionText("");
   };
 
   const handleCloseBugModal = () => {
@@ -507,6 +552,17 @@ export default function ProfileScreen() {
             <Text style={styles.helpText}>Report a Bug</Text>
             <Feather name="chevron-right" size={16} color={MUTED} />
           </Pressable>
+          <View style={styles.helpDivider} />
+          <Pressable
+            style={({ pressed }) => [styles.helpRow, pressed && styles.helpRowPressed]}
+            onPress={() => setSuggestionModalVisible(true)}
+          >
+            <View style={styles.helpIcon}>
+              <Feather name="message-square" size={16} color={PRIMARY} />
+            </View>
+            <Text style={styles.helpText}>Send a Suggestion</Text>
+            <Feather name="chevron-right" size={16} color={MUTED} />
+          </Pressable>
         </View>
 
         {/* Legal */}
@@ -653,6 +709,90 @@ export default function ProfileScreen() {
                     <>
                       <Feather name="send" size={16} color="#fff" />
                       <Text style={styles.submitBtnText}>Submit Report</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Suggestion Modal */}
+      <Modal
+        visible={suggestionModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={handleCloseSuggestionModal}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalRoot}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <View style={styles.modalHeader}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalTitleRow}>
+              <Text style={styles.modalTitle}>Send a Suggestion</Text>
+              <TouchableOpacity onPress={handleCloseSuggestionModal} hitSlop={12}>
+                <Feather name="x" size={22} color={MUTED} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <ScrollView
+            style={styles.modalScroll}
+            contentContainerStyle={styles.modalContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            {suggestionSubmitted ? (
+              <View style={styles.successContainer}>
+                <View style={styles.successIcon}>
+                  <Feather name="check-circle" size={48} color={PRIMARY} />
+                </View>
+                <Text style={styles.successTitle}>Thanks for the idea!</Text>
+                <Text style={styles.successSub}>
+                  Your suggestion has been received. We read every idea and use them to make the app better.
+                </Text>
+                <TouchableOpacity style={styles.doneBtn} onPress={handleCloseSuggestionModal}>
+                  <Text style={styles.doneBtnText}>Done</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <>
+                <Text style={styles.modalSubtitle}>
+                  Have an idea to make the app better? We&apos;d love to hear it.
+                </Text>
+
+                <View style={styles.modalField}>
+                  <Text style={styles.modalFieldLabel}>Your suggestion</Text>
+                  <TextInput
+                    style={[styles.modalInput, styles.modalTextarea]}
+                    placeholder="e.g. Add a way to save favorite captions, support more languages, a dark mode..."
+                    placeholderTextColor={MUTED}
+                    value={suggestionText}
+                    onChangeText={setSuggestionText}
+                    multiline
+                    numberOfLines={5}
+                    textAlignVertical="top"
+                    autoFocus
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={[
+                    styles.submitBtn,
+                    (suggestionSubmitting || suggestionText.trim().length < 5) && styles.submitBtnDisabled,
+                  ]}
+                  onPress={handleSubmitSuggestion}
+                  disabled={suggestionSubmitting || suggestionText.trim().length < 5}
+                  activeOpacity={0.85}
+                >
+                  {suggestionSubmitting ? (
+                    <Text style={styles.submitBtnText}>Submitting...</Text>
+                  ) : (
+                    <>
+                      <Feather name="send" size={16} color="#fff" />
+                      <Text style={styles.submitBtnText}>Submit Suggestion</Text>
                     </>
                   )}
                 </TouchableOpacity>

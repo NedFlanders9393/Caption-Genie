@@ -30,6 +30,13 @@ gates had to go. Subscription cross-device restore rides the Apple ID via
   subscribes has an active "pro" RC entitlement under `guest_<deviceId>`, so the
   RevenueCat REST lookup has to run for guests too. Trade-off: every guest AI
   action now does one RC REST call (same as signed-in free users already do).
+- On an RC outage `getProStatus()` must fail OPEN to "free" for guests but
+  "unknown" for signed-in users. Why: a guest's free monthly allowance is only
+  granted when status is exactly "free" (ensureMonthlyFreeAllowance skips
+  "unknown"), so returning "unknown" for a guest hard-blocks generation with a
+  402 on zero credits. Signed-in users return "unknown" instead, so a paying
+  user is never mis-reset to free. A guest who actually subscribed is still
+  protected from a balance clobber by the >FREE_MONTHLY_CREDITS guard.
 
 **Known gap (accepted for launch, not an approval blocker):** consumable credits
 bought as a guest live on `guest_<deviceId>`; there is NO ledger merge into

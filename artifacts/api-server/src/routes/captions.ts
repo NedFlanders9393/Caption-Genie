@@ -86,6 +86,16 @@ export async function getProStatus(userId: string): Promise<ProStatus> {
   const secretKey = process.env.REVENUECAT_SECRET_KEY;
   // No RevenueCat configured → Pro is impossible, so this is a confident "free".
   if (!secretKey) return "free";
+
+  // On a RevenueCat outage we return "unknown" for SIGNED-IN users so a paying
+  // user is never mis-reset to free (ensureMonthlyFreeAllowance skips "unknown").
+  // Guests, however, have no paid balance to protect AND their free monthly
+  // allowance is gated on a "free" result — so for guests we must fail OPEN to
+  // "free", otherwise an RC outage would hard-block guest generation (a
+  // first-use guest would get a 402 with zero credits). The
+  // >FREE_MONTHLY_CREDITS guard in ensureMonthlyFreeAllowance still protects a
+  // guest who actually subscribed from having their balance clobbered.
+  const isGuest = userId.startsWith("guest_");
   try {
     const res = await fetch(`https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(userId)}`, {
       headers: {
@@ -93,12 +103,12 @@ export async function getProStatus(userId: string): Promise<ProStatus> {
         "X-Platform": "ios",
       },
     });
-    // Any non-OK response is inconclusive — don't assume free.
-    if (!res.ok) return "unknown";
+    // Any non-OK response is inconclusive — don't assume free (except guests).
+    if (!res.ok) return isGuest ? "free" : "unknown";
     const data = await res.json() as { subscriber?: { entitlements?: { active?: Record<string, unknown> } } };
     return data.subscriber?.entitlements?.active?.["pro"] ? "pro" : "free";
   } catch {
-    return "unknown";
+    return isGuest ? "free" : "unknown";
   }
 }
 

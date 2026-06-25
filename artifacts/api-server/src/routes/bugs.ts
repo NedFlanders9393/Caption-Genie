@@ -1,5 +1,5 @@
-import { Router, type IRouter } from "express";
-import { getAuth } from "@clerk/express";
+import { Router, type IRouter, type Request } from "express";
+import { getAuth, clerkClient } from "@clerk/express";
 import { db } from "@workspace/db";
 import { bugReports } from "@workspace/db";
 import { sql, desc } from "drizzle-orm";
@@ -9,6 +9,37 @@ import { logger } from "../lib/logger";
 const OWNER_EMAIL = "nedflanders9393@gmail.com";
 
 const bugsRouter: IRouter = Router();
+
+const isProd = process.env.NODE_ENV === "production";
+
+// Owner-only allowlist for reading submissions (bug reports + suggestions can
+// contain user emails and free-text PII, so the GET endpoint must not be public).
+function adminAllowlist(): string[] {
+  return [process.env.PRO_OVERRIDE_EMAILS, process.env.ADMIN_EMAILS]
+    .filter((v): v is string => !!v)
+    .flatMap((v) => v.split(","))
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+async function isAuthorizedReader(req: Request): Promise<boolean> {
+  const emails = adminAllowlist();
+  if (emails.length > 0) {
+    try {
+      const { userId } = getAuth(req);
+      if (userId) {
+        const user = await clerkClient.users.getUser(userId);
+        const email = user.emailAddresses?.[0]?.emailAddress?.toLowerCase();
+        if (email && emails.includes(email)) return true;
+      }
+    } catch {
+      /* fall through to deny */
+    }
+  }
+  // Nothing configured: allow in dev for local debugging, deny in prod.
+  if (emails.length === 0) return !isProd;
+  return false;
+}
 
 async function ensureTable() {
   await db.execute(sql`
@@ -43,15 +74,16 @@ bugsRouter.post("/bugs", async (req, res) => {
       appVersion?: string;
       platform?: string;
       userEmail?: string;
-      type?: "bug" | "crash";
+      type?: "bug" | "crash" | "suggestion";
     };
 
     if (!description || description.trim().length < 5) {
-      res.status(400).json({ error: "Please provide a description of the bug." });
+      res.status(400).json({ error: "Please provide a description." });
       return;
     }
 
-    const reportType = type === "crash" ? "crash" : "bug";
+    const reportType =
+      type === "crash" ? "crash" : type === "suggestion" ? "suggestion" : "bug";
 
     await db.execute(sql`
       INSERT INTO bug_reports (user_id, user_email, description, expected_behavior, screen, app_version, platform, status, type)
@@ -89,6 +121,10 @@ bugsRouter.post("/bugs", async (req, res) => {
 
 bugsRouter.get("/bugs", async (req, res) => {
   try {
+    if (!(await isAuthorizedReader(req))) {
+      res.status(403).json({ error: "Not authorized." });
+      return;
+    }
     const { status = "open", limit = "50" } = req.query as { status?: string; limit?: string };
     const reports = await db
       .select()
@@ -114,7 +150,7 @@ interface BugEmailPayload {
   platform?: string;
   appVersion?: string;
   userEmail?: string;
-  type?: "bug" | "crash";
+  type?: "bug" | "crash" | "suggestion";
 }
 
 async function sendBugEmails(payload: BugEmailPayload) {
@@ -123,6 +159,7 @@ async function sendBugEmails(payload: BugEmailPayload) {
   logger.info({ fromEmail }, "Resend client ready");
   const { description, expectedBehavior, platform, appVersion, userEmail, type } = payload;
   const isCrash = type === "crash";
+  const isSuggestion = type === "suggestion";
 
   const platformLine = platform
     ? `<p><strong>Platform:</strong> ${platform}${appVersion ? ` v${appVersion}` : ""}</p>`
@@ -131,16 +168,20 @@ async function sendBugEmails(payload: BugEmailPayload) {
     ? `<p><strong>From:</strong> ${userEmail}</p>`
     : "<p><strong>From:</strong> Anonymous user</p>";
 
-  const headerBg = isCrash ? "#8B0000" : "#3A3129";
-  const accentColor = isCrash ? "#FF6B6B" : "#E8B669";
-  const blockquoteBg = isCrash ? "#FFF0F0" : "#F8EFE4";
-  const emoji = isCrash ? "🚨" : "🐛";
-  const title = isCrash ? "Crash Report" : "New Bug Report";
+  const headerBg = isCrash ? "#8B0000" : isSuggestion ? "#1F3A2E" : "#3A3129";
+  const accentColor = isCrash ? "#FF6B6B" : isSuggestion ? "#7CD9A6" : "#E8B669";
+  const blockquoteBg = isCrash ? "#FFF0F0" : isSuggestion ? "#EFF8F2" : "#F8EFE4";
+  const emoji = isCrash ? "🚨" : isSuggestion ? "💡" : "🐛";
+  const title = isCrash ? "Crash Report" : isSuggestion ? "New Suggestion" : "New Bug Report";
   const subtitle = isCrash
     ? "The app crashed automatically — no user action needed"
+    : isSuggestion
+    ? "Someone shared an idea in Inkwell"
     : "Someone submitted a report in Inkwell";
   const subject = isCrash
     ? `🚨 App Crash — Inkwell`
+    : isSuggestion
+    ? `💡 New Suggestion — Inkwell`
     : `🐛 New Bug Report — Inkwell`;
 
   const stackSection = isCrash && expectedBehavior
@@ -167,7 +208,7 @@ async function sendBugEmails(payload: BugEmailPayload) {
         <div style="background:#FFFDF9;border:1px solid #F0E3D3;border-top:none;padding:24px 32px;border-radius:0 0 12px 12px;">
           ${userLine}
           ${platformLine}
-          <p><strong>${isCrash ? "Error:" : "Description:"}</strong></p>
+          <p><strong>${isCrash ? "Error:" : isSuggestion ? "Suggestion:" : "Description:"}</strong></p>
           <blockquote style="border-left:3px solid ${accentColor};margin:0 0 16px;padding:10px 16px;background:${blockquoteBg};border-radius:4px;font-family:${isCrash ? "monospace" : "inherit"};">
             ${description.replace("[CRASH] ", "")}
           </blockquote>

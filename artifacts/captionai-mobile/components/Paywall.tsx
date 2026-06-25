@@ -162,7 +162,7 @@ export default function Paywall({ visible, onClose }: Props) {
             <View style={styles.explainerRow}>
               <View style={styles.bulletDot} />
               <Text style={styles.explainerText}>
-                <Text style={styles.explainerBold}>Top-up credits never expire</Text> — Pro credits reset monthly
+                <Text style={styles.explainerBold}>Monthly credits reset each month</Text> (they don&apos;t roll over) — top-up credits never expire
               </Text>
             </View>
           </View>

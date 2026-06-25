@@ -54,6 +54,25 @@ never attached to the version that went to review. IAPs are NOT auto-included.
   (ASC display names don't match the productId number — legacy labels).
 - Subscription: `com.captionai.app.pro` in subscription group "Captly Pro Monthly".
 
+## Subscription/IAP compliance checklist (recurring rejection causes)
+A resubmission can be rejected for MORE than 5.1.1. A real rejection bundled four:
+- **2.3.2 (promoted-IAP image):** if you "promote" an IAP, its App Store
+  promotional image cannot be an app screenshot or have hard-to-read text. Safest:
+  promote NOTHING — `GET /v1/apps/{id}/promotedPurchases` must return count 0 and
+  each IAP's `/v2/inAppPurchases/{id}/images` must be 0. Then 2.3.2 is moot.
+- **5.1.1(v):** captions AND purchases must work signed-out (paywall has no
+  sign-in gate; calls `purchase()` directly). See captly-guest-mode.md.
+- **2.1(a) password bug:** "unable to set any password during account creation" =
+  the missing `<View nativeID="clerk-captcha" />` on the sign-up screen. See
+  captly-clerk-signup-captcha.md. MUST be live-tested on TestFlight before resubmit.
+- **3.1.2(c) auto-renew subscription disclosure** has TWO sides, both required:
+  (1) App Store metadata: a functional Terms of Use (EULA) link AND Privacy Policy
+  link in the description (privacyPolicyUrl also set on appInfoLocalizations). The
+  standard Apple EULA link is https://www.apple.com/legal/internet-services/itunes/dev/stdeula/ .
+  (2) In-app on the paywall: subscription title, length (monthly), price (+per-unit),
+  and tappable Privacy Policy + Terms of Use links. Apple also asks for a screen
+  recording of this in the resubmission reply / App Review notes.
+
 ## 2.3.7 pricing-screenshot fix
 - The APP_IPHONE_65 set had 5 shots (1–5.png); 4.png was the pricing screenshot
   ("Fair pricing. Credits never expire"). DELETE `/v1/appScreenshots/{id}` (204).

@@ -13,3 +13,4 @@
 - [Captly guest mode (Apple 5.1.1)](captly-guest-mode.md) — captions AND purchases must work signed-out; RC configured with appUserID=guest_<deviceId>, getProStatus must not short-circuit guests to free.
 - [Captly Clerk sign-up captcha](captly-clerk-signup-captcha.md) — missing `<View nativeID="clerk-captcha" />` makes Expo sign-up fail for EVERY password; the Clerk API calls were already correct.
 - [Clerk app name in emails](clerk-app-name-emails.md) — Replit-managed Clerk has no dashboard + Backend API can't rename the app; rebrand {{app.name}} by editing email templates via Backend API (billing templates locked). No rebuild needed.
+- [Captly DB schema drift](captly-db-schema-drift.md) — live DB has tables not in drizzle schema (caption_history, user_favorites); drizzle-kit push proposes destructive drops. Add tables via dev executeSql DDL, then republish to reach prod.

@@ -9,6 +9,11 @@ import Constants from "expo-constants";
 const Purchases: any = Platform.OS !== "web" ? (() => { try { return require("react-native-purchases").default; } catch { return null; } })() : null;
 const purchasesAvailable = Purchases !== null;
 let purchasesConfigured = false;
+// If linkRevenueCatIdentity() is called before configure() finishes (Clerk can
+// resolve the user before RC init completes), buffer the id and apply it as soon
+// as configuration is done — otherwise a signed-in user could be stranded on the
+// guest RC identity for the whole session.
+let pendingLinkUserId: string | null = null;
 
 const REVENUECAT_TEST_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY;
 const REVENUECAT_IOS_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY;
@@ -29,7 +34,7 @@ function getRevenueCatApiKey(): string | null {
   return REVENUECAT_TEST_API_KEY || null;
 }
 
-export function initializeRevenueCat() {
+export function initializeRevenueCat(appUserId?: string | null) {
   if (Platform.OS === "web") return;
   if (!purchasesAvailable) {
     console.warn("[RevenueCat] Native module not available (Expo Go). Subscription features will be disabled.");
@@ -44,8 +49,21 @@ export function initializeRevenueCat() {
 
   try {
     Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
-    Purchases.configure({ apiKey });
+    // Configure with the guest device identity (guest_<deviceId>) when no user
+    // is signed in, so guest purchases attribute to the same ledger row the API
+    // server uses for that device. On sign-in, linkRevenueCatIdentity() aliases
+    // this to the Clerk user id. Apple 5.1.1(v): purchases must not require
+    // registration.
+    Purchases.configure(appUserId ? { apiKey, appUserID: appUserId } : { apiKey });
     purchasesConfigured = true;
+    // Apply any identity link that arrived before configuration completed.
+    if (pendingLinkUserId) {
+      const id = pendingLinkUserId;
+      pendingLinkUserId = null;
+      Purchases.logIn(id).catch((err: unknown) =>
+        console.warn("[RevenueCat] Failed to link buffered identity:", err),
+      );
+    }
   } catch (err) {
     console.warn("[RevenueCat] configure() failed — subscription features disabled:", err);
     purchasesConfigured = false;
@@ -53,7 +71,12 @@ export function initializeRevenueCat() {
 }
 
 export async function linkRevenueCatIdentity(clerkUserId: string): Promise<void> {
-  if (Platform.OS === "web" || !purchasesAvailable || !purchasesConfigured) return;
+  if (Platform.OS === "web" || !purchasesAvailable) return;
+  // Not configured yet — buffer the id so init can apply it once ready.
+  if (!purchasesConfigured) {
+    pendingLinkUserId = clerkUserId;
+    return;
+  }
   try {
     await Purchases.logIn(clerkUserId);
   } catch (err) {

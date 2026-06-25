@@ -72,11 +72,15 @@ async function isProOverride(userId: string): Promise<boolean> {
  * paying user as free (which would reset their 150 credits to 10).
  */
 export async function getProStatus(userId: string): Promise<ProStatus> {
-  // Guests can never be Pro — skip the lookup entirely (and avoid a Clerk
-  // getUser call that would throw on a synthetic guest id).
-  if (userId.startsWith("guest_")) return "free";
+  // NOTE: guests CAN be Pro. Apple 5.1.1(v) requires purchases to work without
+  // sign-in, so the mobile app configures RevenueCat with appUserID =
+  // `guest_<deviceId>` (matching resolveIdentity). A guest who subscribes has an
+  // active "pro" entitlement under that id, so we must run the RevenueCat lookup
+  // below for guests too — not short-circuit to free.
 
-  // Owner / dev override — checked first so it's instant even without a subscription
+  // Owner / dev override — checked first so it's instant even without a
+  // subscription. Safe for guests: getUserEmail() returns null for synthetic
+  // guest ids, so isProOverride() is simply false.
   if (await isProOverride(userId)) return "pro";
 
   const secretKey = process.env.REVENUECAT_SECRET_KEY;

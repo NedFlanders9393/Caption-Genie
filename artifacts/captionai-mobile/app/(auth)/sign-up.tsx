@@ -70,6 +70,10 @@ export default function SignUpPage() {
       setGeneralError("Please enter your email and password.");
       return;
     }
+    if (password.length < 8) {
+      setGeneralError("Your password must be at least 8 characters.");
+      return;
+    }
     setGeneralError(null);
     setIsLoading(true);
     try {
@@ -319,6 +323,10 @@ export default function SignUpPage() {
                 {isLoading ? "Creating account…" : "Create account"}
               </Text>
             </Pressable>
+
+            {/* Required for sign-up: Clerk bot/CAPTCHA protection mounts here.
+                Without this node, sign-up can fail for every password attempt. */}
+            <View nativeID="clerk-captcha" />
 
             <Text style={styles.terms}>
               By signing up, you agree to our Terms of Service and Privacy Policy

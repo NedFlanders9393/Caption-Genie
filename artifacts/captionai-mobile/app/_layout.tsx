@@ -44,6 +44,7 @@ const loaderStyles = StyleSheet.create({
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppProvider } from "@/context/AppContext";
 import { SubscriptionProvider, initializeRevenueCat, linkRevenueCatIdentity } from "@/lib/revenuecat";
+import { getDeviceId } from "@/lib/deviceId";
 import { initGlobalCrashHandler, flushPendingCrashes, reportCrash } from "@/lib/crashReporter";
 
 function RevenueCatIdentityLinker() {
@@ -140,7 +141,14 @@ export default function RootLayout() {
   }, [fontsLoaded, fontError]);
 
   useEffect(() => {
-    initializeRevenueCat();
+    (async () => {
+      try {
+        const deviceId = await getDeviceId();
+        initializeRevenueCat(deviceId ? `guest_${deviceId}` : undefined);
+      } catch {
+        initializeRevenueCat();
+      }
+    })();
   }, []);
 
   // Flush any crashes that were queued offline during a previous session

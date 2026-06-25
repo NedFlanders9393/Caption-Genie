@@ -176,13 +176,13 @@ async function sendBugEmails(payload: BugEmailPayload) {
   const subtitle = isCrash
     ? "The app crashed automatically — no user action needed"
     : isSuggestion
-    ? "Someone shared an idea in Inkwell"
-    : "Someone submitted a report in Inkwell";
+    ? "Someone shared an idea in Captly"
+    : "Someone submitted a report in Captly";
   const subject = isCrash
-    ? `🚨 App Crash — Inkwell`
+    ? `🚨 App Crash — Captly`
     : isSuggestion
-    ? `💡 New Suggestion — Inkwell`
-    : `🐛 New Bug Report — Inkwell`;
+    ? `💡 New Suggestion — Captly`
+    : `🐛 New Bug Report — Captly`;
 
   const stackSection = isCrash && expectedBehavior
     ? `<p><strong>Stack trace:</strong></p>

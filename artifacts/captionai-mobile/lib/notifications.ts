@@ -1,5 +1,5 @@
 /**
- * Local push notification helpers for Inkwell.
+ * Local push notification helpers for Captly.
  *
  * All notifications are scheduled locally — no push server required.
  * Works in production builds only; silently no-ops in Expo Go.

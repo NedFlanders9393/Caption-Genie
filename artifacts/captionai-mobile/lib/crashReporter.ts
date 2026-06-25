@@ -1,5 +1,5 @@
 /**
- * Inkwell crash analytics — uses the existing /api/bugs infrastructure.
+ * Captly crash analytics — uses the existing /api/bugs infrastructure.
  *
  * Features:
  *   1. Hooks React Native's global JS error handler (catches unhandled crashes)

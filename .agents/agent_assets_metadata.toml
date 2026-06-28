@@ -89,3 +89,33 @@ id = "sGq-MDcGSZsw5ZSXtQbVm"
 uri = "file://app-store-screenshots/captly-05-features-1284x2778.png"
 type = "image"
 title = "5 — Features"
+
+[[outputs]]
+id = "SvToDy1JtZFtLrDhVSv8h"
+uri = "file://app-store-screenshots/new/captly-1-hero-1284x2778.png"
+type = "image"
+title = "1 — Hero: Never stare at a blank caption again"
+
+[[outputs]]
+id = "-WJ73eYYkgzFeLwiKmzzN"
+uri = "file://app-store-screenshots/new/captly-2-captions-1284x2778.png"
+type = "image"
+title = "2 — Three captions. Zero blank pages."
+
+[[outputs]]
+id = "u8cHHN_kw1tuuDRGaMt_8"
+uri = "file://app-store-screenshots/new/captly-3-madeforyou-1284x2778.png"
+type = "image"
+title = "3 — Made for your business"
+
+[[outputs]]
+id = "ET0B98LQwENfQeqi8A7J3"
+uri = "file://app-store-screenshots/new/captly-4-hashtags-1284x2778.png"
+type = "image"
+title = "4 — Hashtags that get you found"
+
+[[outputs]]
+id = "KXgOggLa_-u_tVxi5_EEW"
+uri = "file://app-store-screenshots/new/captly-5-features-1284x2778.png"
+type = "image"
+title = "5 — Everything you need to post like a pro"

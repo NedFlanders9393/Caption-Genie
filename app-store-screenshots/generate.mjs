@@ -131,25 +131,35 @@ const s3 = layout({
   headline: "Made for<br>your business",
   sub: "22 industries · 12 tones · every platform — captions that sound like you.",
   inner: `
-    <div style="font-size:38px;font-weight:800;color:${C.ink};">Platform</div>
-    <div class="row" style="gap:16px;margin-top:20px;flex-wrap:wrap;">
+    <div style="font-size:40px;font-weight:800;color:${C.ink};">Platform</div>
+    <div class="row" style="gap:18px;margin-top:24px;flex-wrap:wrap;">
       ${pill("Instagram", true, C.pink)}${pill("TikTok", false)}${pill("Facebook", false)}${pill("LinkedIn", false)}${pill("X", false)}
     </div>
-    <div style="font-size:38px;font-weight:800;color:${C.ink};margin-top:46px;">Your industry</div>
-    <div class="row" style="gap:16px;margin-top:20px;flex-wrap:wrap;">
-      ${pill("☕ Coffee Shop", true)}${pill("Bakery", false)}${pill("Salon", false)}
+    <div style="font-size:40px;font-weight:800;color:${C.ink};margin-top:58px;">Your industry</div>
+    <div class="row" style="gap:18px;margin-top:24px;flex-wrap:wrap;">
+      ${pill("☕ Coffee Shop", true)}${pill("Bakery", false)}${pill("Salon", false)}${pill("Fitness", false)}
     </div>
-    <div class="row" style="gap:16px;margin-top:16px;flex-wrap:wrap;">
-      ${pill("Fitness", false)}${pill("Boutique", false)}${pill("Realtor", false)}${pill("+ 16 more", false)}
+    <div class="row" style="gap:18px;margin-top:18px;flex-wrap:wrap;">
+      ${pill("Boutique", false)}${pill("Realtor", false)}${pill("Restaurant", false)}${pill("+ 15 more", false)}
     </div>
-    <div style="font-size:38px;font-weight:800;color:${C.ink};margin-top:46px;">Your voice <span style="font-size:30px;font-weight:600;color:${C.muted}">(up to 3)</span></div>
-    <div class="row" style="gap:16px;margin-top:20px;flex-wrap:wrap;">
+    <div style="font-size:40px;font-weight:800;color:${C.ink};margin-top:58px;">Your voice <span style="font-size:30px;font-weight:600;color:${C.muted}">(up to 3)</span></div>
+    <div class="row" style="gap:18px;margin-top:24px;flex-wrap:wrap;">
       ${pill("Playful", true)}${pill("Warm", true)}${pill("Bold", false)}${pill("Witty", false)}
     </div>
-    <div class="row" style="gap:16px;margin-top:16px;flex-wrap:wrap;">
+    <div class="row" style="gap:18px;margin-top:18px;flex-wrap:wrap;">
       ${pill("Professional", false)}${pill("Inspiring", false)}${pill("+ 6 more", false)}
     </div>
-    <div style="margin-top:54px;background:${C.amber};border-radius:30px;padding:34px;text-align:center;font-size:40px;font-weight:800;color:#fff;box-shadow:0 22px 44px -18px rgba(216,155,60,0.8);">✨ Write my captions</div>
+    <div style="margin-top:60px;background:${C.amber};border-radius:30px;padding:36px;text-align:center;font-size:42px;font-weight:800;color:#fff;box-shadow:0 22px 44px -18px rgba(216,155,60,0.8);">✨ Write my captions</div>
+    <div style="margin-top:60px;display:flex;align-items:center;gap:24px;"><div style="height:2px;background:${C.border};flex:1;"></div><div style="font-size:30px;font-weight:800;color:${C.muted};letter-spacing:1px;white-space:nowrap;">TUNED TO YOUR PICKS</div><div style="height:2px;background:${C.border};flex:1;"></div></div>
+    <div class="card" style="margin-top:34px;">
+      <div class="row" style="gap:14px;flex-wrap:wrap;margin-bottom:24px;">
+        <div class="chip" style="background:#fff;border:2px solid ${C.pink};color:${C.pink};font-size:26px;padding:8px 20px;">Instagram</div>
+        <div class="chip" style="background:#fff;border:2px solid ${C.amber};color:${C.amberDeep};font-size:26px;padding:8px 20px;">☕ Coffee Shop</div>
+        <div class="chip" style="background:#fff;border:2px solid ${C.border};color:${C.text};font-size:26px;padding:8px 20px;">Playful + Warm</div>
+      </div>
+      <div style="font-size:35px;line-height:1.42;color:${C.text}">Cold mornings call for warm hands and warmer cups. ☕ Our maple oat latte just dropped — come find your new favorite ritual.</div>
+      <div style="font-size:31px;margin-top:20px;color:${C.amberDeep};font-weight:700;">#coffeeshop #latteart #cozyvibes</div>
+    </div>
   `,
 });
 

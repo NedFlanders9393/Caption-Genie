@@ -2,7 +2,7 @@
   "expo": {
     "name": "Captly",
     "slug": "captionai-mobile",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "captionai-mobile",
@@ -19,7 +19,7 @@
         "NSUserNotificationsUsageDescription": "Captly sends optional reminders to help you maintain your writing streak.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "36"
+      "buildNumber": "37"
     },
     "android": {
       "permissions": [

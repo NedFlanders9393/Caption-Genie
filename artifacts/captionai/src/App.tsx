@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PrivacyPolicyPage, TermsPage, SupportPage } from "@/pages/legal";
+import LandingPage from "@/pages/landing";
 
 const queryClient = new QueryClient();
 
@@ -1188,11 +1189,12 @@ function CaptionAIApp() {
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={CaptionAIApp} />
+      <Route path="/" component={LandingPage} />
+      <Route path="/app" component={CaptionAIApp} />
       <Route path="/privacy-policy" component={PrivacyPolicyPage} />
       <Route path="/terms" component={TermsPage} />
       <Route path="/support" component={SupportPage} />
-      <Route path="/*" component={CaptionAIApp} />
+      <Route path="/*" component={LandingPage} />
     </Switch>
   );
 }

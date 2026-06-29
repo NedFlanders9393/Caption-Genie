@@ -37,15 +37,15 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png"],
       manifest: {
-        name: "CaptionAI",
-        short_name: "CaptionAI",
+        name: "Captly",
+        short_name: "Captly",
         description: "AI-powered social media caption generator for small businesses",
-        theme_color: "#7C3AED",
-        background_color: "#fafafa",
+        theme_color: "#E8B669",
+        background_color: "#FFFDF9",
         display: "standalone",
         orientation: "portrait",
         scope: basePath,
-        start_url: basePath,
+        start_url: `${basePath.replace(/\/$/, "")}/app`,
         icons: [
           {
             src: "pwa-192x192.png",

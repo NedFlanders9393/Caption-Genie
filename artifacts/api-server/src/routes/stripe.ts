@@ -39,8 +39,8 @@ router.post('/api/stripe/checkout', async (req, res) => {
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
-      success_url: `${baseUrl}/?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/?checkout=cancel`,
+      success_url: `${baseUrl}/app?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/app?checkout=cancel`,
     });
 
     res.json({ url: session.url });

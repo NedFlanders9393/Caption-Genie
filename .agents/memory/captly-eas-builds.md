@@ -29,8 +29,10 @@ EAS runs an internal `git status` to check the tree, which tries to **write** `.
 - **`/tmp` is cleared between tool calls.** The ASC API key file (`/tmp/AuthKey_<KeyID>.p8`, written from the `ASC_API_KEY_CONTENT` secret) must be re-staged in the SAME bash call that runs the build, or auto-submit can't find it.
 - **`.git/index.lock` may be left stale** after a blocked attempt; the main agent cannot remove it (sandbox blocks rm too). The platform's end-of-task commit clears it.
 
-## Build number
-- `app.json` → `expo.ios.buildNumber` (eas.json `appVersionSource: "local"`). Bump it before every build or App Store Connect rejects the duplicate. Version string stays `1.0.0`; only buildNumber increments.
+## Build number AND version string
+- `app.json` → `expo.ios.buildNumber` (eas.json `appVersionSource: "local"`). Bump it before every build or App Store Connect rejects the duplicate.
+- `app.json` → `expo.version` is the marketing version string. **A build only attaches to the App Store Connect version whose number matches it.** So when shipping a NEW ASC version (e.g. 1.0.0 → 1.0.1 to swap screenshots/metadata after 1.0 is locked "Ready for Distribution"), you MUST bump `expo.version` to match (1.0.1) — bumping only buildNumber leaves the build invisible in the new version's Build picker. For repeat TestFlight builds against the SAME ASC version, keep the version string and only bump buildNumber.
+- Both edits must be committed before building (git archive uses HEAD); let the end-of-turn checkpoint commit, then build the next turn.
 
 ## Auth
 - `EXPO_TOKEN` secret authenticates EAS CLI non-interactively. iOS signing credentials are already stored on EAS.

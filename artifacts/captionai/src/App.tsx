@@ -38,6 +38,30 @@ import LandingPage from "@/pages/landing";
 
 const queryClient = new QueryClient();
 
+// Web users have no login, so they act as guests. The API identifies guests by
+// a stable X-Device-Id header (matching the mobile app). Without it, AI routes
+// return 401. We persist one id per browser in localStorage.
+function getDeviceId(): string {
+  const KEY = "captly_device_id";
+  let id = localStorage.getItem(KEY);
+  if (!id) {
+    id =
+      (typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `web-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    localStorage.setItem(KEY, id);
+  }
+  return id;
+}
+
+function apiHeaders(extra?: Record<string, string>): Record<string, string> {
+  return {
+    "Content-Type": "application/json",
+    "X-Device-Id": getDeviceId(),
+    ...extra,
+  };
+}
+
 // Constants
 const PLATFORMS = [
   { name: "Instagram", icon: Globe },
@@ -247,7 +271,7 @@ function CaptionAIApp() {
           if (proData.customerId) {
             fetch("/api/stripe/check-status", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: apiHeaders(),
               body: JSON.stringify({ customerId: proData.customerId }),
             })
               .then((r) => r.json())
@@ -271,7 +295,9 @@ function CaptionAIApp() {
     if (checkoutStatus === "success" && sessionId) {
       // Clean the URL
       window.history.replaceState({}, document.title, window.location.pathname);
-      fetch(`/api/stripe/verify-session?session_id=${sessionId}`)
+      fetch(`/api/stripe/verify-session?session_id=${sessionId}`, {
+        headers: apiHeaders(),
+      })
         .then((r) => r.json())
         .then((data) => {
           if (data.isPro) {
@@ -322,7 +348,7 @@ function CaptionAIApp() {
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: apiHeaders(),
         body: JSON.stringify({ email: checkoutEmail }),
       });
       const data = await res.json() as { url?: string; error?: string };
@@ -412,7 +438,7 @@ function CaptionAIApp() {
     try {
       const res = await fetch("/api/captions/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: apiHeaders(),
         body: JSON.stringify({
           niche,
           postDescription,
@@ -468,7 +494,7 @@ function CaptionAIApp() {
     try {
       const res = await fetch("/api/captions/regenerate-one", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: apiHeaders(),
         body: JSON.stringify({
           niche,
           postDescription,
@@ -524,7 +550,7 @@ function CaptionAIApp() {
     try {
       const res = await fetch("/api/captions/hashtags", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: apiHeaders(),
         body: JSON.stringify({
           niche: hashtagNiche,
           topic: hashtagTopic,

@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #E8B669; /* Amber/gold */
+  --color-bg-light: #FFFDF9; /* Cream */
+  --color-bg-dark: #3A3129; /* Warm dark brown */
+  
+  --font-display: 'Nunito', sans-serif;
+  --font-body: 'Nunito', sans-serif;
+}
+
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-bg-light: var(--color-bg-light);
+  --color-bg-dark: var(--color-bg-dark);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg-light);
+  color: var(--color-bg-dark);
+  margin: 0;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

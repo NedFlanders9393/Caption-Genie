@@ -125,3 +125,9 @@ id = "URwaYtt07ovfuBEVDDn_v"
 uri = "file://artifacts/captly-promo/public/audio/bg_music.mp3"
 type = "audio"
 title = "background music"
+
+[[outputs]]
+id = "ajLrfMg_S74p2y0T7Yc0V"
+uri = "file://artifacts/captly-promo-brand/public/audio/bg_music.mp3"
+type = "audio"
+title = "background music"

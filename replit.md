@@ -46,6 +46,13 @@ AI-powered social media caption generator for small business owners, targeting A
 - On-brand amber/cream, Nunito; lo-fi instrumental bg music; scene + mute controls (preview only, hidden on export)
 - Not deployable — exported from the preview pane
 
+### Captly Brand Promo (`artifacts/captly-promo-brand`)
+- Vertical 9:16 animated brand-film promo video (React + Framer Motion via video-js scaffold)
+- Preview path: `/captly-promo-brand/`
+- Brand-showcase style (distinct from the problem→solution promo): lightning-bolt logo build, brand vibe, name/tagline reveal, App Store lockup (5 scenes, ~18.5s)
+- On-brand amber/cream, Nunito; warm uplifting cinematic instrumental bg music; scene + mute controls (preview only, hidden on export)
+- Not deployable — exported from the preview pane
+
 ### API Server (`artifacts/api-server`)
 - Express 5 backend at `/api/*`
 - Key routes:

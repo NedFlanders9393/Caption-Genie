@@ -119,3 +119,9 @@ id = "KXgOggLa_-u_tVxi5_EEW"
 uri = "file://app-store-screenshots/new/captly-5-features-1284x2778.png"
 type = "image"
 title = "5 — Features"
+
+[[outputs]]
+id = "URwaYtt07ovfuBEVDDn_v"
+uri = "file://artifacts/captly-promo/public/audio/bg_music.mp3"
+type = "audio"
+title = "background music"

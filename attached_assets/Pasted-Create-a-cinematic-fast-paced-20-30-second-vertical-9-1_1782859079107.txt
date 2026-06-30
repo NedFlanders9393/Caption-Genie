@@ -1,0 +1,74 @@
+Create a cinematic, fast-paced 20-30 second vertical (9:16) TikTok promotional video for my app using everything you already know about the project, including its features, branding, UI, colors, and purpose.
+
+The video should feel modern, premium, and exciting—similar to Apple, Notion, and Linear product launch videos.
+
+Video structure:
+
+Hook (0-3 seconds):
+Start with a bold statement that immediately grabs attention, such as:
+
+* “Managing an HOA shouldn’t be this hard.”
+* “This changes everything for property managers.”
+* “The future of HOA management is here.”
+
+Show quick flashes of the app interface with smooth transitions.
+
+Problem (3-8 seconds):
+Show the frustrations property managers face:
+
+* Endless emails
+* Resident requests
+* Violations
+* Documents everywhere
+* Phone calls
+* Spreadsheets
+* Wasted time
+
+Use dynamic text animations and fast cuts.
+
+Solution (8-22 seconds):
+Reveal my app and showcase its best features using screen recordings, UI animations, zooms, and motion graphics.
+
+Highlight features such as:
+
+* AI assistant
+* Community management
+* Email automation
+* Calendar
+* Files
+* Payments
+* Invoices
+* Budgets
+* Documents
+* Smart search
+* Daily briefing
+* Any other major features you know about the app.
+
+Animate the interface as if everything is effortless and intelligent.
+
+Ending (22-30 seconds):
+Finish with a powerful closing shot of the app dashboard.
+
+Display text:
+“The Future of HOA Management.”
+
+Then:
+“Coming Soon”
+
+Finally:
+“Follow for Updates”
+
+Style requirements:
+
+* Dark premium background with the app’s branding colors.
+* Smooth camera movements.
+* Clean UI animations.
+* Modern typography.
+* Subtle glow effects.
+* High-end startup commercial aesthetic.
+* Fast-paced editing with seamless transitions.
+* Add cinematic sound effects (whooshes, clicks, swipes).
+* Use energetic electronic/future bass background music that builds excitement.
+* Include subtitles for every spoken line.
+
+The overall goal is to make viewers stop scrolling, instantly understand the value of the app, and become excited for its launch. The final video should look like it was created by a professional SaaS marketing agency and be optimized for TikTok virality.

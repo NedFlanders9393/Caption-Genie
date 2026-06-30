@@ -7,9 +7,11 @@ export function Scene2() {
   useEffect(() => {
     const timers = [
       setTimeout(() => setPhase(1), 300),   // Text + Input prompt appears
-      setTimeout(() => setPhase(2), 1100),  // Generation spark
-      setTimeout(() => setPhase(3), 1300),  // Captions appear
-      setTimeout(() => setPhase(4), 3100),  // Exit
+      setTimeout(() => setPhase(2), 800),   // Tone chips appear
+      setTimeout(() => setPhase(3), 1300),  // Select "Playful"
+      setTimeout(() => setPhase(4), 1600),  // Generation spark
+      setTimeout(() => setPhase(5), 1900),  // Captions appear
+      setTimeout(() => setPhase(6), 3100),  // Exit
     ];
     return () => timers.forEach(t => clearTimeout(t));
   }, []);
@@ -32,7 +34,7 @@ export function Scene2() {
           The Vibe
         </motion.p>
         
-        <h2 className="text-4xl font-black text-[var(--color-bg-dark)] leading-[1.1] tracking-tight text-center mb-6">
+        <h2 className="text-4xl font-black text-[var(--color-bg-dark)] leading-[1.1] tracking-tight text-center mb-4">
           <motion.span 
             className="block"
             initial={{ opacity: 0, y: 15 }}
@@ -59,54 +61,74 @@ export function Scene2() {
           transition={{ duration: 0.8, delay: 0.3, type: "spring", bounce: 0.3 }}
         >
           <div className="text-[10px] font-bold text-[var(--color-bg-dark)]/40 uppercase tracking-wider mb-1">Describe your post</div>
-          <div className="text-[var(--color-bg-dark)] font-semibold text-base flex items-center gap-2">
+          <div className="text-[var(--color-bg-dark)] font-semibold text-[15px] flex items-center gap-2">
             <span>New caramel latte just dropped 🍂</span>
-            {phase >= 2 && (
-              <motion.div 
-                initial={{ scale: 0, opacity: 0, rotate: -45 }}
-                animate={{ scale: [0, 1.5, 1], opacity: [0, 1, 0], rotate: 0 }}
-                transition={{ duration: 0.4 }}
-                className="text-[var(--color-primary)] text-xl drop-shadow-md"
-              >
-                ⚡
-              </motion.div>
-            )}
           </div>
         </motion.div>
 
-        {/* Generated Captions */}
-        <div className="relative mt-2 h-[220px]">
+        {/* Tone Chips */}
+        <motion.div 
+          className="flex flex-wrap gap-2 justify-center mt-1"
+          initial={{ opacity: 0 }}
+          animate={phase >= 2 ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          {['Professional', 'Friendly', 'Playful', 'Bold', 'Luxury'].map((tone, i) => {
+            const isSelected = tone === 'Playful' && phase >= 3;
+            return (
+              <motion.div
+                key={tone}
+                className="px-3 py-1.5 rounded-full text-[11px] font-bold tracking-wide transition-colors border"
+                initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                animate={phase >= 2 ? { opacity: 1, scale: isSelected ? 1.05 : 1, y: 0 } : { opacity: 0, scale: 0.8, y: 10 }}
+                transition={{ 
+                  duration: 0.4, 
+                  delay: phase >= 2 && phase < 3 ? i * 0.05 : 0, 
+                  type: "spring", 
+                  bounce: 0.5 
+                }}
+                style={{
+                  backgroundColor: isSelected ? 'var(--color-primary)' : 'transparent',
+                  color: isSelected ? '#fff' : 'var(--color-bg-dark)',
+                  borderColor: isSelected ? 'var(--color-primary)' : 'rgba(0,0,0,0.1)'
+                }}
+              >
+                {tone} {isSelected && '✨'}
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
+        {/* Generation Spark */}
+        <div className="flex justify-center h-8 items-center mt-1">
+          {phase >= 4 && phase < 5 && (
+             <motion.div 
+               initial={{ scale: 0, opacity: 0, rotate: -45 }}
+               animate={{ scale: [0, 1.5, 1], opacity: [0, 1, 0], rotate: 0 }}
+               transition={{ duration: 0.4 }}
+               className="text-[var(--color-primary)] text-2xl drop-shadow-md"
+             >
+               ⚡
+             </motion.div>
+          )}
+        </div>
+
+        {/* Generated Caption */}
+        <div className="relative h-[130px] flex justify-center">
           {/* Card 1 */}
           <motion.div
-            className="absolute top-0 w-full bg-white rounded-2xl p-4 shadow-xl shadow-black/5 border border-black/5"
-            initial={{ opacity: 0, y: 50, rotate: -4, scale: 0.9 }}
-            animate={phase >= 3 ? { opacity: 1, y: 0, rotate: -2, scale: 1 } : { opacity: 0, y: 50, rotate: -4, scale: 0.9 }}
-            transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
+            className="w-full bg-white rounded-2xl p-4 shadow-xl shadow-black/5 border border-black/5"
+            initial={{ opacity: 0, y: 40, scale: 0.9 }}
+            animate={phase >= 5 ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 40, scale: 0.9 }}
+            transition={{ duration: 0.6, type: "spring", bounce: 0.4 }}
             style={{ zIndex: 2 }}
           >
             <div className="flex items-center gap-2 mb-2">
               <div className="w-5 h-5 rounded-full bg-[var(--color-primary)]/20 flex items-center justify-center text-[10px]">✨</div>
-              <div className="text-[10px] font-bold text-[var(--color-bg-dark)]/50 uppercase tracking-wider">Option 1</div>
+              <div className="text-[10px] font-bold text-[var(--color-bg-dark)]/50 uppercase tracking-wider">Playful Voice</div>
             </div>
-            <p className="text-[13px] text-[var(--color-bg-dark)] leading-snug font-medium">
-              Fall just got cozier ☕ Our new caramel latte is here — sweet, smooth, and waiting for you. 🍂 <span className="text-[var(--color-primary)]">#CoffeeLovers #FallVibes #CaramelLatte</span>
-            </p>
-          </motion.div>
-
-          {/* Card 2 */}
-          <motion.div
-            className="absolute top-[4.5rem] w-full bg-white/95 rounded-2xl p-4 shadow-lg border border-black/5 origin-bottom-right"
-            initial={{ opacity: 0, y: 50, rotate: 0, scale: 0.85 }}
-            animate={phase >= 3 ? { opacity: 1, y: 15, rotate: 3, scale: 0.95 } : { opacity: 0, y: 50, rotate: 0, scale: 0.85 }}
-            transition={{ duration: 0.8, delay: 0.15, type: "spring", bounce: 0.3 }}
-            style={{ zIndex: 1 }}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-5 h-5 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center text-[10px]">💛</div>
-              <div className="text-[10px] font-bold text-[var(--color-bg-dark)]/40 uppercase tracking-wider">Option 2</div>
-            </div>
-            <p className="text-[12px] text-[var(--color-bg-dark)] leading-snug font-medium opacity-90">
-              Treat yourself today 💛 The caramel latte you didn't know you needed just landed. <span className="text-[var(--color-primary)]">#NewDrop #CoffeeTime #TreatYourself</span>
+            <p className="text-[14px] text-[var(--color-bg-dark)] leading-snug font-medium">
+              Fall just got cozier ☕ Our new caramel latte is here — sweet, smooth, and waiting for you. 🍂 <span className="text-[var(--color-primary)]">#FallVibes #CaramelLatte</span>
             </p>
           </motion.div>
         </div>

@@ -596,7 +596,7 @@ function CaptionAIApp() {
             <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
               <Sparkles className="w-4 h-4" />
             </div>
-            <h1 className="font-bold text-lg tracking-tight text-foreground">CaptionAI</h1>
+            <h1 className="font-bold text-lg tracking-tight text-foreground">Captly</h1>
           </div>
           
           {isPro ? (
@@ -1154,7 +1154,7 @@ function CaptionAIApp() {
               </div>
               <DialogTitle className="text-2xl font-bold mb-2">You've Hit Your Free Limit</DialogTitle>
               <DialogDescription className="text-primary-foreground/90 text-sm font-medium">
-                Upgrade to CaptionAI Pro for unlimited captions, priority AI generation, and advanced features.
+                Upgrade to Captly Pro for unlimited captions, priority AI generation, and advanced features.
               </DialogDescription>
             </div>
           </div>

@@ -21,3 +21,12 @@ Without it, `/api/captions/*` (and stripe identity routes) return 401
 "Authentication required" — "Try it free in your browser" silently fails.
 Fix lives in `App.tsx`: `getDeviceId()` (localStorage `captly_device_id`) +
 `apiHeaders()` must wrap every fetch. Don't send raw `Content-Type`-only headers.
+
+## Web generator (/app) brand theme
+The /app generator (CaptionAIApp in App.tsx) is styled almost entirely via shadcn
+CSS variables in `artifacts/captionai/src/index.css` (:root + .dark), NOT inline
+classes. To rebrand, edit the HSL tokens there — primary/accent/ring = amber
+(36 73% 66%), foreground/background = brown/cream, --app-font-sans = Nunito.
+Brown text on amber (primary-foreground 28 17% 19%) for contrast — white fails.
+Only literal "CaptionAI" strings left in App.tsx are the header <h1> and the
+upgrade-modal copy (now "Captly"); the rest are localStorage keys/route names.

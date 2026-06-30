@@ -53,6 +53,14 @@ AI-powered social media caption generator for small business owners, targeting A
 - On-brand amber/cream, Nunito; warm uplifting cinematic instrumental bg music; scene + mute controls (preview only, hidden on export)
 - Not deployable — exported from the preview pane
 
+### Captly Cinematic Promo (`artifacts/captly-promo-cinematic`)
+- Vertical 9:16 premium/cinematic promo video (React + Framer Motion via video-js scaffold)
+- Preview path: `/captly-promo-cinematic/`
+- Apple/Notion/Linear-style feature-showcase film (3rd promo, distinct from problem→solution and brand-film): Hook → Problem → Solution → Proof/Features → Close (5 scenes, ~22.5s)
+- LIGHT on-brand amber/cream background (owner's explicit choice — NOT dark), soft gradients, glassmorphism, Nunito; features 3 AI captions, 22 industries, tones, platform-aware, hashtags, best-time, remix, history; closes on logo + "Now available on the App Store"
+- Premium cinematic instrumental bg music; scene + mute controls (preview only, hidden on export)
+- Not deployable — exported from the preview pane
+
 ### API Server (`artifacts/api-server`)
 - Express 5 backend at `/api/*`
 - Key routes:

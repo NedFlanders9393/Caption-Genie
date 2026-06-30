@@ -1,0 +1,31 @@
+kind = "video"
+previewPath = "/captly-promo-cinematic/"
+title = "Captly Cinematic Promo"
+version = "1.0.0"
+id = "artifacts/captly-promo-cinematic"
+router = "path"
+
+[[integratedSkills]]
+name = "video-js"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/captly-promo-cinematic/" ]
+localPort = 19721
+
+[services.development]
+run = "pnpm --filter @workspace/captly-promo-cinematic run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/captly-promo-cinematic", "run", "build" ]
+publicDir = "artifacts/captly-promo-cinematic/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19721"
+BASE_PATH = "/captly-promo-cinematic/"

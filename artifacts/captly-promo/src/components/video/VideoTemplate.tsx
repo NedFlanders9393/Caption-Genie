@@ -10,7 +10,7 @@ export const SCENE_DURATIONS = {
   problem: 2500,
   intro: 2000,
   demo: 4000,
-  payoff: 3500,
+  payoff: 4800,
 };
 
 const SCENE_COMPONENTS: Record<string, React.ComponentType> = {

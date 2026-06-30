@@ -35,21 +35,27 @@ Live-version metadata can't change without a review, so these go in with this bu
 
 ---
 
-## Store setup required before the build (no app build needed for these)
-Done in App Store Connect + RevenueCat, then submitted **with** the build:
+## Store setup — DONE ✅ (staged, awaiting the build to submit)
 
-1. **App Store Connect** → create the annual auto-renewable subscription inside the
+1. **App Store Connect** — annual auto-renewable subscription **created** inside the
    existing **"Captly Pro Monthly"** group (group id `22067313`):
-   - Product ID: `com.captionai.app.pro.yearly`
-   - Price: **$59.99/year**
-   - Same display name family + `pro` entitlement as monthly.
-   - Note: a brand-new subscription is reviewed alongside an app binary, so it
-     ships with this build.
-2. **RevenueCat** → point the existing `$rc_annual` package's Apple product at
-   `com.captionai.app.pro.yearly` (it currently points at a placeholder
-   `captionai_pro_annual`, which is why the annual option doesn't load yet).
+   - Product ID: `com.captionai.app.pro.yearly` (ASC id `6785966112`)
+   - Price: **$59.99/year** (USA base), available in all 175 territories.
+   - en-US localization: name "Captly Pro", desc "150 AI caption credits every month, billed yearly".
+   - State: `MISSING_METADATA` — this is expected. The only missing item is the
+     first-time **review screenshot**, which Apple requires to be attached *with the
+     app binary* at submission. A brand-new subscription is reviewed alongside the
+     build, so it ships with this build.
+2. **RevenueCat** — the `$rc_annual` package and `pro` entitlement now point at the
+   real Apple product `com.captionai.app.pro.yearly` (new RC product
+   `prodf4b52d349a`). The old placeholder (`captionai_pro_annual`) was renamed and
+   archived.
    - The webhook already grants 150 credits for any Pro purchase/renewal — no
      change needed there.
+   - Note: the annual option stays hidden in the app until Apple approves the
+     subscription (RC returns no price for an unapproved product, and the paywall is
+     hardened to require a real priced product). It goes live automatically once the
+     build is approved.
 
 ---
 

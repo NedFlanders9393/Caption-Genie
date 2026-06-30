@@ -45,10 +45,15 @@ web legal.tsx).
 
 **Annual Pro plan (added):** $59.99/yr, SAME 150 credits/month as monthly (do NOT bump
 annual credits — at ~$0.021/gen, 200/mo annual is break-even/loss after Apple's cut; 150
-keeps a margin). Webhook already grants 150 for any Pro purchase, so no server change. The
-real gap is store config: RC `$rc_annual` package points at a PLACEHOLDER store id
-(`captionai_pro_annual`), not a real ASC product — so annual won't load until you (1) create
-the ASC auto-renew sub `com.captionai.app.pro.yearly` ($59.99/yr) in the existing "Captly Pro
-Monthly" group, and (2) re-point the RC annual product to that id. A brand-new subscription is
-reviewed with an app binary, so it ships with the next build. Paywall.tsx already shows
-monthly+annual (annual default) and self-hides annual when the package is absent.
+keeps a margin). Webhook already grants 150 for any Pro purchase, so no server change.
+Paywall.tsx shows monthly+annual (annual default) and self-hides annual when the package
+has no real priced product.
+
+**Store setup DONE (staged for next build):** ASC auto-renew sub
+`com.captionai.app.pro.yearly` created at $59.99/yr in the "Captly Pro Monthly" group, all
+175 territories, en-US "Captly Pro". It sits at `MISSING_METADATA` ON PURPOSE — the only
+missing piece is the first-time review screenshot, which Apple requires attached *with the
+app binary at submission*, so it ships with the build. RC `$rc_annual` package + `pro`
+entitlement now point at the real Apple product (placeholder `captionai_pro_annual` was
+renamed + archived). Annual stays hidden in-app until Apple approves the sub (RC returns no
+price for an unapproved product) — it self-enables once the build is approved.

@@ -52,6 +52,21 @@ const TOP_UP_PACKS: {
   { id: "large", credits: 200, fallbackPrice: "$24.99", perCredit: "$0.12 / credit", badge: "BEST VALUE" },
 ];
 
+function formatCurrency(amount: number, currencyCode?: string, sample?: string): string {
+  if (currencyCode) {
+    try {
+      return new Intl.NumberFormat(undefined, {
+        style: "currency",
+        currency: currencyCode,
+      }).format(amount);
+    } catch {
+      // fall through to symbol-based formatting
+    }
+  }
+  const symbol = sample?.match(/^[^\d]+/)?.[0]?.trim() ?? "$";
+  return `${symbol}${amount.toFixed(2)}`;
+}
+
 export default function Paywall({ visible, onClose }: Props) {
   const router = useRouter();
   const { offerings, purchase, restore, isPurchasing, isRestoring, isNativeAvailable } = useSubscription();
@@ -69,17 +84,51 @@ export default function Paywall({ visible, onClose }: Props) {
   );
   const monthlyPrice = monthlyPkg?.product?.priceString ?? "$9.99";
 
+  const annualPkg = packages.find(
+    (p: any) => p.packageType === "ANNUAL" || p.identifier === "$rc_annual"
+  );
+  const annualProduct = annualPkg?.product;
+  const annualNum = annualProduct?.price;
+  const monthlyNum = monthlyPkg?.product?.price;
+  // Only treat annual as available when it resolves to a real, purchasable store
+  // product with a valid price. The RC `$rc_annual` package can exist as a
+  // placeholder before the App Store product is live — showing it would present
+  // an un-buyable option that fails silently on press.
+  const hasAnnual =
+    !!annualPkg &&
+    !!annualProduct?.identifier &&
+    typeof annualNum === "number" &&
+    annualNum > 0;
+  const annualPrice = annualProduct?.priceString ?? "$59.99";
+
+  const savingsPct =
+    monthlyNum && annualNum
+      ? Math.round((1 - annualNum / (monthlyNum * 12)) * 100)
+      : 50;
+  const annualPerMonth =
+    typeof annualNum === "number" && annualNum > 0
+      ? formatCurrency(annualNum / 12, annualProduct?.currencyCode, monthlyPrice)
+      : "$5.00";
+
   // Find top-up packages by product identifier match.
   const findTopUpPkg = (productId: string) =>
     packages.find((p: any) => p.product?.identifier === productId || p.identifier === productId);
 
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "annual">("annual");
+
+  const effectivePlan: "monthly" | "annual" = hasAnnual ? selectedPlan : "monthly";
+  const activePkg = effectivePlan === "annual" ? annualPkg : monthlyPkg;
+  const ctaLabel =
+    effectivePlan === "annual"
+      ? `Start Pro — ${annualPrice}/year`
+      : `Start Pro — ${monthlyPrice}/month`;
 
   const handlePurchasePro = async () => {
-    if (!monthlyPkg) return;
+    if (!activePkg) return;
     setPurchasingId("pro");
     try {
-      await purchase(monthlyPkg);
+      await purchase(activePkg);
       onClose();
     } catch {
       // User cancelled or error
@@ -171,18 +220,75 @@ export default function Paywall({ visible, onClose }: Props) {
           <Text style={styles.sectionLabel}>Subscribe & save</Text>
           <View style={[styles.proCard]}>
             <View style={styles.proHeader}>
-              <View style={styles.proHeaderLeft}>
-                <Text style={styles.proName}>Captly Pro</Text>
-                <View style={styles.bestValueBadge}>
-                  <Text style={styles.bestValueText}>BEST VALUE</Text>
-                </View>
+              <Text style={styles.proName}>Captly Pro</Text>
+              <View style={styles.creditsBadge}>
+                <Text style={styles.creditsBadgeText}>150 credits / mo</Text>
               </View>
-              <Text style={styles.proPrice}>{monthlyPrice}/mo</Text>
             </View>
-            <Text style={styles.proCreditsLine}>
-              <Text style={styles.proCreditsNumber}>150 credits</Text> every month
-            </Text>
-            <Text style={styles.proPerCredit}>That's just $0.067 per credit</Text>
+
+            {hasAnnual ? (
+              <View style={styles.planOptions}>
+                <Pressable
+                  onPress={() => setSelectedPlan("annual")}
+                  style={[
+                    styles.planOption,
+                    effectivePlan === "annual" && styles.planOptionSelected,
+                  ]}
+                >
+                  <View style={styles.planLeft}>
+                    <View
+                      style={[
+                        styles.radio,
+                        effectivePlan === "annual" && styles.radioSelected,
+                      ]}
+                    >
+                      {effectivePlan === "annual" ? <View style={styles.radioDot} /> : null}
+                    </View>
+                    <View style={styles.planTextWrap}>
+                      <View style={styles.planTitleRow}>
+                        <Text style={styles.planTitle}>Annual</Text>
+                        <View style={styles.saveBadge}>
+                          <Text style={styles.saveBadgeText}>SAVE {savingsPct}%</Text>
+                        </View>
+                      </View>
+                      <Text style={styles.planSub}>
+                        {annualPrice}/year · {annualPerMonth}/mo
+                      </Text>
+                    </View>
+                  </View>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => setSelectedPlan("monthly")}
+                  style={[
+                    styles.planOption,
+                    effectivePlan === "monthly" && styles.planOptionSelected,
+                  ]}
+                >
+                  <View style={styles.planLeft}>
+                    <View
+                      style={[
+                        styles.radio,
+                        effectivePlan === "monthly" && styles.radioSelected,
+                      ]}
+                    >
+                      {effectivePlan === "monthly" ? <View style={styles.radioDot} /> : null}
+                    </View>
+                    <View style={styles.planTextWrap}>
+                      <Text style={styles.planTitle}>Monthly</Text>
+                      <Text style={styles.planSub}>{monthlyPrice}/month</Text>
+                    </View>
+                  </View>
+                </Pressable>
+              </View>
+            ) : (
+              <>
+                <Text style={styles.proCreditsLine}>
+                  <Text style={styles.proCreditsNumber}>150 credits</Text> every month
+                </Text>
+                <Text style={styles.proPerCredit}>{monthlyPrice}/month</Text>
+              </>
+            )}
 
             <View style={styles.proBenefit}>
               <Feather name="zap" size={14} color={PRIMARY} />
@@ -195,16 +301,16 @@ export default function Paywall({ visible, onClose }: Props) {
               style={({ pressed }) => [
                 styles.cta,
                 pressed && styles.ctaPressed,
-                (anyLoading || !monthlyPkg) && styles.ctaDisabled,
+                (anyLoading || !activePkg) && styles.ctaDisabled,
               ]}
               onPress={handlePurchasePro}
-              disabled={anyLoading || !monthlyPkg}
+              disabled={anyLoading || !activePkg}
             >
               {purchasingId === "pro" ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
                 <Text style={styles.ctaText}>
-                  {monthlyPkg ? `Start Pro — ${monthlyPrice}/month` : "Pro plan unavailable"}
+                  {activePkg ? ctaLabel : "Pro plan unavailable"}
                 </Text>
               )}
             </Pressable>
@@ -280,8 +386,8 @@ export default function Paywall({ visible, onClose }: Props) {
           </Pressable>
 
           <Text style={styles.disclaimer}>
-            Captly Pro auto-renews monthly. Cancel anytime in your App Store account settings.
-            Credit packs are one-time purchases.
+            Captly Pro auto-renews (monthly or yearly, depending on the plan you choose) until cancelled.
+            Cancel anytime in your App Store account settings. Credit packs are one-time purchases.
           </Text>
 
           <View style={styles.legalLinks}>
@@ -475,6 +581,92 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Nunito_700Bold",
     color: PRIMARY,
+    letterSpacing: 0.5,
+  },
+  creditsBadge: {
+    backgroundColor: AMBER_LIGHT,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  creditsBadgeText: {
+    fontSize: 11,
+    fontFamily: "Nunito_700Bold",
+    color: PRIMARY,
+    letterSpacing: 0.3,
+  },
+  planOptions: {
+    gap: 10,
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  planOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1.5,
+    borderColor: CARD_BORDER,
+    borderRadius: 12,
+    padding: 14,
+    backgroundColor: "#FFFFFF",
+  },
+  planOptionSelected: {
+    borderColor: PRIMARY,
+    backgroundColor: AMBER_LIGHT,
+  },
+  planLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+  },
+  planTextWrap: {
+    flex: 1,
+  },
+  radio: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: CARD_BORDER,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  radioSelected: {
+    borderColor: PRIMARY,
+  },
+  radioDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: PRIMARY,
+  },
+  planTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  planTitle: {
+    fontSize: 16,
+    fontFamily: "Nunito_700Bold",
+    color: FOREGROUND,
+  },
+  planSub: {
+    fontSize: 13,
+    fontFamily: "Nunito_400Regular",
+    color: MUTED,
+    marginTop: 2,
+  },
+  saveBadge: {
+    backgroundColor: PRIMARY,
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  saveBadgeText: {
+    fontSize: 10,
+    fontFamily: "Nunito_700Bold",
+    color: "#FFFFFF",
     letterSpacing: 0.5,
   },
   packsList: {

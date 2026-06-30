@@ -42,3 +42,13 @@ can't silently revert to the old 500/month if the flag is ever unset, which woul
 contradict the "150/month" wording in legal copy (mobile privacy-policy.tsx/terms.tsx,
 web legal.tsx).
 **Deploy note:** production must have `CREDITS_ENFORCED=true` for the credit gate to be live.
+
+**Annual Pro plan (added):** $59.99/yr, SAME 150 credits/month as monthly (do NOT bump
+annual credits — at ~$0.021/gen, 200/mo annual is break-even/loss after Apple's cut; 150
+keeps a margin). Webhook already grants 150 for any Pro purchase, so no server change. The
+real gap is store config: RC `$rc_annual` package points at a PLACEHOLDER store id
+(`captionai_pro_annual`), not a real ASC product — so annual won't load until you (1) create
+the ASC auto-renew sub `com.captionai.app.pro.yearly` ($59.99/yr) in the existing "Captly Pro
+Monthly" group, and (2) re-point the RC annual product to that id. A brand-new subscription is
+reviewed with an app binary, so it ships with the next build. Paywall.tsx already shows
+monthly+annual (annual default) and self-hides annual when the package is absent.

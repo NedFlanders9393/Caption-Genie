@@ -6,12 +6,16 @@ import { Scene2 } from './video_scenes/Scene2';
 import { Scene3 } from './video_scenes/Scene3';
 import { Scene4 } from './video_scenes/Scene4';
 import { Scene5 } from './video_scenes/Scene5';
+import { Scene6 } from './video_scenes/Scene6';
+import { Scene7 } from './video_scenes/Scene7';
 
 export const SCENE_DURATIONS = {
   hook: 3500,
   problem: 4500,
   solution: 5000,
   proof: 5500,
+  brandvoice: 5500,
+  montage: 4500,
   close: 4000
 };
 
@@ -20,6 +24,8 @@ const SCENE_COMPONENTS: Record<string, React.ComponentType> = {
   problem: Scene2,
   solution: Scene3,
   proof: Scene4,
+  brandvoice: Scene6,
+  montage: Scene7,
   close: Scene5,
 };
 
@@ -113,25 +119,25 @@ export default function VideoTemplate({
         <motion.div
           className="absolute rounded-3xl bg-white/40 backdrop-blur-xl border border-white/60 shadow-[0_8px_32px_rgba(232,182,105,0.1)] z-10"
           animate={{
-            x: ['-10vw', '10vw', '50vw', '20vw', '40vw'][sceneIndex],
-            y: ['20vh', '15vh', '70vh', '80vh', '15vh'][sceneIndex],
-            rotate: [-15, 5, -10, 15, -5][sceneIndex],
-            scale: [0.8, 1.2, 0.6, 1.5, 0.9][sceneIndex],
+            x: ['-10vw', '10vw', '50vw', '20vw', '-8vw', '45vw', '40vw'][sceneIndex],
+            y: ['20vh', '15vh', '70vh', '80vh', '8vh', '85vh', '15vh'][sceneIndex],
+            rotate: [-15, 5, -10, 15, -8, 12, -5][sceneIndex],
+            scale: [0.8, 1.2, 0.6, 1.5, 0.7, 0.5, 0.9][sceneIndex],
             width: '12vh',
             height: '12vh',
-            opacity: sceneIndex === 4 ? 0 : 0.6,
+            opacity: sceneIndex === 5 || sceneIndex === 6 ? 0 : 0.6,
           }}
           transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
         />
         <motion.div
           className="absolute rounded-full bg-gradient-to-tr from-[#E8B669] to-[#FDE6BA] shadow-lg z-10"
           animate={{
-            x: ['80vw', '60vw', '10vw', '70vw', '50vw'][sceneIndex],
-            y: ['70vh', '60vh', '20vh', '10vh', '40vh'][sceneIndex],
-            scale: [0.5, 1.5, 1, 0.8, 0][sceneIndex],
+            x: ['80vw', '60vw', '10vw', '70vw', '85vw', '8vw', '50vw'][sceneIndex],
+            y: ['70vh', '60vh', '20vh', '10vh', '82vh', '10vh', '40vh'][sceneIndex],
+            scale: [0.5, 1.5, 1, 0.8, 0.6, 0.5, 0][sceneIndex],
             width: '6vh',
             height: '6vh',
-            opacity: sceneIndex === 4 ? 0 : 0.8,
+            opacity: sceneIndex === 5 || sceneIndex === 6 ? 0 : 0.8,
           }}
           transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
         />

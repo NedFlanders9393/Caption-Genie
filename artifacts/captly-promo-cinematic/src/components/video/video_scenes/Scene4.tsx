@@ -16,10 +16,10 @@ export function Scene4() {
   }, []);
 
   const features = [
-    { title: "22 Industries", icon: "🏢", delay: 0.2, x: "-10vw", y: "-20vh", align: "left" },
-    { title: "Smart Hashtags", icon: "#️⃣", delay: 0.6, x: "15vw", y: "-5vh", align: "right" },
-    { title: "Platform Aware", icon: "📱", delay: 1.0, x: "-15vw", y: "15vh", align: "left" },
-    { title: "Custom Tones", icon: "🎨", delay: 1.4, x: "10vw", y: "30vh", align: "right" },
+    { title: "22 Industries", icon: "🏢", delay: 0.2, x: "-12vh", y: "-24vh", align: "left" },
+    { title: "Smart Hashtags", icon: "#️⃣", delay: 0.6, x: "12vh", y: "-24vh", align: "right" },
+    { title: "Platform Aware", icon: "📱", delay: 1.0, x: "-12vh", y: "24vh", align: "left" },
+    { title: "Custom Tones", icon: "🎨", delay: 1.4, x: "12vh", y: "24vh", align: "right" },
   ];
 
   return (
@@ -51,7 +51,7 @@ export function Scene4() {
         {features.map((f, i) => (
           <motion.div
             key={i}
-            className="absolute bg-white/90 backdrop-blur-xl border border-white shadow-xl rounded-2xl p-4 flex items-center gap-3 w-48"
+            className="absolute bg-white/90 backdrop-blur-xl border border-white shadow-xl rounded-2xl p-3 flex items-center gap-2 w-40"
             initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
             animate={
               phase >= (i + 1) 

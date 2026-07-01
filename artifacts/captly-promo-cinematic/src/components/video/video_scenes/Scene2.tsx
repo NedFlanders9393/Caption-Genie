@@ -86,7 +86,7 @@ export function Scene2() {
       </motion.div>
       
       <motion.div 
-        className="absolute bottom-[25%] left-[5%] bg-white/90 backdrop-blur text-[#3A3129] px-4 py-2 rounded-2xl rounded-bl-none shadow-xl border border-gray-100 text-sm font-semibold"
+        className="absolute bottom-[25%] left-[5%] bg-white text-[#3A3129] px-4 py-2 rounded-2xl rounded-bl-none shadow-xl border border-[#F0E3D3] text-sm font-semibold"
         initial={{ opacity: 0, scale: 0.5, y: 20 }}
         animate={phase >= 3 ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.5, y: 20 }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}

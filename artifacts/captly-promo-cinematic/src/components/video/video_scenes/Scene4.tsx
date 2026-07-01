@@ -51,7 +51,7 @@ export function Scene4() {
         {features.map((f, i) => (
           <motion.div
             key={i}
-            className="absolute bg-white/90 backdrop-blur-xl border border-white shadow-xl rounded-2xl p-3 flex items-center gap-2 w-40"
+            className="absolute bg-white border border-[#F0E3D3] shadow-xl rounded-2xl p-3 flex items-center gap-2 w-40"
             initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
             animate={
               phase >= (i + 1) 

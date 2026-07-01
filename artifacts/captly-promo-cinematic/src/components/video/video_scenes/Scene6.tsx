@@ -45,7 +45,7 @@ export function Scene6() {
 
       {/* Brand Voice setup panel */}
       <motion.div
-        className="w-full bg-white/85 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white p-5 flex flex-col gap-3.5"
+        className="w-full bg-white rounded-[2rem] shadow-2xl border border-[#F0E3D3] p-5 flex flex-col gap-3.5"
         initial={{ opacity: 0, y: 40 }}
         animate={phase >= 1 ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}

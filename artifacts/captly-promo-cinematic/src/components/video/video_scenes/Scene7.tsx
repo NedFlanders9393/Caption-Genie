@@ -76,7 +76,7 @@ export function Scene7() {
         {BUSINESSES.map((b, i) => (
           <motion.div
             key={b.name}
-            className="bg-white/90 backdrop-blur-xl border border-white shadow-lg rounded-2xl px-3 py-3 flex items-center gap-2.5"
+            className="bg-white border border-[#F0E3D3] shadow-lg rounded-2xl px-3 py-3 flex items-center gap-2.5"
             initial={{ opacity: 0, scale: 0.4, y: 20 }}
             animate={phase >= 2 ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.4, y: 20 }}
             transition={{ type: 'spring', stiffness: 320, damping: 20, delay: i * 0.08 }}

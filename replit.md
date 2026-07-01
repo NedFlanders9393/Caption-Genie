@@ -57,7 +57,8 @@ AI-powered social media caption generator for small business owners, targeting A
 - Vertical 9:16 premium/cinematic promo video (React + Framer Motion via video-js scaffold)
 - Preview path: `/captly-promo-cinematic/`
 - Apple/Notion/Linear-style feature-showcase film (3rd promo, distinct from problem→solution and brand-film): Hook → Problem → Solution → Proof/Features → Brand Voice → Multi-business Montage → Close (7 scenes, ~32.5s)
-- LIGHT on-brand amber/cream background (owner's explicit choice — NOT dark), soft gradients, glassmorphism, Nunito; features 3 AI captions, 22 industries, tones, platform-aware, hashtags, best-time, remix, history; closes on logo + "Now available on the App Store"
+- LIGHT on-brand amber/cream background *inside* the 9:16 frame (owner's explicit choice — NOT dark), soft gradients, glassmorphism, Nunito; features 3 AI captions, 22 industries, tones, platform-aware, hashtags, best-time, remix, history; closes on logo + "Now available on the App Store"
+- The OUTER page/letterbox (area around the 9:16 frame) is dark espresso (#241E1A) so the light video is clearly visible in the preview/canvas — the video CONTENT stays light. Do not revert the outer bg to cream (owner couldn't see the frame edges against a light page).
 - Brand Voice scene (Scene6): shows the Brand Voice setup (brand name, personality/writing-style chips, always/avoid rules) → an on-brand caption result, demonstrating the "sounds like you" differentiator
 - Multi-business Montage scene (Scene7): 8 industries (coffee, salon, real estate, fitness, boutique, restaurant, landscaping, bakery) grid + floating engagement reactions (likes/comments/shares) → "more engagement" stat
 - Premium cinematic instrumental bg music; scene + mute controls (preview only, hidden on export)

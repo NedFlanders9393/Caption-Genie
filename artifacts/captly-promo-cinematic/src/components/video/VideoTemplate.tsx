@@ -77,11 +77,11 @@ export default function VideoTemplate({
 
   return (
     <div
-      className="w-full h-screen overflow-hidden relative flex justify-center bg-[#FFFDF9]"
-      style={{ backgroundColor: 'var(--color-bg-light)' }}
+      className="w-full h-screen overflow-hidden relative flex justify-center bg-[#241E1A]"
+      style={{ backgroundColor: '#241E1A' }}
     >
       {/* 9:16 aspect ratio container for mobile preview style */}
-      <div className="w-[56.25vh] min-w-[320px] max-w-full h-full relative overflow-hidden shadow-2xl shadow-black/10">
+      <div className="w-[56.25vh] min-w-[320px] max-w-full h-full relative overflow-hidden shadow-2xl shadow-black/50 ring-1 ring-white/10 bg-[#FFFDF9]">
         
         {/* Persistent background layers */}
         <div className="absolute inset-0 pointer-events-none">

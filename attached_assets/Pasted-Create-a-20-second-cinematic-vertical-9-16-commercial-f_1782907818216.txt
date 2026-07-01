@@ -1,0 +1,60 @@
+Create a 20-second cinematic vertical (9:16) commercial for a modern AI app called Captly. The visual style should feel like an Apple keynote mixed with a luxury SaaS startup advertisement. Use ultra-smooth camera movement, premium lighting, clean white and gradient backgrounds, floating UI elements, realistic smartphone animations, cinematic depth of field, and fast-paced edits designed for TikTok.
+
+Scene 1 (0–3 seconds):
+A stressed small business owner sits in a coffee shop staring at a blank social media caption box on their phone. They type a few words, delete everything, sigh, and look frustrated. Large kinetic text appears: "Still wasting hours writing captions?" Time freezes as a glowing smartphone rotates toward the camera.
+
+Scene 2 (3–7 seconds):
+The phone transforms into the Captly app with a sleek, modern interface. The user enters a simple prompt: "Grand Opening This Saturday." They quickly select:
+• Industry: Coffee Shop
+• Platform: Instagram
+• Tone: Friendly + Professional + Excited
+They tap a glowing "Generate" button.
+
+Scene 3 (7–12 seconds):
+A beautiful AI animation flows across the screen as three unique, professionally written captions instantly appear with elegant motion graphics. The camera glides over each caption while floating text appears:
+"3 Unique Captions."
+"Generated in Seconds."
+
+Scene 4 (12–16 seconds):
+The interface expands to showcase Captly's premium features. Beautiful animated cards reveal:
+✨ Brand Voice
+📈 Best Time to Post
+#️⃣ Smart Hashtags
+🔄 Caption Remix
+🗂️ History
+
+Show Brand Voice being customized with:
+• Brand name
+• Brand personality
+• Target audience
+• Writing style
+• Words to always include
+• Words to avoid
+• Sample captions
+
+Then show new captions automatically matching the brand's unique voice.
+
+Scene 5 (16–20 seconds):
+Fast cinematic montage of different business owners successfully posting content:
+• Coffee shop
+• Hair salon
+• Real estate agent
+• Fitness coach
+• Clothing boutique
+• Restaurant
+• Landscaping company
+• Bakery
+
+Social media engagement rapidly increases with likes, comments, shares, and notifications appearing naturally.
+
+The phone rotates onto a clean white background. The Captly logo appears with elegant typography.
+
+Final text:
+"Write Less."
+"Grow More."
+"Captly"
+"AI Captions That Sound Like You."
+
+End with a premium App Store-style product shot of the app.
+
+Style: Hyper-realistic, Apple commercial quality, luxury SaaS branding, cinematic lighting, smooth camera movement, realistic smartphone UI, vibrant gradients, modern typography, elegant transitions, shallow depth of field, polished motion graphics, ultra-detailed, 4K, viral TikTok advertisement.

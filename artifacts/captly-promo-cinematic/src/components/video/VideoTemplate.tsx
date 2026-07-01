@@ -77,8 +77,8 @@ export default function VideoTemplate({
 
   return (
     <div
-      className="w-full h-screen overflow-hidden relative flex justify-center bg-[#241E1A]"
-      style={{ backgroundColor: '#241E1A' }}
+      className="w-full h-screen overflow-hidden relative flex justify-center bg-black"
+      style={{ backgroundColor: '#000000' }}
     >
       {/* 9:16 aspect ratio container for mobile preview style */}
       <div className="w-[56.25vh] min-w-[320px] max-w-full h-full relative overflow-hidden shadow-2xl shadow-black/50 ring-1 ring-white/10 bg-[#FFFDF9]">

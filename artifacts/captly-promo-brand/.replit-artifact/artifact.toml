@@ -1,6 +1,6 @@
 kind = "video"
 previewPath = "/captly-promo-brand/"
-title = "Captly Brand Promo"
+title = "Captly Feature Reel"
 version = "1.0.0"
 id = "artifacts/captly-promo-brand"
 router = "path"

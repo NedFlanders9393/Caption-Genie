@@ -6,70 +6,81 @@ export function Scene3() {
 
   useEffect(() => {
     const timers = [
-      setTimeout(() => setPhase(1), 200),
-      setTimeout(() => setPhase(2), 600),
-      setTimeout(() => setPhase(3), 1000),
-      setTimeout(() => setPhase(4), 1600),
-      setTimeout(() => setPhase(5), 2800), // Exit
+      setTimeout(() => setPhase(1), 200),  // 3 options header
+      setTimeout(() => setPhase(2), 600),  // cards pop
+      setTimeout(() => setPhase(3), 1800), // swap to 22 industries
+      setTimeout(() => setPhase(4), 2100), // grid pops
+      setTimeout(() => setPhase(5), 3300), // Exit
     ];
     return () => timers.forEach(t => clearTimeout(t));
   }, []);
 
+  const industries = ['☕ Coffee', '💇 Salon', '💪 Gym', '🏡 Realtor', '👗 Boutique', '🍽️ Dining', '🌿 Landscaping', '💅 Spa'];
+
   return (
     <motion.div 
-      className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--color-primary)] z-30 overflow-hidden"
-      initial={{ y: "100%" }}
-      animate={{ y: "0%" }}
-      exit={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
-      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+      className="absolute inset-0 flex flex-col items-center justify-center px-6 z-20"
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -50, filter: 'blur(8px)' }}
+      transition={{ duration: 0.5 }}
     >
-      
-      <div className="relative w-full px-8 text-center">
-        {/* Kinetic Type Magic */}
-        <motion.h2 
-          className="text-[12vw] font-black text-[var(--color-bg-dark)] leading-[1] uppercase"
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
-          <motion.span 
-            className="block"
-            initial={{ scale: 0.5, opacity: 0, y: 50 }}
-            animate={phase >= 1 ? { scale: 1, opacity: 1, y: 0 } : { scale: 0.5, opacity: 0, y: 50 }}
-            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+      {/* Phase 1 & 2: 3 Options */}
+      {phase < 3 && (
+        <motion.div className="w-full flex flex-col items-center absolute inset-x-6 top-1/2 -translate-y-1/2">
+          <motion.h2 
+            className="text-4xl font-black text-[#3A3129] leading-tight mb-8 text-center"
+            initial={{ opacity: 0, y: -20 }}
+            animate={phase >= 1 ? { opacity: 1, y: 0 } : { opacity: 0, y: -20 }}
           >
-            Effortless
-          </motion.span>
-          <motion.span 
-            className="block italic text-white"
-            initial={{ scale: 0.5, opacity: 0, y: 50 }}
-            animate={phase >= 2 ? { scale: 1, opacity: 1, y: 0 } : { scale: 0.5, opacity: 0, y: 50 }}
-            transition={{ type: "spring", stiffness: 400, damping: 20 }}
-          >
-            Captions
-          </motion.span>
-        </motion.h2>
+            1 Idea <br/>
+            <span className="text-[#E8B669] text-5xl">= 3 Captions</span>
+          </motion.h2>
 
-        <motion.div 
-          className="mt-8 overflow-hidden inline-block"
-          initial={{ height: 0 }}
-          animate={phase >= 3 ? { height: "auto" } : { height: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        >
-          <p className="text-2xl font-bold text-[var(--color-bg-dark)]/80 py-2">
-            In literal seconds.
-          </p>
+          <div className="flex flex-col gap-4 w-full">
+            {[1, 2, 3].map((num, i) => (
+              <motion.div
+                key={num}
+                className="bg-white border-[3px] border-[#3A3129] rounded-2xl p-5 shadow-[4px_4px_0_0_#3A3129] w-full flex items-center gap-4"
+                initial={{ opacity: 0, x: -40, scale: 0.9 }}
+                animate={phase >= 2 ? { opacity: 1, x: 0, scale: 1 } : { opacity: 0, x: -40, scale: 0.9 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25, delay: i * 0.15 }}
+              >
+                <div className="w-8 h-8 rounded-full bg-[#E8B669] flex items-center justify-center text-[#3A3129] font-black text-xl shrink-0">{num}</div>
+                <div className="h-3 bg-[#E8B669]/30 rounded-full w-full" />
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
+      )}
 
-        {/* Abstract lightning spark bursts around */}
-        {phase >= 4 && (
-          <>
-            <motion.div className="absolute top-0 right-10 w-4 h-16 bg-white rotate-45 origin-bottom"
-              initial={{ scaleY: 0, opacity: 1 }} animate={{ scaleY: [0, 1, 0], y: -50, x: 50 }} transition={{ duration: 0.6 }} />
-            <motion.div className="absolute bottom-10 left-10 w-4 h-16 bg-[var(--color-bg-dark)] -rotate-45 origin-top"
-              initial={{ scaleY: 0, opacity: 1 }} animate={{ scaleY: [0, 1, 0], y: 50, x: -50 }} transition={{ duration: 0.6, delay: 0.1 }} />
-          </>
-        )}
-      </div>
+      {/* Phase 3 & 4: 22 Industries */}
+      {phase >= 3 && (
+        <motion.div className="w-full flex flex-col items-center absolute inset-x-6 top-1/2 -translate-y-1/2">
+          <motion.h2 
+            className="text-4xl font-black text-[#3A3129] leading-tight mb-8 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={phase >= 3 ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          >
+            Built for <br/>
+            <span className="text-[#E8B669] text-5xl">22+ Industries</span>
+          </motion.h2>
 
+          <div className="grid grid-cols-2 gap-3 w-full">
+            {industries.map((ind, i) => (
+              <motion.div
+                key={ind}
+                className="bg-white border-2 border-[#E8B669] rounded-2xl p-4 shadow-md font-black text-[#3A3129] text-base flex items-center justify-center"
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={phase >= 4 ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.5 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20, delay: i * 0.05 }}
+              >
+                {ind}
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 }

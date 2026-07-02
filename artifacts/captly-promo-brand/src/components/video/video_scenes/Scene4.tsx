@@ -6,72 +6,82 @@ export function Scene4() {
 
   useEffect(() => {
     const timers = [
-      setTimeout(() => setPhase(1), 300),
-      setTimeout(() => setPhase(2), 800),
-      setTimeout(() => setPhase(3), 2600), // Exit drift
+      setTimeout(() => setPhase(1), 200),  // Platforms header
+      setTimeout(() => setPhase(2), 600),  // Platforms cards
+      setTimeout(() => setPhase(3), 1800), // Hashtags swap
+      setTimeout(() => setPhase(4), 2100), // Hashtags cascade
+      setTimeout(() => setPhase(5), 3300), // Exit
     ];
     return () => timers.forEach(t => clearTimeout(t));
   }, []);
 
+  const platforms = ['Instagram', 'TikTok', 'LinkedIn', 'Facebook'];
+  const hashtags = ['#smallbusiness', '#local', '#coffee', '#community', '#morning', '#cafe', '#vibe', '#daily'];
+
   return (
     <motion.div 
-      className="absolute inset-0 flex flex-col items-start justify-end p-8 pb-32 z-40 bg-[var(--color-bg-dark)]"
-      initial={{ x: "100%" }}
-      animate={{ x: "0%" }}
-      exit={{ opacity: 0, x: "-50%" }}
-      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+      className="absolute inset-0 flex flex-col items-center justify-center px-6 z-20"
+      initial={{ opacity: 0, scale: 1.1 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, y: 50, filter: 'blur(8px)' }}
+      transition={{ duration: 0.5 }}
     >
-      
-      {/* Soft floating shapes inside the dark bg */}
-      <motion.div 
-        className="absolute top-[20%] right-[-20%] w-[80vw] h-[80vw] rounded-full blur-[60px] opacity-30"
-        style={{ background: 'var(--color-primary)' }}
-        animate={{ y: [0, -30, 0], scale: [1, 1.1, 1] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div 
-        className="absolute bottom-[30%] left-[-20%] w-[60vw] h-[60vw] rounded-full blur-[50px] opacity-20"
-        style={{ background: 'white' }}
-        animate={{ y: [0, 40, 0], scale: [1, 1.2, 1] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-      />
+      {/* Platform Aware */}
+      {phase < 3 && (
+        <motion.div className="w-full flex flex-col items-center absolute inset-x-6 top-1/2 -translate-y-1/2">
+          <motion.h2 
+            className="text-4xl font-black text-[#3A3129] leading-tight mb-8 text-center"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={phase >= 1 ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+          >
+            Same idea.<br/>
+            <span className="text-[#E8B669] text-5xl">Every Platform.</span>
+          </motion.h2>
 
-      <div className="relative z-10">
-        <motion.div 
-          className="w-16 h-1 bg-[var(--color-primary)] mb-6"
-          initial={{ width: 0 }}
-          animate={phase >= 1 ? { width: 64 } : { width: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-        />
-        
-        <motion.h2 
-          className="text-6xl font-black text-white leading-tight tracking-tight"
-          initial={{ opacity: 0, y: 20 }}
-          animate={phase >= 1 ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.8 }}
-        >
-          Made for
-        </motion.h2>
-        
-        <motion.h2 
-          className="text-6xl font-black text-[var(--color-primary)] leading-tight tracking-tight italic"
-          initial={{ opacity: 0, x: -20 }}
-          animate={phase >= 2 ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
-          transition={{ duration: 0.8, type: "spring" }}
-        >
-          Creators.
-        </motion.h2>
+          <div className="flex flex-col gap-3 w-full">
+            {platforms.map((plat, i) => (
+              <motion.div
+                key={plat}
+                className="bg-[#3A3129] text-[#FFFDF9] border-[3px] border-[#E8B669] rounded-2xl p-4 w-full flex items-center justify-between shadow-xl"
+                initial={{ opacity: 0, y: 30 }}
+                animate={phase >= 2 ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25, delay: i * 0.1 }}
+              >
+                <span className="font-black text-lg">{plat}</span>
+                <span className="text-xl">📱</span>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
-        <motion.p
-          className="text-xl text-white/70 mt-4 max-w-xs font-semibold"
-          initial={{ opacity: 0 }}
-          animate={phase >= 2 ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-        >
-          You focus on building.<br/>We'll handle the words.
-        </motion.p>
-      </div>
+      {/* Hashtags */}
+      {phase >= 3 && (
+        <motion.div className="w-full flex flex-col items-center absolute inset-x-6 top-1/2 -translate-y-1/2">
+          <motion.h2 
+            className="text-4xl font-black text-[#3A3129] leading-tight mb-8 text-center"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={phase >= 3 ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+          >
+            30 Hashtags.<br/>
+            <span className="text-[#E8B669] text-5xl">1 Tap.</span>
+          </motion.h2>
 
+          <div className="flex flex-wrap justify-center gap-3 w-full">
+            {hashtags.map((tag, i) => (
+              <motion.div
+                key={tag}
+                className="bg-white border-2 border-[#3A3129] text-[#3A3129] font-black text-base px-4 py-2 rounded-xl shadow-[2px_2px_0_0_#E8B669]"
+                initial={{ opacity: 0, scale: 0 }}
+                animate={phase >= 4 ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20, delay: i * 0.08 }}
+              >
+                {tag}
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 }

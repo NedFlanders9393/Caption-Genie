@@ -46,11 +46,14 @@ AI-powered social media caption generator for small business owners, targeting A
 - On-brand amber/cream, Nunito; lo-fi instrumental bg music; scene + mute controls (preview only, hidden on export)
 - Not deployable — exported from the preview pane
 
-### Captly Brand Promo (`artifacts/captly-promo-brand`)
-- Vertical 9:16 animated brand-film promo video (React + Framer Motion via video-js scaffold)
-- Preview path: `/captly-promo-brand/`
-- Brand-showcase style (distinct from the problem→solution promo): lightning-bolt logo build, brand vibe, name/tagline reveal, App Store lockup (5 scenes, ~18.5s)
-- On-brand amber/cream, Nunito; warm uplifting cinematic instrumental bg music; scene + mute controls (preview only, hidden on export)
+### Captly Feature Reel (`artifacts/captly-promo-brand`)
+- Vertical 9:16 animated fast-paced FEATURE REEL video (React + Framer Motion via video-js scaffold)
+- Preview path: `/captly-promo-brand/` (slug kept from the retired Brand Promo it replaced; title is "Captly Feature Reel")
+- NOTE: this artifact was originally the "Brand Promo" (brand-film style). It was rebuilt in place into a short, fast, hook-first feature reel because the project is capped at 7 artifacts and the owner wanted a fresh feature-showcase video for TikTok. The old lightning-bolt brand-film scenes are gone.
+- Kinetic/fast style (distinct from the other 3 promos: problem→solution, cinematic): rapid cuts showcasing EVERY feature, Brand Voice leading (6 scenes, ~18.5s): (1) hook "Every AI caption sounds like a robot 🤖 — not this one", (2) Brand Voice hero (sounds like YOU), (3) 1 idea → 3 captions + 22 industries, (4) platform-aware + 30 hashtags in 1 tap, (5) best time to post + caption remix, (6) close: logo + "Free on the App Store"
+- On-brand amber/cream, Nunito; NO music (owner adds trending audio in CapCut); scene controls only (mute/audio removed)
+- Same frame rule as cinematic: 9:16 cream (#FFFDF9) content column centered in a pure-black (#000000) 16:9 outer letterbox; opaque cards (no glassmorphism) for export clarity; owner crops the 9:16 column in CapCut
+- Logo at `public/images/captly-logo.png` (copied from cinematic promo)
 - Not deployable — exported from the preview pane
 
 ### Captly Cinematic Promo (`artifacts/captly-promo-cinematic`)

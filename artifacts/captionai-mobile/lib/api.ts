@@ -115,6 +115,7 @@ export interface CaptionParams {
   captionLength?: string;
   includeEmojis?: boolean;
   ctaType?: string;
+  keywords?: string;
   brandVoice?: BrandVoice;
 }
 

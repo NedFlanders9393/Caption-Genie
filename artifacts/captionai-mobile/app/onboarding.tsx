@@ -77,8 +77,8 @@ const SLIDES: Slide[] = [
     subtitle: "Three quick steps from idea to ready-to-post.",
     bullets: [
       { icon: "edit-3", text: "Describe your post in a few words" },
-      { icon: "sliders", text: "Pick your tone, platform & style" },
-      { icon: "copy", text: "Copy your caption and share it" },
+      { icon: "sliders", text: "Pick tone, platform, style & must-have words" },
+      { icon: "edit-2", text: "Edit, then copy & share your caption" },
     ],
   },
   {

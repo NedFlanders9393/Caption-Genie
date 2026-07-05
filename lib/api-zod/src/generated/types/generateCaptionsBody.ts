@@ -19,4 +19,6 @@ export interface GenerateCaptionsBody {
   captionLength?: string;
   includeEmojis?: boolean;
   ctaType?: string;
+  /** Comma-separated words/phrases the user wants woven into every caption */
+  keywords?: string;
 }

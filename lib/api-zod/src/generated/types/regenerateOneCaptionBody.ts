@@ -18,6 +18,8 @@ export interface RegenerateOneCaptionBody {
   captionLength?: string;
   includeEmojis?: boolean;
   ctaType?: string;
+  /** Comma-separated words/phrases the user wants woven into every caption */
+  keywords?: string;
   /** Captions already shown so the new one is different */
   existingCaptions?: string[];
 }

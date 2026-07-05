@@ -609,6 +609,7 @@ function buildCaptionPrompt(params: {
   captionLength?: string;
   includeEmojis?: boolean;
   ctaType?: string;
+  keywords?: string;
   count?: number;
   avoidCaptions?: string[];
   brandVoice?: BrandVoice;
@@ -622,6 +623,7 @@ function buildCaptionPrompt(params: {
     captionLength = "Medium",
     includeEmojis = true,
     ctaType,
+    keywords,
     count = 3,
     avoidCaptions = [],
     brandVoice,
@@ -654,6 +656,10 @@ function buildCaptionPrompt(params: {
   const ctaInstruction = ctaType && ctaType !== "None"
     ? `Call-to-Action: End with a natural, non-pushy version of '${ctaType}'. Integrate it smoothly — don't just append it. Make it feel like the logical next step.`
     : "Call-to-Action: Include a soft, natural CTA that fits the post type — could be a question, an invitation, or a direction.";
+
+  const keywordsInstruction = keywords && keywords.trim()
+    ? `Must-include keywords: naturally weave ALL of these words/phrases into every caption without sounding forced — ${keywords.trim()}.`
+    : "";
 
   const avoidSection = avoidCaptions.length > 0
     ? `\n\nCRITICAL — DO NOT produce captions that are structurally or thematically similar to these:\n${avoidCaptions.map((c, i) => `${i + 1}. ${c}`).join("\n")}\nEach new caption must use a completely different hook, structure, and angle.`
@@ -748,7 +754,7 @@ ${platformGuide}
 ${toneInstruction}
 Length: ${lengthGuide}
 ${emojiInstruction}
-${ctaInstruction}
+${ctaInstruction}${keywordsInstruction ? `\n${keywordsInstruction}` : ""}
 Hashtags: ${hashtagGuide}
 ${postTypeFormula}
 
@@ -813,6 +819,7 @@ function buildPersonalCaptionPrompt(params: {
   captionLength?: string;
   includeEmojis?: boolean;
   ctaType?: string;
+  keywords?: string;
   count?: number;
   avoidCaptions?: string[];
 }) {
@@ -823,6 +830,7 @@ function buildPersonalCaptionPrompt(params: {
     captionLength = "Medium",
     includeEmojis = true,
     ctaType,
+    keywords,
     count = 3,
     avoidCaptions = [],
   } = params;
@@ -855,6 +863,10 @@ function buildPersonalCaptionPrompt(params: {
     ? `Engagement: End with a natural, friendly version of '${ctaType}' — only if it fits the vibe. Never salesy.`
     : "Engagement: If it fits naturally, end with something that invites replies (a question, a relatable confession, a 'be honest…'). Optional — never force it.";
 
+  const keywordsInstruction = keywords && keywords.trim()
+    ? `Must-include: naturally work ALL of these words/phrases into every caption without forcing it — ${keywords.trim()}.`
+    : "";
+
   const hashtagGuide = {
     Instagram: "Include 5-8 relatable hashtags — the kind real people actually use, not marketing tags. Place at the end.",
     Facebook: "Include 1-2 hashtags only, if any.",
@@ -884,7 +896,7 @@ ${platformGuide}
 ${toneInstruction}
 Length: ${lengthGuide}
 ${emojiInstruction}
-${ctaInstruction}
+${ctaInstruction}${keywordsInstruction ? `\n${keywordsInstruction}` : ""}
 Hashtags: ${hashtagGuide}
 
 ━━━ WHAT MAKES A GREAT PERSONAL CAPTION ━━━
@@ -1022,7 +1034,7 @@ captionsRouter.post("/captions/generate", async (req, res) => {
   const { allowed, isPro, refund } = await enforceUsageLimit(userId, req, res, 1);
   if (!allowed) return;
 
-  const { mode, niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType } = parsed.data;
+  const { mode, niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType, keywords } = parsed.data;
   const isPersonal = mode === "personal";
   // Personal mode never uses brand voice — it's for people without a brand.
   const brandVoice = isPersonal ? undefined : (req.body.brandVoice as BrandVoice | undefined);
@@ -1049,6 +1061,7 @@ captionsRouter.post("/captions/generate", async (req, res) => {
                 captionLength: captionLength ?? undefined,
                 includeEmojis: includeEmojis ?? true,
                 ctaType: ctaType ?? undefined,
+                keywords: keywords ?? undefined,
                 count: 3,
               })
             : buildCaptionPrompt({
@@ -1060,6 +1073,7 @@ captionsRouter.post("/captions/generate", async (req, res) => {
                 captionLength: captionLength ?? undefined,
                 includeEmojis: includeEmojis ?? true,
                 ctaType: ctaType ?? undefined,
+                keywords: keywords ?? undefined,
                 count: 3,
                 brandVoice,
               }),
@@ -1111,7 +1125,7 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
   const { allowed, isPro, refund } = await enforceUsageLimit(userId, req, res, 1);
   if (!allowed) return;
 
-  const { mode, niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType, existingCaptions } = parsed.data;
+  const { mode, niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType, keywords, existingCaptions } = parsed.data;
   const isPersonalRegen = mode === "personal";
   const brandVoice = isPersonalRegen ? undefined : (req.body.brandVoice as BrandVoice | undefined);
 
@@ -1137,6 +1151,7 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
                 captionLength: captionLength ?? undefined,
                 includeEmojis: includeEmojis ?? true,
                 ctaType: ctaType ?? undefined,
+                keywords: keywords ?? undefined,
                 count: 1,
                 avoidCaptions: existingCaptions ?? [],
               })
@@ -1149,6 +1164,7 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
                 captionLength: captionLength ?? undefined,
                 includeEmojis: includeEmojis ?? true,
                 ctaType: ctaType ?? undefined,
+                keywords: keywords ?? undefined,
                 count: 1,
                 avoidCaptions: existingCaptions ?? [],
                 brandVoice,

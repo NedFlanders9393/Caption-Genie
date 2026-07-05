@@ -151,6 +151,9 @@ components:
           type: boolean
         ctaType:
           type: string
+        keywords:
+          type: string
+          description: Comma-separated words/phrases the user wants woven into every caption
       required:
         - postDescription
         - tone
@@ -198,6 +201,9 @@ components:
           type: boolean
         ctaType:
           type: string
+        keywords:
+          type: string
+          description: Comma-separated words/phrases the user wants woven into every caption
         existingCaptions:
           type: array
           items:

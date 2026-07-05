@@ -120,6 +120,7 @@ export default function GenerateScreen() {
   const [captionLength, setCaptionLength] = useState("Medium");
   const [includeEmojis, setIncludeEmojis] = useState(true);
   const [ctaType, setCtaType] = useState("None");
+  const [keywords, setKeywords] = useState("");
   const [captions, setCaptions] = useState<CaptionItem[]>([]);
   const [multiResults, setMultiResults] = useState<MultiPlatformResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -182,8 +183,9 @@ export default function GenerateScreen() {
     captionLength,
     includeEmojis,
     ctaType: ctaType === "None" ? undefined : ctaType,
+    keywords: keywords.trim() || undefined,
     brandVoice: isPersonal ? undefined : (hasBrandVoice ? brandVoice : undefined),
-  }), [mode, isPersonal, niche, description, tones, platforms, postType, captionLength, includeEmojis, ctaType, hasBrandVoice, brandVoice]);
+  }), [mode, isPersonal, niche, description, tones, platforms, postType, captionLength, includeEmojis, ctaType, keywords, hasBrandVoice, brandVoice]);
 
   const handleGenerate = useCallback(async () => {
     if (!canGenerate) return;
@@ -481,6 +483,31 @@ export default function GenerateScreen() {
           />
         </View>
 
+        <View style={styles.section}>
+          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>
+            Must-include words <Text style={{ fontFamily: "Nunito_400Regular" }}>(optional)</Text>
+          </Text>
+          <TextInput
+            style={[
+              styles.keywordInput,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderRadius: colors.radius / 2,
+                color: colors.foreground,
+              },
+            ]}
+            placeholder="e.g. summer sale, free shipping, @yourbrand"
+            placeholderTextColor={colors.mutedForeground}
+            maxLength={120}
+            value={keywords}
+            onChangeText={setKeywords}
+          />
+          <Text style={[styles.charCount, { color: colors.mutedForeground, textAlign: "left" }]}>
+            Words or phrases we'll weave into every caption
+          </Text>
+        </View>
+
         {error ? (
           <View style={[styles.errorBox, { backgroundColor: "#FEF2F2", borderColor: "#FECACA", borderRadius: colors.radius / 2 }]}>
             <Feather name="alert-circle" size={16} color={colors.destructive} />
@@ -525,6 +552,7 @@ export default function GenerateScreen() {
                   index={i}
                   caption={c.caption}
                   hashtags={c.hashtags}
+                  platform={platforms[0] ?? "Instagram"}
                   favoriteId={favId}
                   isFavorited={favId ? isFavorited(favId) : false}
                   onFavorite={favId ? () => toggleFavorite({
@@ -584,6 +612,7 @@ export default function GenerateScreen() {
                   index={i}
                   caption={c.caption}
                   hashtags={c.hashtags}
+                  platform={activePlatformTab}
                   favoriteId={favId}
                   isFavorited={favId ? isFavorited(favId) : false}
                   onFavorite={favId ? () => toggleFavorite({
@@ -698,6 +727,13 @@ const styles = StyleSheet.create({
     fontFamily: "Nunito_400Regular",
     minHeight: 100,
     lineHeight: 22,
+  },
+  keywordInput: {
+    borderWidth: 1.5,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    fontFamily: "Nunito_400Regular",
   },
   charCount: {
     fontSize: 12,

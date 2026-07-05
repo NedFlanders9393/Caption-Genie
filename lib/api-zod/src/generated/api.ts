@@ -37,6 +37,12 @@ export const GenerateCaptionsBody = zod.object({
   captionLength: zod.string().optional(),
   includeEmojis: zod.boolean().optional(),
   ctaType: zod.string().optional(),
+  keywords: zod
+    .string()
+    .optional()
+    .describe(
+      "Comma-separated words\/phrases the user wants woven into every caption",
+    ),
 });
 
 export const GenerateCaptionsResponse = zod.object({
@@ -66,6 +72,12 @@ export const RegenerateOneCaptionBody = zod.object({
   captionLength: zod.string().optional(),
   includeEmojis: zod.boolean().optional(),
   ctaType: zod.string().optional(),
+  keywords: zod
+    .string()
+    .optional()
+    .describe(
+      "Comma-separated words\/phrases the user wants woven into every caption",
+    ),
   existingCaptions: zod
     .array(zod.string())
     .optional()

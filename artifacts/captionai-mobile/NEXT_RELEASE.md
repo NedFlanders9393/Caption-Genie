@@ -44,7 +44,25 @@ Live-version metadata can't change without a review, so these go in with this bu
   - Why: removes the duplicate word "caption", drops wasted spaces after commas,
     and adds higher-traffic terms (generator, tiktok, reels, post, bio).
 
-### 5. Version bump (at build time)
+### 5. Four "quick win" caption features (competitor-inspired)
+Small, high-value additions to the Generate screen + each caption card:
+1. **Character count + platform limit** — every caption shows a live character
+   count against the platform's real limit (e.g. Twitter/X 280, Instagram 2,200),
+   turning red when it runs over. _(App code — `components/CaptionCard.tsx`.)_
+2. **Edit before copying** — a pencil on each caption lets people tweak the text
+   (and hashtags) right in the app before copying/sharing. _(`components/CaptionCard.tsx`.)_
+3. **"Must-include" words** — an optional field on the Generate screen where users
+   type words/phrases (product, location, sale, @handle) that the AI weaves into
+   every caption. _(App `app/(tabs)/generate.tsx` + `lib/api.ts`; server
+   `artifacts/api-server/src/routes/captions.ts`; spec `lib/api-spec/openapi.yaml`.)_
+4. **Copy caption / copy hashtags separately** — the top copy button still copies
+   everything; new footer chips copy just the caption, or just the hashtags (for
+   the "hashtags in the first comment" trick). _(`components/CaptionCard.tsx`.)_
+- Onboarding "How it works" slide updated to mention must-have words + editing.
+- Server change for #3 is already live (no build needed for backend); the UI ships
+  with this build.
+
+### 6. Version bump (at build time)
 - `app.json`: version `1.0.1` → `1.0.2`, iOS `buildNumber` `37` → `38`.
 
 ---

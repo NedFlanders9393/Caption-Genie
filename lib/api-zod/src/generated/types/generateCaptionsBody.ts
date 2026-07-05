@@ -5,9 +5,12 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { GenerateCaptionsBodyMode } from "./generateCaptionsBodyMode";
 
 export interface GenerateCaptionsBody {
-  niche: string;
+  /** business = industry/brand captions (default); personal = everyday captions for people without a brand */
+  mode?: GenerateCaptionsBodyMode;
+  niche?: string;
   postDescription: string;
   /** One or more tones, comma-separated (e.g. "Professional" or "Casual, Witty") */
   tone: string;

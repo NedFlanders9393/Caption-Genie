@@ -401,6 +401,22 @@ These phrases signal AI immediately. They destroy the illusion that a real perso
 
 Always respond with valid JSON only — no markdown fences, no code blocks, no extra commentary before or after.`;
 
+const SYSTEM_PROMPT_PERSONAL = `You are the wittiest, most relatable person on the internet — the friend whose captions everyone screenshots and whose posts always get the most comments. You write captions for regular people sharing moments from their everyday lives. NOT businesses. NOT brands. Real humans posting for their friends and followers.
+
+YOUR CRAFT:
+- Every caption sounds like a real person tossed it off — effortless, human, a little imperfect in the best way
+- You capture a feeling or a moment so precisely that people think "this is SO me"
+- Humor, honesty, and personality over polish. You'd rather be relatable than impressive.
+- Specific and concrete always beats vague ("my third iced coffee before noon" beats "coffee lover")
+- You never, ever sound like an ad, a brand, or a chatbot
+
+THE #1 RULE: This is a person's real life, not a marketing campaign. No selling, no CTAs to "shop" or "book", no corporate voice. Just a human being funny, honest, or real.
+
+ABSOLUTELY FORBIDDEN — these instantly break the "real person" illusion. NEVER use:
+"game-changer", "dive in", "delve", "unleash", "elevate your", "cutting-edge", "passionate about", "journey", "synergy", "seamless", "empower", "innovative", "transformative", "at the end of the day", "it's no secret", "in today's world", "look no further", "don't miss out", "stay tuned", "proud to announce", "we are thrilled", "excited to share"
+
+Always respond with valid JSON only — no markdown fences, no code blocks, no extra commentary before or after.`;
+
 function buildSystemPrompt(hasSamplesOrDescription: boolean): string {
   return hasSamplesOrDescription ? SYSTEM_PROMPT_GHOST_WRITER : SYSTEM_PROMPT_COPYWRITER;
 }
@@ -787,6 +803,113 @@ This is the final gate. A caption that misses their voice fails — no matter ho
 }`;
 }
 
+// Personal mode — everyday captions for real people WITHOUT a brand/business.
+// No niche profile, no "customer", no sales framing. Just a relatable human
+// posting a moment from their own life for friends and followers.
+function buildPersonalCaptionPrompt(params: {
+  postDescription: string;
+  tone: string;
+  platform?: string;
+  captionLength?: string;
+  includeEmojis?: boolean;
+  ctaType?: string;
+  count?: number;
+  avoidCaptions?: string[];
+}) {
+  const {
+    postDescription,
+    tone,
+    platform = "Instagram",
+    captionLength = "Medium",
+    includeEmojis = true,
+    ctaType,
+    count = 3,
+    avoidCaptions = [],
+  } = params;
+
+  const platformGuide = PLATFORM_GUIDES[platform] ?? PLATFORM_GUIDES["Instagram"];
+
+  const tones = tone.split(",").map((t) => t.trim()).filter(Boolean);
+  const toneBlend = tones.map((t) => TONE_BLEND_GUIDE[t]).filter(Boolean).join(" | ");
+  const toneInstruction = tones.length > 1
+    ? `Blend these tones together naturally (${tones.join(" + ")}): ${toneBlend}`
+    : `Tone: ${tones[0]} — ${toneBlend || tones[0]}`;
+
+  const lengthGuide = {
+    Short: "Short: 1-3 punchy lines, under 150 characters. A single vivid thought or one-liner.",
+    Medium: "Medium: 3-6 lines, 150-300 characters. A relatable moment with a little personality.",
+    Long: "Long: 8-15 lines, 400-700 characters. A story or a stream-of-thought with rhythm and line breaks.",
+  }[captionLength] ?? "Medium: 3-6 lines, 150-300 characters.";
+
+  const emojiInstruction = includeEmojis
+    ? "Emojis: Use 2-4 emojis naturally — the way a real person texts. Never as filler."
+    : "Emojis: DO NOT use any emojis whatsoever.";
+
+  // In personal mode, business CTAs (Shop Now, Book Now, etc.) don't fit. Only
+  // honor engagement-style prompts; otherwise keep it to a natural, optional nudge.
+  const engagementCtas = new Set([
+    "Comment Below", "Drop a Comment", "Tell Us Below", "Tag a Friend",
+    "Share This", "Save This Post", "Follow for More",
+  ]);
+  const ctaInstruction = ctaType && ctaType !== "None" && engagementCtas.has(ctaType)
+    ? `Engagement: End with a natural, friendly version of '${ctaType}' — only if it fits the vibe. Never salesy.`
+    : "Engagement: If it fits naturally, end with something that invites replies (a question, a relatable confession, a 'be honest…'). Optional — never force it.";
+
+  const hashtagGuide = {
+    Instagram: "Include 5-8 relatable hashtags — the kind real people actually use, not marketing tags. Place at the end.",
+    Facebook: "Include 1-2 hashtags only, if any.",
+    LinkedIn: "Include 2-3 relevant hashtags.",
+    TikTok: "Include 4-6 hashtags — mix trending + relatable. #fyp is fine.",
+    "Twitter/X": "Include 1-2 hashtags ONLY, woven in naturally.",
+    YouTube: "Include 3-5 hashtags at the very end.",
+    Pinterest: "Include 2-5 descriptive, searchable hashtags.",
+  }[platform] ?? "Include 5-8 relatable hashtags.";
+
+  const avoidSection = avoidCaptions.length > 0
+    ? `\n\nCRITICAL — DO NOT produce captions similar to these already shown:\n${avoidCaptions.map((c, i) => `${i + 1}. ${c}`).join("\n")}\nEach new caption must use a completely different angle and opening.`
+    : "";
+
+  return `TASK: Write ${count} authentic, scroll-stopping social media caption(s) for a REAL PERSON posting to their own PERSONAL account — not a business. There is no product, no brand, and nothing being sold. This is someone sharing a moment from their own life with friends and followers.
+
+━━━ THE POST ━━━
+What this post is about: ${postDescription}
+
+━━━ WHO'S POSTING ━━━
+A regular person — think of writing as a witty, self-aware friend. The goal is likes, comments, and shares from friends, NOT conversions or marketing. Never sound like a brand, an ad, or a chatbot.
+
+━━━ PLATFORM MASTERY ━━━
+${platformGuide}
+
+━━━ CRAFT REQUIREMENTS ━━━
+${toneInstruction}
+Length: ${lengthGuide}
+${emojiInstruction}
+${ctaInstruction}
+Hashtags: ${hashtagGuide}
+
+━━━ WHAT MAKES A GREAT PERSONAL CAPTION ━━━
+- Sounds unmistakably human — never corporate, never salesy
+- Relatable: captures a feeling or moment other people instantly recognize
+- Has personality: humor, honesty, a genuine thought, or a hot take
+- Specific beats generic ("third coffee before noon" beats "enjoying coffee")
+- Feels effortless, like they tossed it off — even though every word is chosen
+
+FORBIDDEN PHRASES (these scream AI or ad copy — never use):
+"game-changer", "dive in", "delve", "unleash", "elevate your", "cutting-edge", "passionate about", "journey", "synergy", "seamless", "empower", "innovative", "transformative", "at the end of the day", "it's no secret", "in today's world", "look no further", "don't miss out", "stay tuned", "proud to announce", "we are thrilled", "excited to share"
+
+Use a DIFFERENT opening move for each caption — e.g. relatable confession, funny observation, a genuine thought, a bold little opinion, a vivid tiny moment, or a question.${avoidSection}
+
+━━━ RESPOND IN THIS EXACT JSON FORMAT ━━━
+{
+  "captions": [
+    {
+      "caption": "The full caption text here — no hashtags in this field",
+      "hashtags": "#hashtag1 #hashtag2 #hashtag3"
+    }
+  ]
+}`;
+}
+
 function buildHashtagPrompt(params: { niche: string; topic: string; platform?: string }) {
   const { niche, topic, platform = "Instagram" } = params;
   const nicheProfile = NICHE_PROFILES[niche] ?? `${niche} business`;
@@ -899,8 +1022,10 @@ captionsRouter.post("/captions/generate", async (req, res) => {
   const { allowed, isPro, refund } = await enforceUsageLimit(userId, req, res, 1);
   if (!allowed) return;
 
-  const { niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType } = parsed.data;
-  const brandVoice = req.body.brandVoice as BrandVoice | undefined;
+  const { mode, niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType } = parsed.data;
+  const isPersonal = mode === "personal";
+  // Personal mode never uses brand voice — it's for people without a brand.
+  const brandVoice = isPersonal ? undefined : (req.body.brandVoice as BrandVoice | undefined);
 
   const allSamples = (brandVoice?.sampleCaptions ?? []).filter(Boolean).length > 0
     ? (brandVoice?.sampleCaptions ?? []).filter(Boolean)
@@ -912,22 +1037,32 @@ captionsRouter.post("/captions/generate", async (req, res) => {
     const message = await anthropic.messages.create({
       model,
       max_tokens: 8192,
-      system: buildSystemPrompt(hasSamplesOrDescription),
+      system: isPersonal ? SYSTEM_PROMPT_PERSONAL : buildSystemPrompt(hasSamplesOrDescription),
       messages: [
         {
           role: "user",
-          content: buildCaptionPrompt({
-            niche,
-            postDescription,
-            tone,
-            platform: platform ?? undefined,
-            postType: postType ?? undefined,
-            captionLength: captionLength ?? undefined,
-            includeEmojis: includeEmojis ?? true,
-            ctaType: ctaType ?? undefined,
-            count: 3,
-            brandVoice,
-          }),
+          content: isPersonal
+            ? buildPersonalCaptionPrompt({
+                postDescription,
+                tone,
+                platform: platform ?? undefined,
+                captionLength: captionLength ?? undefined,
+                includeEmojis: includeEmojis ?? true,
+                ctaType: ctaType ?? undefined,
+                count: 3,
+              })
+            : buildCaptionPrompt({
+                niche: niche || "General Business",
+                postDescription,
+                tone,
+                platform: platform ?? undefined,
+                postType: postType ?? undefined,
+                captionLength: captionLength ?? undefined,
+                includeEmojis: includeEmojis ?? true,
+                ctaType: ctaType ?? undefined,
+                count: 3,
+                brandVoice,
+              }),
         },
       ],
     });
@@ -976,8 +1111,9 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
   const { allowed, isPro, refund } = await enforceUsageLimit(userId, req, res, 1);
   if (!allowed) return;
 
-  const { niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType, existingCaptions } = parsed.data;
-  const brandVoice = req.body.brandVoice as BrandVoice | undefined;
+  const { mode, niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType, existingCaptions } = parsed.data;
+  const isPersonalRegen = mode === "personal";
+  const brandVoice = isPersonalRegen ? undefined : (req.body.brandVoice as BrandVoice | undefined);
 
   const allSamplesRegen = (brandVoice?.sampleCaptions ?? []).filter(Boolean).length > 0
     ? (brandVoice?.sampleCaptions ?? []).filter(Boolean)
@@ -989,23 +1125,34 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
     const message = await anthropic.messages.create({
       model,
       max_tokens: 8192,
-      system: buildSystemPrompt(hasSamplesOrDescriptionRegen),
+      system: isPersonalRegen ? SYSTEM_PROMPT_PERSONAL : buildSystemPrompt(hasSamplesOrDescriptionRegen),
       messages: [
         {
           role: "user",
-          content: buildCaptionPrompt({
-            niche,
-            postDescription,
-            tone,
-            platform: platform ?? undefined,
-            postType: postType ?? undefined,
-            captionLength: captionLength ?? undefined,
-            includeEmojis: includeEmojis ?? true,
-            ctaType: ctaType ?? undefined,
-            count: 1,
-            avoidCaptions: existingCaptions ?? [],
-            brandVoice,
-          }),
+          content: isPersonalRegen
+            ? buildPersonalCaptionPrompt({
+                postDescription,
+                tone,
+                platform: platform ?? undefined,
+                captionLength: captionLength ?? undefined,
+                includeEmojis: includeEmojis ?? true,
+                ctaType: ctaType ?? undefined,
+                count: 1,
+                avoidCaptions: existingCaptions ?? [],
+              })
+            : buildCaptionPrompt({
+                niche: niche || "General Business",
+                postDescription,
+                tone,
+                platform: platform ?? undefined,
+                postType: postType ?? undefined,
+                captionLength: captionLength ?? undefined,
+                includeEmojis: includeEmojis ?? true,
+                ctaType: ctaType ?? undefined,
+                count: 1,
+                avoidCaptions: existingCaptions ?? [],
+                brandVoice,
+              }),
         },
       ],
     });

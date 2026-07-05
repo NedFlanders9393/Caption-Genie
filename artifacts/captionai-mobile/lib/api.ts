@@ -106,6 +106,7 @@ export interface BrandVoice {
 }
 
 export interface CaptionParams {
+  mode?: "business" | "personal";
   niche: string;
   postDescription: string;
   tone: string;

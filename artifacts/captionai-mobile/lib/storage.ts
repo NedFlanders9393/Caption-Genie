@@ -57,6 +57,7 @@ export interface HistoryEntry {
   id: string;
   createdAt: number;
   params: {
+    mode?: "business" | "personal";
     niche: string;
     postDescription: string;
     tone: string;

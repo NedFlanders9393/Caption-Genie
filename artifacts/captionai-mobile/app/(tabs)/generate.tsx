@@ -110,6 +110,7 @@ export default function GenerateScreen() {
     autoGenerate?: string;
   }>();
 
+  const [mode, setMode] = useState<"business" | "personal">("business");
   const [platforms, setPlatforms] = useState<string[]>(["Instagram"]);
   const [activePlatformTab, setActivePlatformTab] = useState("Instagram");
   const [niche, setNiche] = useState("");
@@ -161,24 +162,28 @@ export default function GenerateScreen() {
     if (niche) syncNiche(niche);
   }, [niche]);
 
+  const isPersonal = mode === "personal";
+
   const brandVoice = user?.unsafeMetadata?.brandVoice as BrandVoice | undefined;
   const hasBrandVoice = !!(brandVoice?.brandName || brandVoice?.tagline || brandVoice?.personality?.length || brandVoice?.targetAudience || brandVoice?.captionStyle?.length || brandVoice?.sampleCaption || brandVoice?.sampleCaptions?.length || brandVoice?.voiceDescription);
 
-  const canGenerate = niche && tones.length > 0 && description.trim();
+  // Personal mode is for people without a brand — an industry is not required.
+  const canGenerate = (isPersonal || niche) && tones.length > 0 && description.trim();
 
   const multiPlatform = platforms.length > 1;
 
   const buildParams = useCallback((): CaptionParams => ({
-    niche,
+    mode,
+    niche: isPersonal ? "" : niche,
     postDescription: description.trim(),
     tone: tones.join(", "),
     platform: platforms[0] ?? "Instagram",
-    postType: postType || undefined,
+    postType: isPersonal ? undefined : (postType || undefined),
     captionLength,
     includeEmojis,
     ctaType: ctaType === "None" ? undefined : ctaType,
-    brandVoice: hasBrandVoice ? brandVoice : undefined,
-  }), [niche, description, tones, platforms, postType, captionLength, includeEmojis, ctaType, hasBrandVoice, brandVoice]);
+    brandVoice: isPersonal ? undefined : (hasBrandVoice ? brandVoice : undefined),
+  }), [mode, isPersonal, niche, description, tones, platforms, postType, captionLength, includeEmojis, ctaType, hasBrandVoice, brandVoice]);
 
   const handleGenerate = useCallback(async () => {
     if (!canGenerate) return;
@@ -204,7 +209,7 @@ export default function GenerateScreen() {
         await addToHistory({
           id: genId,
           createdAt: Date.now(),
-          params: { niche, postDescription: description.trim(), tone: tones.join(", "), platform: platforms.join(", "), postType, captionLength },
+          params: { mode, niche: isPersonal ? "" : niche, postDescription: description.trim(), tone: tones.join(", "), platform: platforms.join(", "), postType: isPersonal ? "" : postType, captionLength },
           captions: results[0]?.captions ?? [],
           multiPlatformResults: results,
         });
@@ -218,7 +223,7 @@ export default function GenerateScreen() {
         await addToHistory({
           id: genId,
           createdAt: Date.now(),
-          params: { niche, postDescription: description.trim(), tone: tones.join(", "), platform: platforms[0] ?? "Instagram", postType, captionLength },
+          params: { mode, niche: isPersonal ? "" : niche, postDescription: description.trim(), tone: tones.join(", "), platform: platforms[0] ?? "Instagram", postType: isPersonal ? "" : postType, captionLength },
           captions: result,
         });
       }
@@ -336,8 +341,48 @@ export default function GenerateScreen() {
           )}
         </View>
 
-        {/* Brand Voice Badge */}
-        {hasBrandVoice ? (
+        {/* Business / Personal mode toggle */}
+        <View style={[styles.modeToggle, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}>
+          {(["business", "personal"] as const).map((m) => {
+            const active = mode === m;
+            return (
+              <TouchableOpacity
+                key={m}
+                onPress={() => {
+                  if (mode === m) return;
+                  if (Platform.OS !== "web") { try { Haptics.selectionAsync(); } catch {} }
+                  setMode(m);
+                  setCaptions([]);
+                  setMultiResults([]);
+                  setError(null);
+                }}
+                style={[
+                  styles.modeOption,
+                  { borderRadius: colors.radius - 3 },
+                  active && { backgroundColor: colors.primary },
+                ]}
+                activeOpacity={0.85}
+              >
+                <Feather
+                  name={m === "business" ? "briefcase" : "user"}
+                  size={14}
+                  color={active ? "#fff" : colors.mutedForeground}
+                />
+                <Text style={[styles.modeOptionText, { color: active ? "#fff" : colors.mutedForeground }]}>
+                  {m === "business" ? "Business" : "Personal"}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        <Text style={[styles.modeHint, { color: colors.mutedForeground }]}>
+          {isPersonal
+            ? "Everyday captions for your own posts — no business needed."
+            : "Captions for your business, brand, or industry."}
+        </Text>
+
+        {/* Brand Voice Badge — business mode only */}
+        {isPersonal ? null : hasBrandVoice ? (
           <TouchableOpacity
             style={[styles.brandVoiceBadge, { backgroundColor: "#F8EFE4", borderRadius: colors.radius / 2 }]}
             onPress={() => router.push("/brand-voice")}
@@ -371,16 +416,18 @@ export default function GenerateScreen() {
           <PlatformPicker selected={platforms} onToggle={togglePlatform} />
         </View>
 
-        <View style={styles.section}>
-          <View style={styles.row}>
-            <View style={styles.flex1}>
-              <OptionPicker label="Industry" value={niche} options={NICHES} onSelect={setNiche} placeholder="Select niche" />
-            </View>
-            <View style={styles.flex1}>
-              <OptionPicker label="Post Type" value={postType} options={POST_TYPES} onSelect={setPostType} placeholder="Optional" />
+        {!isPersonal && (
+          <View style={styles.section}>
+            <View style={styles.row}>
+              <View style={styles.flex1}>
+                <OptionPicker label="Industry" value={niche} options={NICHES} onSelect={setNiche} placeholder="Select niche" />
+              </View>
+              <View style={styles.flex1}>
+                <OptionPicker label="Post Type" value={postType} options={POST_TYPES} onSelect={setPostType} placeholder="Optional" />
+              </View>
             </View>
           </View>
-        </View>
+        )}
 
         <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>
@@ -401,7 +448,7 @@ export default function GenerateScreen() {
                 color: colors.foreground,
               },
             ]}
-            placeholder="Describe your post, product, promotion, or message..."
+            placeholder={isPersonal ? "Describe your photo, moment, or what you want to say..." : "Describe your post, product, promotion, or message..."}
             placeholderTextColor={colors.mutedForeground}
             multiline
             numberOfLines={4}
@@ -583,6 +630,30 @@ const styles = StyleSheet.create({
   proChipText: {
     fontSize: 12,
     fontFamily: "Nunito_600SemiBold",
+  },
+  modeToggle: {
+    flexDirection: "row",
+    padding: 3,
+    borderWidth: 1,
+    gap: 3,
+  },
+  modeOption: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 9,
+  },
+  modeOptionText: {
+    fontSize: 14,
+    fontFamily: "Nunito_600SemiBold",
+  },
+  modeHint: {
+    fontSize: 12,
+    fontFamily: "Nunito_400Regular",
+    marginTop: -12,
+    marginLeft: 2,
   },
   brandVoiceBadge: {
     flexDirection: "row",

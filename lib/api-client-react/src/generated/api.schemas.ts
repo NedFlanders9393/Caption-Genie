@@ -9,8 +9,21 @@ export interface HealthStatus {
   status: string;
 }
 
+/**
+ * business = industry/brand captions (default); personal = everyday captions for people without a brand
+ */
+export type GenerateCaptionsBodyMode =
+  (typeof GenerateCaptionsBodyMode)[keyof typeof GenerateCaptionsBodyMode];
+
+export const GenerateCaptionsBodyMode = {
+  business: "business",
+  personal: "personal",
+} as const;
+
 export interface GenerateCaptionsBody {
-  niche: string;
+  /** business = industry/brand captions (default); personal = everyday captions for people without a brand */
+  mode?: GenerateCaptionsBodyMode;
+  niche?: string;
   postDescription: string;
   /** One or more tones, comma-separated (e.g. "Professional" or "Casual, Witty") */
   tone: string;
@@ -30,8 +43,21 @@ export interface GenerateCaptionsResponse {
   captions: CaptionItem[];
 }
 
+/**
+ * business = industry/brand captions (default); personal = everyday captions for people without a brand
+ */
+export type RegenerateOneCaptionBodyMode =
+  (typeof RegenerateOneCaptionBodyMode)[keyof typeof RegenerateOneCaptionBodyMode];
+
+export const RegenerateOneCaptionBodyMode = {
+  business: "business",
+  personal: "personal",
+} as const;
+
 export interface RegenerateOneCaptionBody {
-  niche: string;
+  /** business = industry/brand captions (default); personal = everyday captions for people without a brand */
+  mode?: RegenerateOneCaptionBodyMode;
+  niche?: string;
   postDescription: string;
   tone: string;
   platform?: string;

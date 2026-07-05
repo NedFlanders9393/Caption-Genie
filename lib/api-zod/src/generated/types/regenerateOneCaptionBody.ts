@@ -5,9 +5,12 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { RegenerateOneCaptionBodyMode } from "./regenerateOneCaptionBodyMode";
 
 export interface RegenerateOneCaptionBody {
-  niche: string;
+  /** business = industry/brand captions (default); personal = everyday captions for people without a brand */
+  mode?: RegenerateOneCaptionBodyMode;
+  niche?: string;
   postDescription: string;
   tone: string;
   platform?: string;

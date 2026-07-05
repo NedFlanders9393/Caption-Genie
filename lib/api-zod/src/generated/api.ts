@@ -19,7 +19,13 @@ export const HealthCheckResponse = zod.object({
  * @summary Generate social media captions using AI
  */
 export const GenerateCaptionsBody = zod.object({
-  niche: zod.string(),
+  mode: zod
+    .enum(["business", "personal"])
+    .optional()
+    .describe(
+      "business = industry\/brand captions (default); personal = everyday captions for people without a brand",
+    ),
+  niche: zod.string().optional(),
   postDescription: zod.string(),
   tone: zod
     .string()
@@ -46,7 +52,13 @@ export const GenerateCaptionsResponse = zod.object({
  * @summary Regenerate a single caption
  */
 export const RegenerateOneCaptionBody = zod.object({
-  niche: zod.string(),
+  mode: zod
+    .enum(["business", "personal"])
+    .optional()
+    .describe(
+      "business = industry\/brand captions (default); personal = everyday captions for people without a brand",
+    ),
+  niche: zod.string().optional(),
   postDescription: zod.string(),
   tone: zod.string(),
   platform: zod.string().optional(),

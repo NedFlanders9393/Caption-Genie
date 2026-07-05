@@ -1,6 +1,6 @@
 # Captly — Next App Store Update (batch everything into ONE build)
 
-_Last updated: June 30, 2026._
+_Last updated: July 5, 2026._
 
 **Goal:** ship all pending iOS changes in a single new build + App Store review,
 instead of submitting a separate build for each change.
@@ -17,7 +17,21 @@ instead of submitting a separate build for each change.
 - Paywall now shows **Monthly + Annual side by side**, Annual pre-selected with a
   **"SAVE 50%"** badge. _(App code done — `components/Paywall.tsx`.)_
 
-### 2. App Store listing (ASO) — metadata, applied at submission
+### 2. New "Business / Personal" mode toggle
+- A toggle at the top of the Generate screen lets people use Captly **without a
+  business**. _(App code done — `app/(tabs)/generate.tsx`, `lib/api.ts`; server
+  `artifacts/api-server/src/routes/captions.ts`.)_
+- **Business** mode: unchanged — captions tuned to your industry + brand voice.
+- **Personal** mode: everyday captions for any photo/moment. Hides the Industry,
+  Post Type, and Brand Voice options; uses a separate, non-salesy AI writing style.
+- Server is already live (no build needed for the backend); the toggle UI ships
+  with this build.
+
+### 3. Onboarding slide for the new toggle
+- New first-launch slide ("Business or Personal") explains the two modes so new
+  users know they can post without a business. _(App code done — `app/onboarding.tsx`.)_
+
+### 4. App Store listing (ASO) — metadata, applied at submission
 Live-version metadata can't change without a review, so these go in with this build.
 
 - **Subtitle** (currently EMPTY → fill it):
@@ -30,7 +44,7 @@ Live-version metadata can't change without a review, so these go in with this bu
   - Why: removes the duplicate word "caption", drops wasted spaces after commas,
     and adds higher-traffic terms (generator, tiktok, reels, post, bio).
 
-### 3. Version bump (at build time)
+### 5. Version bump (at build time)
 - `app.json`: version `1.0.1` → `1.0.2`, iOS `buildNumber` `37` → `38`.
 
 ---

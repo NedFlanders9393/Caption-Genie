@@ -56,10 +56,23 @@ const SLIDES: Slide[] = [
     ],
   },
   {
-    id: "how",
-    icon: "compass",
+    id: "modes",
+    icon: "users",
     tile: [C.amber, C.amberDeep],
     iconColor: C.white,
+    title: "Business or Personal",
+    subtitle: "Tap the toggle up top to switch anytime — no business required.",
+    bullets: [
+      { icon: "briefcase", text: "Business: captions tuned to your brand & industry" },
+      { icon: "user", text: "Personal: everyday captions for any photo or moment" },
+      { icon: "repeat", text: "Switch modes anytime with one tap" },
+    ],
+  },
+  {
+    id: "how",
+    icon: "compass",
+    tile: [C.dark, C.darkDeep],
+    iconColor: C.amber,
     title: "How it works",
     subtitle: "Three quick steps from idea to ready-to-post.",
     bullets: [
@@ -71,8 +84,8 @@ const SLIDES: Slide[] = [
   {
     id: "tools",
     icon: "grid",
-    tile: [C.dark, C.darkDeep],
-    iconColor: C.amber,
+    tile: [C.amber, C.amberDeep],
+    iconColor: C.white,
     title: "More than just captions",
     subtitle: "A full toolkit to make every post perform.",
     bullets: [
@@ -85,8 +98,8 @@ const SLIDES: Slide[] = [
   {
     id: "ready",
     icon: "star",
-    tile: [C.amber, C.amberDeep],
-    iconColor: C.white,
+    tile: [C.dark, C.darkDeep],
+    iconColor: C.amber,
     title: "You're all set",
     subtitle: "Start free — upgrade anytime when you're ready.",
     bullets: [

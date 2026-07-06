@@ -94,7 +94,7 @@ title = "5 — Features"
 id = "SvToDy1JtZFtLrDhVSv8h"
 uri = "file://app-store-screenshots/new/captly-1-hero-1284x2778.png"
 type = "image"
-title = "1 — Hero (upload first)"
+title = "1 — Hero: Never stare at a blank caption again"
 
 [[outputs]]
 id = "-WJ73eYYkgzFeLwiKmzzN"
@@ -137,3 +137,39 @@ id = "QA_sci5kSJbl2YAJ3PGWX"
 uri = "file://artifacts/captly-promo-cinematic/public/audio/bg_music.mp3"
 type = "audio"
 title = "captly_cinematic_bg_long"
+
+[[outputs]]
+id = "l4I-M_NaUmina_-zaQF4o"
+uri = "file://app-store-screenshots/new/captly-2-personal-1284x2778.png"
+type = "image"
+title = "2 — NEW: Business or Personal mode"
+
+[[outputs]]
+id = "adFeQIdRU5nSFBFTC_RLb"
+uri = "file://app-store-screenshots/new/captly-3-captions-1284x2778.png"
+type = "image"
+title = "3 — Three captions (edit + character count + copy)"
+
+[[outputs]]
+id = "O9jDo88l6sGrjsCYuoZgg"
+uri = "file://app-store-screenshots/new/captly-4-madeforyou-1284x2778.png"
+type = "image"
+title = "4 — Sounds like you (industries, tones, must-have words)"
+
+[[outputs]]
+id = "gV3YZJKWHx4vY7i_6CrnP"
+uri = "file://app-store-screenshots/new/captly-5-hashtags-1284x2778.png"
+type = "image"
+title = "5 — Hashtags that get you found"
+
+[[outputs]]
+id = "b7Of49E2EIFb72o95TNKI"
+uri = "file://app-store-screenshots/new/captly-6-pricing-1284x2778.png"
+type = "image"
+title = "6 — NEW: Annual plan, Save 50%"
+
+[[outputs]]
+id = "wc8rRKN5Sujvcyq3cA-FY"
+uri = "file://app-store-screenshots/new/captly-7-features-1284x2778.png"
+type = "image"
+title = "7 — Everything you need to post like a pro"

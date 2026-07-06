@@ -62,7 +62,22 @@ Small, high-value additions to the Generate screen + each caption card:
 - Server change for #3 is already live (no build needed for backend); the UI ships
   with this build.
 
-### 6. Version bump (at build time)
+### 6. Personal-mode upgrades (occasions + stronger anti-ad guardrails)
+Makes the "Personal" side sharper and keeps it from ever sounding like an ad:
+- **Occasion presets** (personal mode only): an optional picker with 18 everyday
+  occasions (Birthday, Vacation/Travel, Milestone, Food, Selfie/Outfit, Throwback,
+  Pet, Friends/Night Out, Relationship, Family, Fitness, Gratitude, Rant/Vent,
+  Funny/Meme, Nature, Holiday/Seasonal, Big News, Everyday Moment). Each steers the
+  caption's structure + vibe — the personal equivalent of business "Post Type".
+- **Stronger "never sound like an ad" rules**: personal prompt now hard-blocks
+  prices, discounts, promo codes, product/brand names, "link in bio", and sales CTAs,
+  and reframes anything sellable as the person's own life moment. Expanded the
+  forbidden-phrase list too. (Verified: a "candles on sale, 20% off, link in bio"
+  description came back as personal maker's-pride captions with zero ad language.)
+- Server changes are already live (no build needed for the backend); the Occasion
+  picker UI ships with this build.
+
+### 7. Version bump (at build time)
 - `app.json`: version `1.0.1` → `1.0.2`, iOS `buildNumber` `37` → `38`.
 
 ---

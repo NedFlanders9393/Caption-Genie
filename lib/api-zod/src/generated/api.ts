@@ -43,6 +43,12 @@ export const GenerateCaptionsBody = zod.object({
     .describe(
       "Comma-separated words\/phrases the user wants woven into every caption",
     ),
+  occasion: zod
+    .string()
+    .optional()
+    .describe(
+      "Personal-mode occasion preset (e.g. Birthday, Vacation\/Travel) that shapes the caption's structure and vibe",
+    ),
 });
 
 export const GenerateCaptionsResponse = zod.object({
@@ -77,6 +83,12 @@ export const RegenerateOneCaptionBody = zod.object({
     .optional()
     .describe(
       "Comma-separated words\/phrases the user wants woven into every caption",
+    ),
+  occasion: zod
+    .string()
+    .optional()
+    .describe(
+      "Personal-mode occasion preset (e.g. Birthday, Vacation\/Travel) that shapes the caption's structure and vibe",
     ),
   existingCaptions: zod
     .array(zod.string())

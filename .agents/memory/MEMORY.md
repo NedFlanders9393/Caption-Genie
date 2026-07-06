@@ -16,4 +16,5 @@
 - [Captly web routes](captly-web-routes.md) — `/` = marketing landing, `/app` = the real generator; Stripe checkout return URLs must point to wherever CaptionAIApp is mounted or web upgrades fail.
 - [Captly video export clarity](captly-video-export-clarity.md) — promo "blur" is mostly export/recording resolution (not code-fixable); code lever is opaque cards over translucent glass; enlarge preview before export.
 - [Captly DB schema drift](captly-db-schema-drift.md) — live DB has tables not in drizzle schema (caption_history, user_favorites); drizzle-kit push proposes destructive drops. Add tables via dev executeSql DDL, then republish to reach prod.
+- [Captly personal mode](captly-personal-mode.md) — separate prompt path; anti-ad guardrails are load-bearing; thread any optional caption input through all layers (spec+codegen, both routes, client, buildParams).
 - [App Store post-approval "not available in your region"](captly-launch-propagation.md) — first-release propagation (up to ~72h) or device Apple-Account region, NOT a config bug; verify territory via appPriceSchedule baseTerritory/manualPrices (appAvailabilityV2 is 403/404 on our key).

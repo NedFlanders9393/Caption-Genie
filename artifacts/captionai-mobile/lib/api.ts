@@ -112,6 +112,7 @@ export interface CaptionParams {
   tone: string;
   platform?: string;
   postType?: string;
+  occasion?: string;
   captionLength?: string;
   includeEmojis?: boolean;
   ctaType?: string;

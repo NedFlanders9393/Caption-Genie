@@ -34,6 +34,8 @@ export interface GenerateCaptionsBody {
   ctaType?: string;
   /** Comma-separated words/phrases the user wants woven into every caption */
   keywords?: string;
+  /** Personal-mode occasion preset (e.g. Birthday, Vacation/Travel) that shapes the caption's structure and vibe */
+  occasion?: string;
 }
 
 export interface CaptionItem {
@@ -69,6 +71,8 @@ export interface RegenerateOneCaptionBody {
   ctaType?: string;
   /** Comma-separated words/phrases the user wants woven into every caption */
   keywords?: string;
+  /** Personal-mode occasion preset (e.g. Birthday, Vacation/Travel) that shapes the caption's structure and vibe */
+  occasion?: string;
   /** Captions already shown so the new one is different */
   existingCaptions?: string[];
 }

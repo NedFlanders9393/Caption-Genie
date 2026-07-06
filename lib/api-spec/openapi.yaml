@@ -154,6 +154,9 @@ components:
         keywords:
           type: string
           description: Comma-separated words/phrases the user wants woven into every caption
+        occasion:
+          type: string
+          description: Personal-mode occasion preset (e.g. Birthday, Vacation/Travel) that shapes the caption's structure and vibe
       required:
         - postDescription
         - tone
@@ -204,6 +207,9 @@ components:
         keywords:
           type: string
           description: Comma-separated words/phrases the user wants woven into every caption
+        occasion:
+          type: string
+          description: Personal-mode occasion preset (e.g. Birthday, Vacation/Travel) that shapes the caption's structure and vibe
         existingCaptions:
           type: array
           items:

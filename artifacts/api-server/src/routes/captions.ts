@@ -812,6 +812,29 @@ This is the final gate. A caption that misses their voice fails — no matter ho
 // Personal mode — everyday captions for real people WITHOUT a brand/business.
 // No niche profile, no "customer", no sales framing. Just a relatable human
 // posting a moment from their own life for friends and followers.
+// Personal "occasion" formulas — the everyday-life equivalent of business POST_TYPE_FORMULAS.
+// Each one steers structure + vibe for a real person's post (never a brand).
+const PERSONAL_OCCASION_GUIDE: Record<string, string> = {
+  "Birthday": "A birthday post. Warm, celebratory, a little reflective or funny. Either celebrating their own birthday (grateful, playful about aging) or someone else's (a heartfelt or funny shout-out). Avoid greeting-card clichés.",
+  "Vacation/Travel": "A travel/vacation post. Transport the reader with one vivid sensory detail of the place. Mix awe with a relatable or funny travel moment. Not a travel brochure.",
+  "Milestone/Achievement": "A personal win (graduation, new job, promotion, finishing something hard). Proud but humble and human — acknowledge the grind, not just the trophy. Let real emotion show.",
+  "Food/Meal": "A food post. Make it mouthwatering with specifics, or funny/relatable about the craving or the cooking chaos. Personal, not a restaurant ad.",
+  "Selfie/Outfit": "A selfie or outfit post. Confident, playful, or self-aware. A one-liner with attitude beats a paragraph. Never sound like you're selling the clothes.",
+  "Throwback": "A throwback/memory post. Nostalgic, warm, or funny about the past. 'Take me back' energy — reflect on how a moment felt or what's changed.",
+  "Pet": "A pet post. Lean into humor and love — pets are relatable gold. Write it from the heart (or cheekily from the pet's 'perspective'). Specific quirks beat generic cuteness.",
+  "Friends/Night Out": "A friends / night-out post. Fun, inside-joke energy, gratitude for the people. Capture the vibe of the night, not a play-by-play.",
+  "Relationship/Love": "A relationship/love post. Sweet, genuine, or playfully teasing about a partner. Specific tiny moments beat grand declarations. Avoid cheesy.",
+  "Family": "A family post. Warm, honest, sometimes funny about family life. Real over perfect — the small, true moments land best.",
+  "Fitness/Workout": "A fitness/workout post. Motivational but human — the struggle, the small wins, the 'why do I do this'. Never a coaching sales pitch.",
+  "Gratitude/Reflection": "A gratitude or reflection post. Thoughtful and sincere without being preachy. A genuine realization or a quiet thank-you. Keep it grounded, not sappy.",
+  "Rant/Vent": "A lighthearted rant/vent post. Funny, relatable frustration — the kind that makes people comment 'same'. Keep it playful, not genuinely bitter.",
+  "Funny/Meme": "A funny/meme-style post. Go for the laugh — a bold observation, absurd take, or 'me:' / 'also me:' format. Punchy and short.",
+  "Nature/Outdoors": "A nature/outdoors post. One vivid image of the moment plus how it felt. Peaceful, awed, or funny about the effort it took to get there.",
+  "Holiday/Seasonal": "A holiday or seasonal post. Capture the mood of the season/holiday personally — traditions, cozy or chaotic reality, a bit of humor. Not a promotional holiday ad.",
+  "Big News/Announcement": "A personal life announcement (engagement, pregnancy, moving, big change). Genuinely excited and personal. Let the news breathe — human joy, not corporate 'we're thrilled to announce'.",
+  "Everyday Moment": "A small everyday moment made interesting. Find the relatable or funny angle in something ordinary — specific beats generic ('third coffee before noon' beats 'enjoying coffee').",
+};
+
 function buildPersonalCaptionPrompt(params: {
   postDescription: string;
   tone: string;
@@ -820,6 +843,7 @@ function buildPersonalCaptionPrompt(params: {
   includeEmojis?: boolean;
   ctaType?: string;
   keywords?: string;
+  occasion?: string;
   count?: number;
   avoidCaptions?: string[];
 }) {
@@ -831,6 +855,7 @@ function buildPersonalCaptionPrompt(params: {
     includeEmojis = true,
     ctaType,
     keywords,
+    occasion,
     count = 3,
     avoidCaptions = [],
   } = params;
@@ -867,6 +892,10 @@ function buildPersonalCaptionPrompt(params: {
     ? `Must-include: naturally work ALL of these words/phrases into every caption without forcing it — ${keywords.trim()}.`
     : "";
 
+  const occasionInstruction = occasion && PERSONAL_OCCASION_GUIDE[occasion]
+    ? `Occasion (${occasion}): ${PERSONAL_OCCASION_GUIDE[occasion]}`
+    : "";
+
   const hashtagGuide = {
     Instagram: "Include 5-8 relatable hashtags — the kind real people actually use, not marketing tags. Place at the end.",
     Facebook: "Include 1-2 hashtags only, if any.",
@@ -884,7 +913,7 @@ function buildPersonalCaptionPrompt(params: {
   return `TASK: Write ${count} authentic, scroll-stopping social media caption(s) for a REAL PERSON posting to their own PERSONAL account — not a business. There is no product, no brand, and nothing being sold. This is someone sharing a moment from their own life with friends and followers.
 
 ━━━ THE POST ━━━
-What this post is about: ${postDescription}
+What this post is about: ${postDescription}${occasionInstruction ? `\n${occasionInstruction}` : ""}
 
 ━━━ WHO'S POSTING ━━━
 A regular person — think of writing as a witty, self-aware friend. The goal is likes, comments, and shares from friends, NOT conversions or marketing. Never sound like a brand, an ad, or a chatbot.
@@ -906,8 +935,15 @@ Hashtags: ${hashtagGuide}
 - Specific beats generic ("third coffee before noon" beats "enjoying coffee")
 - Feels effortless, like they tossed it off — even though every word is chosen
 
+━━━ NEVER SOUND LIKE AN AD (hard rules) ━━━
+- This is a personal post. Do NOT promote, sell, market, or advertise anything.
+- NEVER mention a price, discount, sale, deal, promo code, coupon, product name, brand name, "link in bio", or "swipe up".
+- NEVER write a sales/marketing call-to-action: no "shop now", "book now", "order today", "buy", "sign up", "DM to buy", "available now", "get yours", "check out my", "on sale".
+- No promotional announcement/hype voice ("introducing", "you won't believe", "limited time", "we're thrilled to announce"). EXCEPTION: for a genuine PERSONAL life update (engagement, pregnancy, new home, new job), real heartfelt excitement is welcome — just keep it human and personal, never corporate or salesy.
+- If the description sounds like a product or business, reframe it as THIS PERSON's own life moment — never something being sold.
+
 FORBIDDEN PHRASES (these scream AI or ad copy — never use):
-"game-changer", "dive in", "delve", "unleash", "elevate your", "cutting-edge", "passionate about", "journey", "synergy", "seamless", "empower", "innovative", "transformative", "at the end of the day", "it's no secret", "in today's world", "look no further", "don't miss out", "stay tuned", "proud to announce", "we are thrilled", "excited to share"
+"game-changer", "dive in", "delve", "unleash", "elevate your", "cutting-edge", "passionate about", "journey", "synergy", "seamless", "empower", "innovative", "transformative", "at the end of the day", "it's no secret", "in today's world", "look no further", "don't miss out", "stay tuned", "proud to announce", "we are thrilled", "excited to share", "introducing", "now available", "limited time", "link in bio", "swipe up", "check out my", "grab yours", "you won't believe", "must-have"
 
 Use a DIFFERENT opening move for each caption — e.g. relatable confession, funny observation, a genuine thought, a bold little opinion, a vivid tiny moment, or a question.${avoidSection}
 
@@ -1034,7 +1070,7 @@ captionsRouter.post("/captions/generate", async (req, res) => {
   const { allowed, isPro, refund } = await enforceUsageLimit(userId, req, res, 1);
   if (!allowed) return;
 
-  const { mode, niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType, keywords } = parsed.data;
+  const { mode, niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType, keywords, occasion } = parsed.data;
   const isPersonal = mode === "personal";
   // Personal mode never uses brand voice — it's for people without a brand.
   const brandVoice = isPersonal ? undefined : (req.body.brandVoice as BrandVoice | undefined);
@@ -1062,6 +1098,7 @@ captionsRouter.post("/captions/generate", async (req, res) => {
                 includeEmojis: includeEmojis ?? true,
                 ctaType: ctaType ?? undefined,
                 keywords: keywords ?? undefined,
+                occasion: occasion ?? undefined,
                 count: 3,
               })
             : buildCaptionPrompt({
@@ -1125,7 +1162,7 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
   const { allowed, isPro, refund } = await enforceUsageLimit(userId, req, res, 1);
   if (!allowed) return;
 
-  const { mode, niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType, keywords, existingCaptions } = parsed.data;
+  const { mode, niche, postDescription, tone, platform, postType, captionLength, includeEmojis, ctaType, keywords, occasion, existingCaptions } = parsed.data;
   const isPersonalRegen = mode === "personal";
   const brandVoice = isPersonalRegen ? undefined : (req.body.brandVoice as BrandVoice | undefined);
 
@@ -1152,6 +1189,7 @@ captionsRouter.post("/captions/regenerate-one", async (req, res) => {
                 includeEmojis: includeEmojis ?? true,
                 ctaType: ctaType ?? undefined,
                 keywords: keywords ?? undefined,
+                occasion: occasion ?? undefined,
                 count: 1,
                 avoidCaptions: existingCaptions ?? [],
               })

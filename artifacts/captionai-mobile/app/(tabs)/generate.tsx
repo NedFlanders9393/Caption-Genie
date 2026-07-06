@@ -65,6 +65,14 @@ const POST_TYPES = [
   "Poll/This or That", "Follow Me Around", "Unboxing",
 ];
 
+const PERSONAL_OCCASIONS = [
+  "Everyday Moment", "Birthday", "Vacation/Travel", "Milestone/Achievement",
+  "Food/Meal", "Selfie/Outfit", "Throwback", "Pet", "Friends/Night Out",
+  "Relationship/Love", "Family", "Fitness/Workout", "Gratitude/Reflection",
+  "Rant/Vent", "Funny/Meme", "Nature/Outdoors", "Holiday/Seasonal",
+  "Big News/Announcement",
+];
+
 const LENGTHS = ["Short", "Medium", "Long"];
 const CTAS = [
   "None",
@@ -115,6 +123,7 @@ export default function GenerateScreen() {
   const [activePlatformTab, setActivePlatformTab] = useState("Instagram");
   const [niche, setNiche] = useState("");
   const [postType, setPostType] = useState("");
+  const [occasion, setOccasion] = useState("");
   const [tones, setTones] = useState<string[]>(["Professional"]);
   const [description, setDescription] = useState("");
   const [captionLength, setCaptionLength] = useState("Medium");
@@ -180,12 +189,13 @@ export default function GenerateScreen() {
     tone: tones.join(", "),
     platform: platforms[0] ?? "Instagram",
     postType: isPersonal ? undefined : (postType || undefined),
+    occasion: isPersonal ? (occasion || undefined) : undefined,
     captionLength,
     includeEmojis,
     ctaType: ctaType === "None" ? undefined : ctaType,
     keywords: keywords.trim() || undefined,
     brandVoice: isPersonal ? undefined : (hasBrandVoice ? brandVoice : undefined),
-  }), [mode, isPersonal, niche, description, tones, platforms, postType, captionLength, includeEmojis, ctaType, keywords, hasBrandVoice, brandVoice]);
+  }), [mode, isPersonal, niche, description, tones, platforms, postType, occasion, captionLength, includeEmojis, ctaType, keywords, hasBrandVoice, brandVoice]);
 
   const handleGenerate = useCallback(async () => {
     if (!canGenerate) return;
@@ -428,6 +438,12 @@ export default function GenerateScreen() {
                 <OptionPicker label="Post Type" value={postType} options={POST_TYPES} onSelect={setPostType} placeholder="Optional" />
               </View>
             </View>
+          </View>
+        )}
+
+        {isPersonal && (
+          <View style={styles.section}>
+            <OptionPicker label="Occasion" value={occasion} options={PERSONAL_OCCASIONS} onSelect={setOccasion} placeholder="Optional" />
           </View>
         )}
 

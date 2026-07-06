@@ -39,9 +39,11 @@ description/keywords/URLs, attaching a build) without the ASC web UI.
 - Review screenshot upload = 3 steps: POST `/v1/subscriptionAppStoreReviewScreenshots` (reserve with
   fileName+fileSize+subscription rel) → PUT bytes to each `uploadOperations` url with its requestHeaders
   → PATCH `{uploaded:true, sourceFileChecksum:<md5 hex>}`. Reuse an existing 1284×2778 paywall PNG.
-- **State string lags:** after bulk price + screenshot writes, `subscriptions.state` can stay
-  MISSING_METADATA for many minutes even though every field is present and matches the approved sibling.
-  Don't trust the cached string — compare field-by-field against the approved sub instead.
+- **Description max is 45 chars** (display name max 30). An over-length description (e.g. 49) is
+  stored by the API without error but silently keeps the sub at MISSING_METADATA. This looks exactly
+  like a state lag but never clears — trimming the description to <=45 flipped it to READY_TO_SUBMIT
+  immediately. When a sub won't leave MISSING_METADATA despite all fields present, check field
+  LENGTHS against the approved sibling, not just presence.
 - First-time sub submission must be finished on the ASC website (can't submit the FIRST review of a
   sub via API) — see captly-asc-resubmission.md. Stage everything via API, leave the final submit to the human.
 

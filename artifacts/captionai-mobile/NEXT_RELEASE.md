@@ -109,9 +109,10 @@ the new tone chips ship with this build.
      USA base price, which is what kept it stuck; the API doesn't auto-equalize like the UI).
    - en-US localization: name "Captly Pro", desc "150 AI caption credits every month, billed yearly".
    - **Review screenshot uploaded** (1284×2778 paywall) — asset processing COMPLETE.
-   - State may still read `MISSING_METADATA` for a few minutes — that's the ASC state
-     string lagging behind the writes; every required field is present and matches the
-     live/approved monthly sub. It will flip to Ready and Chris includes it at submit.
+   - en-US description trimmed to "150 AI caption credits, billed yearly" (37 chars).
+     The original 49-char text was over Apple's 45-char subscription-description limit,
+     which silently held the sub in MISSING_METADATA. **State is now `READY_TO_SUBMIT`.**
+   - Final step: on the ASC website, include this subscription with version 1.0.2 and Submit.
 2. **RevenueCat** — the `$rc_annual` package and `pro` entitlement now point at the
    real Apple product `com.captionai.app.pro.yearly` (new RC product
    `prodf4b52d349a`). The old placeholder (`captionai_pro_annual`) was renamed and

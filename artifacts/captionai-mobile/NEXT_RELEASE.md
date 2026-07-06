@@ -2,10 +2,13 @@
 
 _Last updated: July 6, 2026._
 
-> **STATUS (July 6, 2026): 1.0.2 SUBMITTED to Apple review** — build 38 (VALID),
-> annual subscription submitted alongside it, refreshed 6-screenshot set uploaded
-> (NO pricing screenshot — Apple 2.3.7), What's New + keywords set, description
-> refreshed for Personal mode, promotional text left empty. Waiting on review.
+> **STATUS (July 6, 2026): 1.0.2 APPROVED & LIVE** (READY_FOR_DISTRIBUTION, build 38).
+> Refreshed 6-screenshot set live (NO pricing screenshot — Apple 2.3.7), What's New +
+> keywords set, description refreshed for Personal mode, promotional text left empty.
+> **Annual subscription was NOT included in the version submission** (stayed
+> READY_TO_SUBMIT) — submitted standalone via `POST /v1/subscriptionSubmissions`
+> on July 6; now WAITING_FOR_REVIEW. Until Apple approves it, the paywall's
+> Annual option is not purchasable in production (monthly + credit packs work).
 
 **Goal:** ship all pending iOS changes in a single new build + App Store review,
 instead of submitting a separate build for each change.

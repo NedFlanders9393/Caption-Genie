@@ -23,6 +23,12 @@ never attached to the version that went to review. IAPs are NOT auto-included.
   → `inAppPurchases`) and `POST /v1/subscriptionSubmissions` (rel `subscription`)
   only work for **subsequent** purchases AFTER the first batch is approved. For the
   first batch they 409 with FIRST_CONSUMABLE_MUST_BE_SUBMITTED_ON_VERSION.
+  CONFIRMED WORKING for subsequent subs: the yearly sub (first sub already approved)
+  submitted standalone with a bare POST /v1/subscriptionSubmissions → 201, state
+  READY_TO_SUBMIT → WAITING_FOR_REVIEW. No build/version needed.
+- **Website version submits do NOT auto-include new READY_TO_SUBMIT subscriptions.**
+  After any version submission, verify each new IAP/sub state via API — a version can
+  be approved & live while a new sub silently stays READY_TO_SUBMIT (unpurchasable).
 - **Therefore the first submission with IAPs/subscription MUST be done on the App
   Store Connect website**: app version page → "In-App Purchases and Subscriptions"
   section → "Select In-App Purchases or Subscriptions" → pick all packs + the

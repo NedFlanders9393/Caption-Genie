@@ -28,6 +28,14 @@ design tokens + Nunito via Google Fonts `<link>`.
 - Name re-exported files with the size baked in (e.g. `-1284x2778.png`) so the user's
   Downloads folder doesn't collide old/new batches under the same name.
 
+# NEVER put pricing in the PUBLIC screenshot set (Apple 2.3.7)
+Apple rejected Captly's public pricing screenshot under 2.3.7; we deleted it and must
+NOT re-add one. No hardcoded prices ($9.99/$59.99/$5-mo), no "SAVE 50%"/discount badges,
+no subscription-price marketing in the App Store gallery — prices are region-specific and
+read as promoting the IAP. Subscription price + SAVE badge belong ONLY in the required
+in-app-purchase "review screenshot" (the paywall image attached to the sub in ASC).
+The generator (`app-store-screenshots/generate.mjs`) intentionally has NO pricing screen.
+
 # ASC submission facts (Captly, app 6766227449)
 - App Privacy CANNOT be set via API (appDataUsages endpoints 404) — must use ASC web UI.
 - Accurate privacy declaration: Email Address / User ID / Purchase History = collected,

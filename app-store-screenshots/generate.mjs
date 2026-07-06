@@ -227,51 +227,15 @@ const s4 = layout({
   `,
 });
 
-// ---------- SCREEN 6: PRICING (new annual plan, SAVE 50%) ----------
-function packRow(name, price, badge) {
-  return `<div class="row" style="justify-content:space-between;align-items:center;background:#fff;border:2px solid ${C.border};border-radius:26px;padding:26px 32px;margin-top:18px;">
-    <div class="row" style="gap:18px;align-items:center;">
-      <div style="font-size:36px;font-weight:800;color:${C.ink};">${name}</div>
-      ${badge ? `<div class="chip" style="background:${C.amberSoft};color:${C.amberDeep};font-size:24px;padding:8px 18px;">${badge}</div>` : ""}
-    </div>
-    <div style="font-size:38px;font-weight:900;color:${C.ink};">${price}</div>
-  </div>`;
-}
-const sPricing = layout({
-  headline: "Go Pro.<br>Save 50%.",
-  sub: "150 caption credits every month. Or top up anytime — credits never expire.",
-  inner: `
-    <div class="row" style="gap:16px;justify-content:center;">
-      <div class="logo" style="width:66px;height:66px;font-size:40px;">⚡</div>
-      <div style="font-size:42px;font-weight:900;color:${C.ink}">Captly Pro</div>
-    </div>
-    <div class="row" style="gap:22px;margin-top:52px;align-items:stretch;">
-      <div style="flex:1;background:#fff;border:2px solid ${C.border};border-radius:32px;padding:38px 26px;text-align:center;">
-        <div style="font-size:32px;font-weight:800;color:${C.muted};">Monthly</div>
-        <div style="font-size:64px;font-weight:900;color:${C.ink};margin-top:14px;line-height:1;">$9.99</div>
-        <div style="font-size:26px;color:${C.muted};margin-top:12px;">per month</div>
-      </div>
-      <div style="flex:1;background:${C.amberSoft};border:4px solid ${C.amberDeep};border-radius:32px;padding:38px 26px;text-align:center;position:relative;">
-        <div style="position:absolute;top:-26px;left:50%;transform:translateX(-50%);background:${C.amberDeep};color:#fff;font-size:26px;font-weight:800;padding:10px 26px;border-radius:999px;white-space:nowrap;box-shadow:0 12px 24px -10px rgba(216,155,60,0.9);">SAVE 50%</div>
-        <div style="font-size:32px;font-weight:800;color:${C.amberDeep};">Annual</div>
-        <div style="font-size:64px;font-weight:900;color:${C.ink};margin-top:14px;line-height:1;">$5<span style="font-size:34px;font-weight:800;">/mo</span></div>
-        <div style="font-size:26px;color:${C.text};margin-top:12px;font-weight:700;">billed annually · $59.99</div>
-      </div>
-    </div>
-    <div style="text-align:center;font-size:32px;font-weight:700;color:${C.text};margin-top:38px;">✓ 150 credits/month &nbsp; ✓ Most advanced AI</div>
-    <div class="cta" style="margin-top:28px;padding:34px;font-size:40px;">Start Pro — $59.99/year</div>
-    <div style="margin-top:44px;display:flex;align-items:center;gap:20px;">
-      <div style="height:2px;background:${C.border};flex:1;"></div>
-      <div style="font-size:26px;font-weight:800;color:${C.muted};letter-spacing:1px;white-space:nowrap;">OR TOP UP ANYTIME</div>
-      <div style="height:2px;background:${C.border};flex:1;"></div>
-    </div>
-    ${packRow("10 credits", "$1.99")}
-    ${packRow("50 credits", "$8.99", "POPULAR")}
-    ${packRow("200 credits", "$24.99", "BEST VALUE")}
-  `,
-});
+// ---------- (NO PRICING SCREENSHOT — INTENTIONAL) ----------
+// Do NOT add a pricing / subscription-price screenshot to the PUBLIC App Store set.
+// Apple previously REJECTED Captly's pricing screenshot (guideline 2.3.7), and
+// hardcoded prices ($59.99, $5/mo) are region-specific + "SAVE 50%" reads as
+// promoting the IAP in the gallery. Subscription pricing belongs ONLY in the
+// required in-app-purchase "review screenshot" (the paywall image uploaded to the
+// subscription in ASC), never here. See memory: captly-store-screenshots.md.
 
-// ---------- SCREEN 7: FEATURES (no phone) ----------
+// ---------- SCREEN 6: FEATURES (no phone) ----------
 function feat(icon, title, desc) {
   return `<div class="card" style="margin-top:26px;display:flex;align-items:center;gap:34px;padding:42px 48px;">
     <div style="width:104px;height:104px;border-radius:28px;background:${C.amber};display:flex;align-items:center;justify-content:center;font-size:52px;flex:0 0 auto;color:#fff;">${icon}</div>
@@ -306,8 +270,7 @@ const screens = [
   ["3-captions", s2],
   ["4-madeforyou", s3],
   ["5-hashtags", s4],
-  ["6-pricing", sPricing],
-  ["7-features", s5],
+  ["6-features", s5],
 ];
 
 const browser = await puppeteer.launch({

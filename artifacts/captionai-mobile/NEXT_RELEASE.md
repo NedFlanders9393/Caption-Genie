@@ -1,6 +1,11 @@
 # Captly — Next App Store Update (batch everything into ONE build)
 
-_Last updated: July 5, 2026._
+_Last updated: July 6, 2026._
+
+> **STATUS (July 6, 2026): 1.0.2 SUBMITTED to Apple review** — build 38 (VALID),
+> annual subscription submitted alongside it, refreshed 6-screenshot set uploaded
+> (NO pricing screenshot — Apple 2.3.7), What's New + keywords set, description
+> refreshed for Personal mode, promotional text left empty. Waiting on review.
 
 **Goal:** ship all pending iOS changes in a single new build + App Store review,
 instead of submitting a separate build for each change.

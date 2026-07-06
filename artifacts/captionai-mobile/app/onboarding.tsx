@@ -64,7 +64,7 @@ const SLIDES: Slide[] = [
     subtitle: "Tap the toggle up top to switch anytime — no business required.",
     bullets: [
       { icon: "briefcase", text: "Business: captions tuned to your brand & industry" },
-      { icon: "user", text: "Personal: everyday captions for any photo or moment" },
+      { icon: "user", text: "Personal: everyday captions with occasions & personal tones" },
       { icon: "repeat", text: "Switch modes anytime with one tap" },
     ],
   },
@@ -77,7 +77,7 @@ const SLIDES: Slide[] = [
     subtitle: "Three quick steps from idea to ready-to-post.",
     bullets: [
       { icon: "edit-3", text: "Describe your post in a few words" },
-      { icon: "sliders", text: "Pick tone, platform, style & must-have words" },
+      { icon: "sliders", text: "Pick tone, occasion, platform, style & must-have words" },
       { icon: "edit-2", text: "Edit, then copy & share your caption" },
     ],
   },

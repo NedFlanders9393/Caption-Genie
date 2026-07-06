@@ -28,7 +28,7 @@ struct ShareView: View {
 
   @FocusState private var descFocused: Bool
 
-  private let tones     = ["Casual", "Professional", "Funny", "Inspirational", "Bold"]
+  private let tones     = ["Professional", "Casual", "Funny", "Inspirational", "Storytelling", "Bold", "Empowering", "Heartfelt", "Witty", "Luxurious", "Playful", "Authentic", "Nostalgic", "Grateful", "Excited", "Relatable", "Sarcastic", "Romantic"]
   private let platforms = ["Instagram", "TikTok", "Facebook", "LinkedIn", "Twitter/X"]
 
   init(detectedPlatform: String, openURL: @escaping (URL) -> Void, onComplete: @escaping () -> Void) {

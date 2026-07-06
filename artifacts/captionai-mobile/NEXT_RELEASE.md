@@ -84,6 +84,10 @@ definition in the tone engine so it shapes the caption, not just a label. Availa
 in both Business and Personal modes. (Verified live: Nostalgic, Sarcastic, and
 Romantic each produced distinct, on-tone captions.) Server change is already live;
 the new tone chips ship with this build.
+- **iOS Share Extension** tone quick-picker updated to the full 18-tone list so it
+  matches the main app.
+- **Onboarding slides** updated to reflect the new options (Personal occasions +
+  personal tones, and "occasion" added to the "How it works" step).
 
 ### 8. Version bump (at build time)
 - `app.json`: version `1.0.1` → `1.0.2`, iOS `buildNumber` `37` → `38`.

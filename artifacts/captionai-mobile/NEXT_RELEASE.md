@@ -94,17 +94,24 @@ the new tone chips ship with this build.
 
 ---
 
-## Store setup — DONE ✅ (staged, awaiting the build to submit)
+## Store setup — FULLY STAGED ✅ (July 6, 2026 — only the final Submit remains)
 
-1. **App Store Connect** — annual auto-renewable subscription **created** inside the
-   existing **"Captly Pro Monthly"** group (group id `22067313`):
+**Version 1.0.2 is created and staged in App Store Connect** (id `01cdbeb8-…`):
+- Build **38** attached (processingState VALID).
+- **What's New** written, **Subtitle** set to "AI Captions & Hashtag Maker",
+  **Keywords** updated to the new 98-char string. Description + 5 iPhone screenshots
+  carried forward from 1.0.1 automatically.
+
+1. **App Store Connect** — annual auto-renewable subscription inside the existing
+   **"Captly Pro Monthly"** group (group id `22067313`) is now fully populated:
    - Product ID: `com.captionai.app.pro.yearly` (ASC id `6785966112`)
-   - Price: **$59.99/year** (USA base), available in all 175 territories.
+   - Price: **$59.99/year** — now equalized across **all 175 territories** (was only the
+     USA base price, which is what kept it stuck; the API doesn't auto-equalize like the UI).
    - en-US localization: name "Captly Pro", desc "150 AI caption credits every month, billed yearly".
-   - State: `MISSING_METADATA` — this is expected. The only missing item is the
-     first-time **review screenshot**, which Apple requires to be attached *with the
-     app binary* at submission. A brand-new subscription is reviewed alongside the
-     build, so it ships with this build.
+   - **Review screenshot uploaded** (1284×2778 paywall) — asset processing COMPLETE.
+   - State may still read `MISSING_METADATA` for a few minutes — that's the ASC state
+     string lagging behind the writes; every required field is present and matches the
+     live/approved monthly sub. It will flip to Ready and Chris includes it at submit.
 2. **RevenueCat** — the `$rc_annual` package and `pro` entitlement now point at the
    real Apple product `com.captionai.app.pro.yearly` (new RC product
    `prodf4b52d349a`). The old placeholder (`captionai_pro_annual`) was renamed and

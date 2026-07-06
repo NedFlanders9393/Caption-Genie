@@ -585,6 +585,12 @@ const TONE_BLEND_GUIDE: Record<string, string> = {
   Luxurious: "aspirational, exclusive, sensory-rich — evokes quality, craft, and the feeling of the finer things",
   Playful: "light, fun, energetic — exclamation marks used sparingly but effectively, emojis natural, upbeat",
   Authentic: "raw, unpolished in the best way — sounds like a real human, not a brand — specific over general always",
+  Nostalgic: "wistful, warm remembering — 'take me back' energy, sensory memories, then-vs-now, bittersweet fondness for a moment that's passed",
+  Grateful: "sincere thankfulness — names the specific people, moments, or wins being appreciated, humble and warm, never performative or humble-braggy",
+  Excited: "genuine can't-contain-it energy — natural exclamations, a little breathless, shares the news the way you'd tell your best friend",
+  Relatable: "everyday 'it me' honesty — names the small universal moments, self-aware, makes the reader nod and feel seen",
+  Sarcastic: "dry, deadpan wit — irony and understatement, playful eye-rolls, humor in what's left unsaid; clever, never mean-spirited",
+  Romantic: "tender, affectionate warmth — intimate and sincere, celebrates a person or relationship with real feeling, never cheesy or cliché",
 };
 
 interface BrandVoice {

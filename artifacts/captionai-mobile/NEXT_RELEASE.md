@@ -77,7 +77,15 @@ Makes the "Personal" side sharper and keeps it from ever sounding like an ad:
 - Server changes are already live (no build needed for the backend); the Occasion
   picker UI ships with this build.
 
-### 7. Version bump (at build time)
+### 7. Six new tones (Business + Personal)
+Added to the shared tone list (now 18 total, still pick up to 3): **Nostalgic,
+Grateful, Excited, Relatable, Sarcastic, Romantic**. Each has a real behavior
+definition in the tone engine so it shapes the caption, not just a label. Available
+in both Business and Personal modes. (Verified live: Nostalgic, Sarcastic, and
+Romantic each produced distinct, on-tone captions.) Server change is already live;
+the new tone chips ship with this build.
+
+### 8. Version bump (at build time)
 - `app.json`: version `1.0.1` → `1.0.2`, iOS `buildNumber` `37` → `38`.
 
 ---

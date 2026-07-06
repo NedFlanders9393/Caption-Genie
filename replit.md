@@ -23,7 +23,7 @@ AI-powered social media caption generator for small business owners, targeting A
 - Bundle ID: `com.captionai.app`
 - Features:
   - 3 tabs: Generate, History, Hashtags
-  - 22 industry niches, 21 post types, 12 multi-select tones (up to 3)
+  - 22 industry niches, 21 post types, 18 multi-select tones (up to 3)
   - Platform-aware captions (Instagram, Facebook, LinkedIn, TikTok, Twitter/X)
   - Caption history stored in AsyncStorage (up to 100 entries)
   - Caption Remix: 8 remix directions inline in History (shorter, longer, funnier, professional, etc.)
@@ -167,7 +167,7 @@ Deep prompt system in `artifacts/api-server/src/routes/captions.ts`:
 - 22 niche-specific audience profiles with psychology and trigger points
 - 5 platform-specific algorithm guides (Instagram, Facebook, LinkedIn, TikTok, Twitter/X)
 - 21 post-type formulas with proven structural templates
-- 12 tone blend definitions
+- 18 tone blend definitions (shared by Business + Personal)
 - Hook variety system (4 different hook types per generation)
 - Prefill technique (`{"`) forces valid JSON from Claude
 - Generates 3 highly distinct captions per request

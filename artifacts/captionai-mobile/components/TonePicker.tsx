@@ -15,6 +15,12 @@ export const TONES = [
   "Luxurious",
   "Playful",
   "Authentic",
+  "Nostalgic",
+  "Grateful",
+  "Excited",
+  "Relatable",
+  "Sarcastic",
+  "Romantic",
 ];
 
 const MAX_TONES = 3;

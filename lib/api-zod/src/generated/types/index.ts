@@ -7,6 +7,8 @@
  */
 
 export * from "./captionItem";
+export * from "./checkinClaimResponse";
+export * from "./checkinStatus";
 export * from "./errorResponse";
 export * from "./generateCaptionsBody";
 export * from "./generateCaptionsBodyMode";

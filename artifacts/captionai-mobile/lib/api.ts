@@ -345,6 +345,72 @@ export async function fetchCreditTransactions(
   return (data?.transactions ?? []) as CreditTransaction[];
 }
 
+// ─── Daily Check-in Rewards ───────────────────────────────────────────────
+
+export interface CheckinStatus {
+  todayUtc: string;
+  claimedToday: boolean;
+  nextStreakDay: number;
+  nextReward: number;
+  currentStreak: number;
+  rewards: number[];
+  claimedDatesThisMonth: string[];
+}
+
+export interface CheckinClaimResult {
+  granted: number;
+  streakDay: number;
+  balanceAfter?: number;
+  status: CheckinStatus;
+}
+
+export class AlreadyClaimedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AlreadyClaimedError";
+  }
+}
+
+export async function fetchCheckinStatus(token: string | null): Promise<CheckinStatus> {
+  const res = await fetchWithTimeout(
+    `${BASE}/api/checkins/status`,
+    // aiHeaders so guests are identified by X-Device-Id (same as credits)
+    { method: "GET", headers: await aiHeaders(token) },
+    10_000,
+  );
+  if (!res.ok) {
+    const err = await safeJson(res);
+    throw new Error(err?.error ?? "Failed to fetch check-in status");
+  }
+  const data = await safeJson(res);
+  if (!data || typeof data.todayUtc !== "string") {
+    throw new Error("Empty response from check-in status endpoint");
+  }
+  return data as CheckinStatus;
+}
+
+export async function claimDailyCheckin(token: string | null): Promise<CheckinClaimResult> {
+  const res = await fetchWithTimeout(
+    `${BASE}/api/checkins/claim`,
+    { method: "POST", headers: await aiHeaders(token) },
+    10_000,
+  );
+  if (!res.ok) {
+    const err = await safeJson(res);
+    if (res.status === 409) {
+      throw new AlreadyClaimedError(
+        err?.message ?? "You've already claimed today's reward. Come back tomorrow!",
+      );
+    }
+    throw new Error(err?.message ?? err?.error ?? "Failed to claim daily reward");
+  }
+  const data = await safeJson(res);
+  if (!data || typeof data.granted !== "number") {
+    throw new Error("Got an unexpected response from the server. Please try again.");
+  }
+  return data as CheckinClaimResult;
+}
+
 // ─── Device Free Credits ──────────────────────────────────────────────────
 
 export interface ClaimFreeResult {

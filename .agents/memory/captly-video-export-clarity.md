@@ -5,7 +5,7 @@ description: Why exported Captly promo videos look blurry and the levers that ac
 
 # Captly promo video blur
 
-Owner (Chris) periodically reports exported promo videos (video-js scaffold artifacts) look "blurry."
+The owner periodically reports exported promo videos (video-js scaffold artifacts) look "blurry."
 
 **Root cause hierarchy:**
 1. **Export/recording resolution** is the dominant factor and is NOT controllable from app code. The recording pipeline (`src/lib/video/hooks.ts`, `window.startRecording`/`stopRecording` injected by Replit — do NOT modify) captures the preview at the preview pane's pixel size. A modest preview size → low-res capture → upscaling to 1080×1920 for TikTok looks soft. Plus TikTok re-compresses on upload.

@@ -5,6 +5,29 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface CheckinStatus {
+  /** Current UTC date ("YYYY-MM-DD") — the server's day boundary */
+  todayUtc: string;
+  claimedToday: boolean;
+  /** 1-7 streak position the next claim lands on */
+  nextStreakDay: number;
+  /** Credits the next claim grants */
+  nextReward: number;
+  /** Consecutive-day streak as of the latest claim (0 if broken) */
+  currentStreak: number;
+  /** Reward schedule for the 7-day cycle */
+  rewards: number[];
+  /** Claimed UTC dates in the current month ("YYYY-MM-DD") */
+  claimedDatesThisMonth: string[];
+}
+
+export interface CheckinClaimResponse {
+  granted: number;
+  streakDay: number;
+  balanceAfter?: number;
+  status: CheckinStatus;
+}
+
 export interface HealthStatus {
   status: string;
 }

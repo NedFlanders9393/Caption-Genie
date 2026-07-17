@@ -28,6 +28,7 @@ AI-powered social media caption generator for small business owners, targeting A
   - Caption history stored in AsyncStorage (up to 100 entries)
   - Caption Remix: 8 remix directions inline in History (shorter, longer, funnier, professional, etc.)
   - Best Time to Post: collapsible card shown after generation (single and multi-platform)
+  - Daily Check-in Streak Rewards (built for 1.0.3, not yet shipped): Daily Rewards modal screen with month calendar + 7-day schedule; Day 1–6 = +1 credit, Day 7 = +3; server-side UTC-day claiming into the purchased bucket (`daily_checkins` table, `/api/checkins/*`); guest-accessible
   - Hashtag tool with 3 grouped categories (niche, trending, broad)
   - RevenueCat integration ready (skipped for now — see below)
   - 10 free generations/month tracked in AsyncStorage

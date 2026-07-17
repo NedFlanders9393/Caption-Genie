@@ -15,6 +15,31 @@ instead of submitting a separate build for each change.
 
 ---
 
+## NEW — Saved for 1.0.3 (built July 17, 2026, NOT yet shipped)
+
+### Daily Check-in Streak Rewards
+- New **Daily Rewards** screen (`app/daily-rewards.tsx`, modal): this-month
+  calendar of check-ins, 7-day reward schedule, one-tap claim button.
+- Rewards: **Day 1–6 = +1 credit, Day 7 = +3 weekly bonus** (~9/week max —
+  deliberately smaller than the free plan so Pro stays worth buying). Missing a
+  day resets the streak to Day 1.
+- **Server-side + cheat-proof**: the server's UTC clock decides the day; claims
+  are keyed per (user, UTC day) in the new `daily_checkins` table, so changing
+  the phone clock or double-tapping can't double-claim. Credits land in the
+  purchased bucket (never expire, never clobbered by the monthly reset) via a
+  `daily_checkin` ledger transaction.
+- Works for **guests too** (same `guest_<deviceId>` identity as the rest of the
+  credit system — Apple 5.1.1 safe).
+- Entry points: gift chip on the Generate header (red dot when today is
+  unclaimed, shows streak count) + "Daily Rewards" card on Profile.
+- Backend endpoints `GET /api/checkins/status` + `POST /api/checkins/claim` are
+  ALREADY LIVE-safe to deploy (old app versions simply never call them); the UI
+  ships with the 1.0.3 build. The `daily_checkins` table exists in dev — **create
+  it in production before/with the next publish** (same DDL, see
+  `lib/db/src/schema/checkins.ts`).
+
+---
+
 ## What's going in this build
 
 ### 1. New Annual subscription plan

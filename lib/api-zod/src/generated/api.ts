@@ -118,3 +118,56 @@ export const GenerateHashtagsResponse = zod.object({
     broad: zod.array(zod.string()),
   }),
 });
+
+/**
+ * @summary Get daily check-in streak status and calendar
+ */
+export const GetCheckinStatusResponse = zod.object({
+  todayUtc: zod
+    .string()
+    .describe('Current UTC date (\"YYYY-MM-DD\") — the server\'s day boundary'),
+  claimedToday: zod.boolean(),
+  nextStreakDay: zod
+    .number()
+    .describe("1-7 streak position the next claim lands on"),
+  nextReward: zod.number().describe("Credits the next claim grants"),
+  currentStreak: zod
+    .number()
+    .describe("Consecutive-day streak as of the latest claim (0 if broken)"),
+  rewards: zod
+    .array(zod.number())
+    .describe("Reward schedule for the 7-day cycle"),
+  claimedDatesThisMonth: zod
+    .array(zod.string())
+    .describe('Claimed UTC dates in the current month (\"YYYY-MM-DD\")'),
+});
+
+/**
+ * @summary Claim today's daily check-in credit reward
+ */
+export const ClaimDailyCheckinResponse = zod.object({
+  granted: zod.number(),
+  streakDay: zod.number(),
+  balanceAfter: zod.number().optional(),
+  status: zod.object({
+    todayUtc: zod
+      .string()
+      .describe(
+        'Current UTC date (\"YYYY-MM-DD\") — the server\'s day boundary',
+      ),
+    claimedToday: zod.boolean(),
+    nextStreakDay: zod
+      .number()
+      .describe("1-7 streak position the next claim lands on"),
+    nextReward: zod.number().describe("Credits the next claim grants"),
+    currentStreak: zod
+      .number()
+      .describe("Consecutive-day streak as of the latest claim (0 if broken)"),
+    rewards: zod
+      .array(zod.number())
+      .describe("Reward schedule for the 7-day cycle"),
+    claimedDatesThisMonth: zod
+      .array(zod.string())
+      .describe('Claimed UTC dates in the current month (\"YYYY-MM-DD\")'),
+  }),
+});

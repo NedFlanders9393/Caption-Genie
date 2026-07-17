@@ -107,6 +107,17 @@ function RootLayoutNav() {
         }}
       />
       <Stack.Screen
+        name="daily-rewards"
+        options={{
+          title: "Daily Rewards",
+          presentation: "modal",
+          headerStyle: { backgroundColor: "#FFFDF9" },
+          headerTintColor: "#E8B669",
+          headerTitleStyle: { fontFamily: "Nunito_600SemiBold", color: "#3A3129" },
+          headerShadowVisible: false,
+        }}
+      />
+      <Stack.Screen
         name="brand-voice"
         options={{
           title: "Brand Voice",

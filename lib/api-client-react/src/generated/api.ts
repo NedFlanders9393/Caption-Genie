@@ -18,6 +18,8 @@ import type {
 
 import type {
   CaptionItem,
+  CheckinClaimResponse,
+  CheckinStatus,
   ErrorResponse,
   GenerateCaptionsBody,
   GenerateCaptionsResponse,
@@ -369,4 +371,160 @@ export const useGenerateHashtags = <
   TContext
 > => {
   return useMutation(getGenerateHashtagsMutationOptions(options));
+};
+
+/**
+ * @summary Get daily check-in streak status and calendar
+ */
+export const getGetCheckinStatusUrl = () => {
+  return `/api/checkins/status`;
+};
+
+export const getCheckinStatus = async (
+  options?: RequestInit,
+): Promise<CheckinStatus> => {
+  return customFetch<CheckinStatus>(getGetCheckinStatusUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCheckinStatusQueryKey = () => {
+  return [`/api/checkins/status`] as const;
+};
+
+export const getGetCheckinStatusQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCheckinStatus>>,
+  TError = ErrorType<ErrorResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getCheckinStatus>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCheckinStatusQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getCheckinStatus>>
+  > = ({ signal }) => getCheckinStatus({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCheckinStatus>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCheckinStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCheckinStatus>>
+>;
+export type GetCheckinStatusQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Get daily check-in streak status and calendar
+ */
+
+export function useGetCheckinStatus<
+  TData = Awaited<ReturnType<typeof getCheckinStatus>>,
+  TError = ErrorType<ErrorResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getCheckinStatus>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCheckinStatusQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Claim today's daily check-in credit reward
+ */
+export const getClaimDailyCheckinUrl = () => {
+  return `/api/checkins/claim`;
+};
+
+export const claimDailyCheckin = async (
+  options?: RequestInit,
+): Promise<CheckinClaimResponse> => {
+  return customFetch<CheckinClaimResponse>(getClaimDailyCheckinUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getClaimDailyCheckinMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof claimDailyCheckin>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof claimDailyCheckin>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["claimDailyCheckin"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof claimDailyCheckin>>,
+    void
+  > = () => {
+    return claimDailyCheckin(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ClaimDailyCheckinMutationResult = NonNullable<
+  Awaited<ReturnType<typeof claimDailyCheckin>>
+>;
+
+export type ClaimDailyCheckinMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Claim today's daily check-in credit reward
+ */
+export const useClaimDailyCheckin = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof claimDailyCheckin>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof claimDailyCheckin>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getClaimDailyCheckinMutationOptions(options));
 };

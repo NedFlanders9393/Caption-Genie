@@ -17,7 +17,7 @@ import * as Haptics from "expo-haptics";
 import * as StoreReview from "expo-store-review";
 import { requestNotificationPermissions, scheduleDailyStreakReminder } from "@/lib/notifications";
 import { useUser, useAuth } from "@clerk/expo";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { syncNiche } from "@/lib/tokenSync";
 import { useApp } from "@/context/AppContext";
@@ -26,6 +26,7 @@ import {
   generateCaptions,
   generateMultiPlatform,
   regenerateOneCaption,
+  fetchCheckinStatus,
   InsufficientCreditsError,
   type CaptionParams,
   type CaptionItem,
@@ -137,6 +138,8 @@ export default function GenerateScreen() {
   const [regeneratingIdx, setRegeneratingIdx] = useState<number | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
   const [currentGenerationId, setCurrentGenerationId] = useState<string | null>(null);
+  const [checkinClaimable, setCheckinClaimable] = useState(false);
+  const [checkinStreak, setCheckinStreak] = useState(0);
 
   // Track whether we already fired the auto-generate to avoid double-trigger
   const autoGenerateFired = useRef(false);
@@ -171,6 +174,28 @@ export default function GenerateScreen() {
   useEffect(() => {
     if (niche) syncNiche(niche);
   }, [niche]);
+
+  // Daily check-in chip state — refresh whenever this tab regains focus so the
+  // badge clears right after the user claims on the Daily Rewards screen.
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      (async () => {
+        try {
+          const token = await getToken();
+          const status = await fetchCheckinStatus(token);
+          if (cancelled) return;
+          setCheckinClaimable(!status.claimedToday);
+          setCheckinStreak(status.currentStreak);
+        } catch {
+          // Best-effort — the chip still works as a plain link
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [getToken])
+  );
 
   const isPersonal = mode === "personal";
 
@@ -341,6 +366,17 @@ export default function GenerateScreen() {
       >
         <View style={styles.headerRow}>
           <Text style={[styles.title, { color: colors.foreground }]}>Caption Generator</Text>
+          <TouchableOpacity
+            onPress={() => router.push("/daily-rewards")}
+            style={[styles.streakChip, { backgroundColor: colors.secondary, borderRadius: colors.radius / 2 }]}
+            activeOpacity={0.7}
+          >
+            <Feather name="gift" size={12} color={colors.primary} />
+            <Text style={[styles.streakChipText, { color: colors.primary }]}>
+              {checkinStreak > 0 ? `${checkinStreak}d` : "Daily"}
+            </Text>
+            {checkinClaimable && <View style={styles.streakDot} />}
+          </TouchableOpacity>
           {!isSubscribed && (
             <TouchableOpacity
               onPress={() => setShowPaywall(true)}
@@ -659,11 +695,31 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: 8,
   },
   title: {
     fontSize: 26,
     fontFamily: "Nunito_700Bold",
     letterSpacing: -0.5,
+    flex: 1,
+  },
+  streakChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  streakChipText: {
+    fontSize: 12,
+    fontFamily: "Nunito_600SemiBold",
+  },
+  streakDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: "#E25555",
+    marginLeft: 2,
   },
   proChip: {
     flexDirection: "row",

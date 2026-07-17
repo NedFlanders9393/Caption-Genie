@@ -12,6 +12,8 @@ tags:
     description: Health operations
   - name: captions
     description: Caption generation operations
+  - name: checkins
+    description: Daily check-in streak rewards
 paths:
   /healthz:
     get:
@@ -116,8 +118,112 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /checkins/status:
+    get:
+      operationId: getCheckinStatus
+      tags: [checkins]
+      summary: Get daily check-in streak status and calendar
+      responses:
+        "200":
+          description: Check-in status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckinStatus"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /checkins/claim:
+    post:
+      operationId: claimDailyCheckin
+      tags: [checkins]
+      summary: Claim today's daily check-in credit reward
+      responses:
+        "200":
+          description: Reward claimed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckinClaimResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Already claimed today
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
+    CheckinStatus:
+      type: object
+      properties:
+        todayUtc:
+          type: string
+          description: Current UTC date ("YYYY-MM-DD") — the server's day boundary
+        claimedToday:
+          type: boolean
+        nextStreakDay:
+          type: integer
+          description: 1-7 streak position the next claim lands on
+        nextReward:
+          type: integer
+          description: Credits the next claim grants
+        currentStreak:
+          type: integer
+          description: Consecutive-day streak as of the latest claim (0 if broken)
+        rewards:
+          type: array
+          items:
+            type: integer
+          description: Reward schedule for the 7-day cycle
+        claimedDatesThisMonth:
+          type: array
+          items:
+            type: string
+          description: Claimed UTC dates in the current month ("YYYY-MM-DD")
+      required:
+        - todayUtc
+        - claimedToday
+        - nextStreakDay
+        - nextReward
+        - currentStreak
+        - rewards
+        - claimedDatesThisMonth
+    CheckinClaimResponse:
+      type: object
+      properties:
+        granted:
+          type: integer
+        streakDay:
+          type: integer
+        balanceAfter:
+          type: integer
+        status:
+          $ref: "#/components/schemas/CheckinStatus"
+      required:
+        - granted
+        - streakDay
+        - status
     HealthStatus:
       type: object
       properties:

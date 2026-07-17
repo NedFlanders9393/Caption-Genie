@@ -461,6 +461,23 @@ export default function ProfileScreen() {
           ) : null}
         </View>
 
+        {/* Daily Rewards — guest-accessible, same identity as credits */}
+        <Pressable
+          style={({ pressed }) => [styles.card, styles.brandVoiceCard, pressed && styles.brandVoiceCardPressed]}
+          onPress={() => router.push("/daily-rewards")}
+        >
+          <View style={styles.brandVoiceHeader}>
+            <View style={styles.brandVoiceIconWrap}>
+              <Feather name="gift" size={18} color={PRIMARY} />
+            </View>
+            <View style={styles.flex1}>
+              <Text style={styles.brandVoiceTitle}>Daily Rewards</Text>
+              <Text style={styles.brandVoiceEmpty}>Check in daily to earn free credits</Text>
+            </View>
+            <Feather name="chevron-right" size={16} color={MUTED} />
+          </View>
+        </Pressable>
+
         {/* Brand Voice */}
         {isSignedIn && (
         <Pressable

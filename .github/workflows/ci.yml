@@ -13,6 +13,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: caption_genie_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/caption_genie_test
+      CLERK_PUBLISHABLE_KEY: pk_test_Y2xlcmsuZXhhbXBsZS5jb20k
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -36,6 +55,9 @@ jobs:
 
       - name: Type-check API
         run: pnpm --filter @workspace/api-server typecheck
+
+      - name: Apply test database schema
+        run: pnpm --filter @workspace/db push-force
 
       - name: Run API tests
         run: pnpm --filter @workspace/api-server test

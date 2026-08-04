@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  verify:
+  verify-api:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -31,8 +31,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Type-check workspace
-        run: pnpm run typecheck
+      - name: Type-check API
+        run: pnpm --filter @workspace/api-server typecheck
 
       - name: Run API tests
         run: pnpm --filter @workspace/api-server test

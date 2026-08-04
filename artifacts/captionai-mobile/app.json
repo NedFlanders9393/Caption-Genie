@@ -21,11 +21,6 @@
       },
       "buildNumber": "38"
     },
-    "android": {
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
-    },
     "web": {
       "favicon": "./assets/images/icon.png"
     },

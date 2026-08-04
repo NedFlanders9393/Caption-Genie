@@ -34,6 +34,98 @@ const FOOTER_REPLACEMENT =
 
 const CLERK_API = "https://api.clerk.com";
 
+/*
+ * KNOWN LIMITATION — the sender DISPLAY name in the inbox list.
+ *
+ * Even after every template is rebranded, the name an inbox shows as the
+ * sender ("From: Caption Genie via clerk.com") comes from the Clerk
+ * *application name*, not from any template field. `from_email_name` only
+ * controls the local-part of the address (Captly@accounts.dev).
+ *
+ * As of Aug 2026 the Clerk Backend API offers NO way to rename the
+ * application on a Replit-managed tenant (no dashboard access either):
+ *   - GET  /v1/instance returns only { id, object, environment_type,
+ *     allowed_origins } — no name field.
+ *   - PATCH /v1/instance with { name } or { application_name } returns
+ *     204 but is a silent no-op (verified via the Frontend API's
+ *     /v1/environment display_config.application_name, which still shows
+ *     the old name).
+ *   - /v1/instance/settings, /v1/display_config, /v1/applications → 404.
+ *
+ * tryRenameApplication() below re-attempts the rename on every boot and
+ * VERIFIES the result, so if Clerk ever starts honoring the field (or adds
+ * a rename endpoint reachable with the same PATCH), the fix applies itself
+ * and the log line flips to "application renamed". Until then it logs the
+ * limitation instead of pretending the 204 meant success.
+ */
+
+/** Derive the Frontend API domain from the publishable key (pk_*_<base64 of "domain$">). */
+function frontendApiDomain(): string | null {
+  const pk = process.env.CLERK_PUBLISHABLE_KEY;
+  if (!pk) return null;
+  const b64 = pk.replace(/^pk_(test|live)_/, "");
+  try {
+    const decoded = Buffer.from(b64, "base64").toString("utf8");
+    const domain = decoded.replace(/\$$/, "");
+    return /^[a-z0-9.-]+$/i.test(domain) ? domain : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Read the live application name Clerk renders (via the public Frontend API). */
+async function getApplicationName(): Promise<string | null> {
+  const domain = frontendApiDomain();
+  if (!domain) return null;
+  try {
+    const res = await fetch(`https://${domain}/v1/environment`);
+    if (!res.ok) return null;
+    const json = (await res.json()) as {
+      display_config?: { application_name?: string };
+    };
+    return json.display_config?.application_name ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Attempt to rename the Clerk application itself (the source of the inbox
+ * sender display name) and verify whether the rename actually took effect.
+ * Idempotent and non-fatal; see the limitation comment above.
+ */
+async function tryRenameApplication(environment: string): Promise<void> {
+  const before = await getApplicationName();
+  if (before === REBRAND_TO) {
+    logger.info(
+      { environment, applicationName: before },
+      "Clerk application name already correct",
+    );
+    return;
+  }
+
+  // Send both field spellings; Clerk currently ignores them (204 no-op).
+  await clerkFetch("/v1/instance", {
+    method: "PATCH",
+    body: JSON.stringify({ name: REBRAND_TO, application_name: REBRAND_TO }),
+  });
+
+  const after = await getApplicationName();
+  if (after === REBRAND_TO) {
+    logger.info(
+      { environment, applicationName: after },
+      "Clerk application renamed — inbox sender name now rebranded",
+    );
+  } else {
+    logger.warn(
+      { environment, applicationName: after ?? "unknown" },
+      "Clerk application name NOT renameable via API (known Replit-managed " +
+        "limitation) — inbox sender display name will still show the old app " +
+        "name; email content itself is fully rebranded",
+    );
+  }
+}
+
 interface EmailTemplate {
   slug: string;
   name?: string;
@@ -105,6 +197,11 @@ export async function rebrandClerkEmails(): Promise<void> {
     const environment =
       (inst.json as { environment_type?: string } | null)?.environment_type ??
       "unknown";
+
+    // Attempt (and verify) renaming the application itself — the source of
+    // the inbox sender display name. Currently a documented no-op on
+    // Replit-managed tenants; self-applies if Clerk ever allows it.
+    await tryRenameApplication(environment);
 
     const list = await clerkFetch("/v1/templates/email");
     if (list.status !== 200) {

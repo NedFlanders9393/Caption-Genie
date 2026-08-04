@@ -33,6 +33,9 @@ Replacing `{{app.name}}` in the body is **not enough**. Clerk renders the app na
 
 These partials are expanded at send time, so a body that no longer literally contains the old name can STILL render it twice. The fix (in `api-server/src/services/clerkEmailBrand.ts` `scrub()`): also replace the literal strings `{{> app_logo}}` → the brand name and `{{> footer}}` → a hardcoded footer HTML, and include both partial tokens in `needsRebrand()` detection. **Verify by rendering** the template via Clerk's preview endpoint (not just static grep) and assert the OLD name count == 0 in the *rendered* output.
 
+## Rename attempts verified futile (Aug 2026)
+`PATCH /v1/instance` with `{name}` or `{application_name}` returns **204 but is a silent no-op** — verify via the public Frontend API `GET https://<fapi-domain>/v1/environment` → `display_config.application_name` (FAPI domain = base64-decode of the publishable key suffix, minus trailing `$`). `/v1/instance/settings`, `/v1/display_config`, `/v1/applications` are all 404. A boot-time guard in `clerkEmailBrand.ts` (`tryRenameApplication`) re-attempts + verifies on every boot and logs "renamed" vs "NOT renameable", so the fix self-applies if Clerk ever honors the field.
+
 ## The sender DISPLAY name is NOT changeable via API (be honest with the user)
 `from_email_name` only sets the **local-part** of the address (→ `<Name>@accounts.dev`). The name shown by the inbox as the sender ("From: <AppName>") = the application name, which Replit-managed Clerk does **not** expose a rename endpoint for (`/v1/instance` returns only id/object/environment_type/allowed_origins). So the inbox sender label may still show the old app name even after a full template+partial rebrand. This does **not** block Apple review — the email *content* is fully rebranded; only the sender label is stuck.
 
